@@ -79,20 +79,18 @@
 
 
 
-<meta name="description" content="linux，vim   查看在控制台下直接输入vim可以查看vim基本信息：vim 键入以下命令，即可使用vim查看文件内容 ：vim [文件名]  显示行标在查看模式下，输入组合键Shift加:，输入命令：set number 行操作1.定位最后一行：输入组合键Shift加G2.定位第一行：输入组合键Shift加1G3.定位第n行：输入组合键Shift加nG 移动光标1.移动光标到行首：：输入">
+<meta name="description" content="linux，ubuntu，root，xshell，ssh   启用root用户   配置过程 [workspace]@username:~$ sudo passwd root [sudo] password for fwind:  Enter new UNIX password:  Retype new UNIX password:  passwd: password updated succe">
 <meta name="keywords" content="blog">
 <meta property="og:type" content="article">
-<meta property="og:title" content="linux下神级编辑器vim 简说">
-<meta property="og:url" content="http://yoursite.com/2019/05/28/linux下神级编辑器vim-简说/index.html">
+<meta property="og:title" content="linux下root用户连接ssh">
+<meta property="og:url" content="http://yoursite.com/2019/05/28/linux下root用户连接ssh/index.html">
 <meta property="og:site_name" content="fwind&#39;s blog">
-<meta property="og:description" content="linux，vim   查看在控制台下直接输入vim可以查看vim基本信息：vim 键入以下命令，即可使用vim查看文件内容 ：vim [文件名]  显示行标在查看模式下，输入组合键Shift加:，输入命令：set number 行操作1.定位最后一行：输入组合键Shift加G2.定位第一行：输入组合键Shift加1G3.定位第n行：输入组合键Shift加nG 移动光标1.移动光标到行首：：输入">
+<meta property="og:description" content="linux，ubuntu，root，xshell，ssh   启用root用户   配置过程 [workspace]@username:~$ sudo passwd root [sudo] password for fwind:  Enter new UNIX password:  Retype new UNIX password:  passwd: password updated succe">
 <meta property="og:locale" content="zh">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/282480-13621f813a57e9cb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-05-28T01:07:39.815Z">
+<meta property="og:updated_time" content="2019-05-28T01:12:04.641Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="linux下神级编辑器vim 简说">
-<meta name="twitter:description" content="linux，vim   查看在控制台下直接输入vim可以查看vim基本信息：vim 键入以下命令，即可使用vim查看文件内容 ：vim [文件名]  显示行标在查看模式下，输入组合键Shift加:，输入命令：set number 行操作1.定位最后一行：输入组合键Shift加G2.定位第一行：输入组合键Shift加1G3.定位第n行：输入组合键Shift加nG 移动光标1.移动光标到行首：：输入">
-<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/282480-13621f813a57e9cb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:title" content="linux下root用户连接ssh">
+<meta name="twitter:description" content="linux，ubuntu，root，xshell，ssh   启用root用户   配置过程 [workspace]@username:~$ sudo passwd root [sudo] password for fwind:  Enter new UNIX password:  Retype new UNIX password:  passwd: password updated succe">
 
 
 
@@ -122,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/05/28/linux下神级编辑器vim-简说/">
+  <link rel="canonical" href="http://yoursite.com/2019/05/28/linux下root用户连接ssh/">
 
 
 
 
 
-  <title>linux下神级编辑器vim 简说 | fwind's blog</title>
+  <title>linux下root用户连接ssh | fwind's blog</title>
   
 
 
@@ -235,7 +233,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/28/linux下神级编辑器vim-简说/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/28/linux下root用户连接ssh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="fwind">
@@ -252,7 +250,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">linux下神级编辑器vim 简说</h1>
+          <h1 class="post-title" itemprop="name headline">linux下root用户连接ssh</h1>
         
 
         <div class="post-meta">
@@ -264,7 +262,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-28T09:07:16+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-28T09:11:36+08:00">
                 2019-05-28
               </time>
             
@@ -303,20 +301,32 @@
 
       
         <blockquote>
-<p>linux，vim</p>
+<p>linux，ubuntu，root，xshell，ssh</p>
 </blockquote>
 <ul>
-<li>查看<br>在控制台下直接输入vim可以查看vim基本信息：<pre><code>vim
-</code></pre><img src="http://upload-images.jianshu.io/upload_images/282480-13621f813a57e9cb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vim.png"><br>键入以下命令，即可使用vim查看文件内容 ：<pre><code>vim [文件名]
-</code></pre></li>
-<li>显示行标<br>在查看模式下，输入组合键<strong>Shift加:</strong>，输入命令：set number</li>
-<li>行操作<br>1.定位最后一行：输入组合键<strong>Shift加G</strong><br>2.定位第一行：输入组合键<strong>Shift加1G</strong><br>3.定位第n行：输入组合键<strong>Shift加nG</strong></li>
-<li>移动光标<br>1.移动光标到行首：：输入组合键<strong>Shift加^</strong><br>2.移动光标到行首：：输入组合键<strong>Shift加$</strong>  </li>
-<li>编辑<br>直接输入<strong>i</strong>，可以开启编辑模式，使用键盘方向键移动光标进行编辑，退出编辑模式按<strong>Esc键</strong>即可。</li>
-<li>删除<br>1.删除一行：双击d</li>
-<li>退出<br>在查看模式下，输入组合键<strong>Shift加:</strong>，如果文件内容有变化，输入<strong>!wq</strong>保存退出；如果文件内容无变化，直接输入<strong>q</strong>即可退出；如果文件内容有变化但是又不打算保存，可以输入<strong>!q</strong>强制退出不保存。</li>
+<li>启用root用户</li>
 </ul>
-<p><strong>ps：vim编辑器极为强大，这里只是冰山入门一角，感兴趣的同学可以自行查阅学习。</strong></p>
+<ol>
+<li>配置过程 <pre><code>[workspace]@username:~$ sudo passwd root
+[sudo] password for fwind: 
+Enter new UNIX password: 
+Retype new UNIX password: 
+passwd: password updated successfully
+workspace@username:~$ reboot
+</code></pre></li>
+<li>完成<pre><code>root@username:~$
+</code></pre></li>
+</ol>
+<ul>
+<li>连接ssh</li>
+</ul>
+<ol>
+<li>修改配置文件<br>使用<strong>root权限</strong>用户打开ssh配置文件：<pre><code>vim /etc/ssh/sshd_config
+</code></pre>找到“<strong>PermitRootLogin prohibit-password</strong>”一行，将“prohibit-password”改为“yes”，然后重启ssh服务；</li>
+<li>重启<br>在root下重启ssh服务，然后。。。就可以在xshell下使用ssh肆无忌惮的连接linux了。<pre><code>sudo service sshd restart
+</code></pre></li>
+</ol>
+<p><strong>ps: vim 是linux下一款非常强大的编辑器，后续会有相关使用心得，敬请期待！</strong></p>
 
       
     </div>
@@ -341,8 +351,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/03/01/一些有趣的linux指令/" rel="next" title="一些有趣的linux指令">
-                <i class="fa fa-chevron-left"></i> 一些有趣的linux指令
+              <a href="/2019/05/28/linux下神级编辑器vim-简说/" rel="next" title="linux下神级编辑器vim 简说">
+                <i class="fa fa-chevron-left"></i> linux下神级编辑器vim 简说
               </a>
             
           </div>
@@ -350,10 +360,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/05/28/linux下root用户连接ssh/" rel="prev" title="linux下root用户连接ssh">
-                linux下root用户连接ssh <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
