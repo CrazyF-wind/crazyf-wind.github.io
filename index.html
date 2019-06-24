@@ -233,6 +233,142 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/20/ssh 学习笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fwind">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/20/ssh 学习笔记/" itemprop="url">Untitled</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-20T17:02:25+08:00">
+                2019-06-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="ssh-学习笔记"><a href="#ssh-学习笔记" class="headerlink" title="ssh 学习笔记"></a>ssh 学习笔记</h1><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secure Shell（安全外壳协议，简称SSH）是一种加密的网络传输协议，可在不安全的网络中为网络服务提供安全的传输环境。</p>
+<h2 id="连接方式"><a href="#连接方式" class="headerlink" title="连接方式"></a>连接方式</h2><h3 id="秘密验证"><a href="#秘密验证" class="headerlink" title="秘密验证"></a>秘密验证</h3><p>连接命令：<br><code>ssh username@ip</code><br>注释：其中username是服务器的用户名，ip是服务器的地址，然后输入服务器端该用户的登录密码即可完成连接验证。</p>
+<h3 id="密钥验证"><a href="#密钥验证" class="headerlink" title="密钥验证"></a>密钥验证</h3><ol>
+<li>生成密钥<br>在客户端生成公钥和私钥，此处我们使用rsa作为加密方式（加密方式另外还有rsa1、ecdsa、ed25519、dsa等），使用以下命令生成密钥：<br><code>ssh-keygen -t rsa</code><br>并设置文件名和秘密（这里我们定义文件名为id_rsa），然后会在目录~<em>.ssh</em>下生成私钥文件id_rsa和公钥文件id_rsa.pub。</li>
+<li>连接验证<br>生成密钥文件以后，将公钥放置在服务器端的目录~_.ssh_authorized_keys下，然后在客户端使用私钥进行免秘密验证，连接命令：<br><code>ssh -i ~/.ssh/id_rsa username@ip</code><h2 id="快速连接配置"><a href="#快速连接配置" class="headerlink" title="快速连接配置"></a>快速连接配置</h2>在文件目录~<em>.ssh</em>下有个config文件，我们可以将上文两种连接方式中写在里面，然后直接以ssh+服务器简称的方式进行快速连接。</li>
+<li>秘密配置<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Host    server01</span><br><span class="line">    HostName        192.168.1.10</span><br><span class="line">    Port            22</span><br><span class="line">    User            username</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>注释：22是ssh的默认连接端口（可变更）。配置完成以后，可以通过以下命令连接，连接时需要再次输入密码。<br><code>ssh server01</code></p>
+<ol start="2">
+<li>密钥配置<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Host    server02</span><br><span class="line">    HostName        192.168.1.11</span><br><span class="line">    Port            22</span><br><span class="line">    User            username</span><br><span class="line">    IdentityFile    ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>注释：其中IdentityFile为私钥文件的路径。配置完成以后，可以通过以下命令连接，连接时无需再次输入密码。<br><code>ssh server02</code></p>
+<h2 id="搭建通道"><a href="#搭建通道" class="headerlink" title="搭建通道"></a>搭建通道</h2><p>最简单的文件复制通道，执行命令：<br><code>scp -i ~/.ssh/id_rsa &#39;待传送文件&#39; username@ip:&#39;目标传送目录&#39;</code><br>通过以上命令，可以建立客户机和服务器之间或者两台服务器之间，文件单向传送的通道。</p>
+<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><p>SSH旨在保证非安全网络环境（例如互联网）中信息加密完整可靠。不过，SSH它也被指出有被嗅探甚至解密的漏洞。这里我们就不做具体介绍了。</p>
+<p>#study/ssh</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/28/linux下root用户连接ssh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -816,7 +952,7 @@ workspace@username:~$ reboot
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
