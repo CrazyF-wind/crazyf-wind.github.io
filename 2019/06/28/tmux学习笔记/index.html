@@ -87,12 +87,12 @@
 <meta property="og:site_name" content="fwind&#39;s blog">
 <meta property="og:description" content="概述Tmux 是一个优秀的终端复用器类自由软件，但使用 BSD 许可发布。用户可以通过 tmux 在一个终端内管理多个分离的会话，窗口及面板，对于同时使用多个命令行，或多个任务时非常方便。 基本操作会话 新建会话 1234# 新建会话，会话名默认生成tmux# 新建会话，并声明会话名tmux new -s session_name  正在运行会话列表查阅 1tmux ls  打开一个正在运行会话">
 <meta property="og:locale" content="zh">
-<meta property="og:image" content="http://yoursite.com/image/tmux学习笔记.jpg">
-<meta property="og:updated_time" content="2019-06-28T02:58:48.962Z">
+<meta property="og:image" content="http://yoursite.com/2019/06/28/tmux学习笔记/tmux学习笔记.jpg">
+<meta property="og:updated_time" content="2019-06-28T03:18:21.449Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="tmux学习笔记">
 <meta name="twitter:description" content="概述Tmux 是一个优秀的终端复用器类自由软件，但使用 BSD 许可发布。用户可以通过 tmux 在一个终端内管理多个分离的会话，窗口及面板，对于同时使用多个命令行，或多个任务时非常方便。 基本操作会话 新建会话 1234# 新建会话，会话名默认生成tmux# 新建会话，并声明会话名tmux new -s session_name  正在运行会话列表查阅 1tmux ls  打开一个正在运行会话">
-<meta name="twitter:image" content="http://yoursite.com/image/tmux学习笔记.jpg">
+<meta name="twitter:image" content="http://yoursite.com/2019/06/28/tmux学习笔记/tmux学习笔记.jpg">
 
 
 
@@ -264,7 +264,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-28T10:11:36+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-28T11:14:17+08:00">
                 2019-06-28
               </time>
             
@@ -302,11 +302,11 @@
       
 
       
-        <p><img src="/image/tmux学习笔记.jpg" alt></p>
+        <p><img src="tmux学习笔记.jpg" alt></p>
 <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Tmux 是一个优秀的终端复用器类自由软件，但使用 BSD 许可发布。用户可以通过 tmux 在一个终端内管理多个分离的会话，窗口及面板，对于同时使用多个命令行，或多个任务时非常方便。</p>
 <h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><h3 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h3><ol>
 <li><p>新建会话</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 新建会话，会话名默认生成</span></span><br><span class="line">tmux</span><br><span class="line"><span class="meta">#</span><span class="bash"> 新建会话，并声明会话名</span></span><br><span class="line">tmux new -s session_name</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 新建会话，会话名默认生成</span><br><span class="line">tmux</span><br><span class="line"><span class="meta">#</span> 新建会话，并声明会话名</span><br><span class="line">tmux new -s session_name</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>正在运行会话列表查阅</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux ls</span><br></pre></td></tr></table></figure>
@@ -316,17 +316,22 @@
 </li>
 <li><p>退出当前会话<br>快捷键：control+b，d</p>
 </li>
-<li>删除会话<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 删除一个正在运行的会话</span></span><br><span class="line">tmux kill-session -t session_name</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除当前会话名以外的其余会话（不指定会话名，默认保留第一条会话）</span></span><br><span class="line">tmux kill-session -a -t session_name</span><br></pre></td></tr></table></figure>
+<li>删除会话<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除一个正在运行的会话</span><br><span class="line">tmux kill-session -t session_name</span><br><span class="line"><span class="meta">#</span> 删除当前会话名以外的其余会话（不指定会话名，默认保留第一条会话）</span><br><span class="line">tmux kill-session -a -t session_name</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
 <h3 id="分屏"><a href="#分屏" class="headerlink" title="分屏"></a>分屏</h3><ol>
 <li>横向分屏<br>快捷键：control+b，%</li>
-<li>纵向分屏<br>快捷键：control+b，”<h3 id="杂项"><a href="#杂项" class="headerlink" title="杂项"></a>杂项</h3></li>
+<li>纵向分屏<br>快捷键：control+b，”</li>
+</ol>
+<h3 id="杂项"><a href="#杂项" class="headerlink" title="杂项"></a>杂项</h3><ol>
 <li>移动光标<br>快捷键：control+b，方向键</li>
 <li>显示系统时间<br>快捷键：control+b，t</li>
-<li>关闭窗口<br>在当前会话下，将光标移动到待关闭窗口，然后敲命令exit即可关闭窗口。<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><h3 id="代码调试"><a href="#代码调试" class="headerlink" title="代码调试"></a>代码调试</h3>在Linux或者Mac终端水平或者垂直切割屏幕，将切割区域分为代码部分、编译部分、调试效果展示部分、日志记录部分等，当我们需要debug时：在代码部分敲入代码，然后在代码编译部分编译代码，最后在展示部分（可终端展示程序）查看效果，如果有问题呢，在日志部分也可以实时检查。可谓码农的编程利器啊！<h3 id="系统监控"><a href="#系统监控" class="headerlink" title="系统监控"></a>系统监控</h3>我们可以建立多个会话，分别监控我们需要关注的系统性能、报警等信息，比如cpu使用情况、网络使用情况、内存是否正常、磁盘是否够用等等，然后在每个会话里，我们还可以通过屏幕切割达到对于每项监控更加细致的分类，一目了然，掌控全局！<h3 id="记忆标签"><a href="#记忆标签" class="headerlink" title="记忆标签"></a>记忆标签</h3><h4 id="本地"><a href="#本地" class="headerlink" title="本地"></a>本地</h4>很多使用Mac的同学都一个不成文的习惯，电脑长时间不关机，并且同时开启很多终端，原因有很多，比如担心重启电脑以后丢失之前进行到一半的任务，或则只是因为懒……当然，mac本身设计的很好，就算长期不重启也毫无压力。这个时候，其实我们需要一个记忆标签工具，来管理我们打开的数量庞大的终端们。不管开启多少个终端，只要我们简单的取个名字作为标记，下次再找的时候会快捷很多！<h4 id="服务器"><a href="#服务器" class="headerlink" title="服务器"></a>服务器</h4>对于服务器来说，重启的机会更加微乎其微，这个时候，我们就更需要一个终端记忆标签工具来管理我们的远程会话了，当我们ssh连接服务器时，遇到突发事件，比如被叫去开会，或者下班了，没关系！在开完会或者第二天上班以后，我们还可以进入当时那个会话，继续之前没有完成的工作。</li>
+<li>关闭窗口<br>在当前会话下，将光标移动到待关闭窗口，然后敲命令exit即可关闭窗口。<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2></li>
 </ol>
-<p>#study/tmux</p>
+<h3 id="代码调试"><a href="#代码调试" class="headerlink" title="代码调试"></a>代码调试</h3><p>在Linux或者Mac终端水平或者垂直切割屏幕，将切割区域分为代码部分、编译部分、调试效果展示部分、日志记录部分等，当我们需要debug时：在代码部分敲入代码，然后在代码编译部分编译代码，最后在展示部分（可终端展示程序）查看效果，如果有问题呢，在日志部分也可以实时检查。可谓码农的编程利器啊！</p>
+<h3 id="系统监控"><a href="#系统监控" class="headerlink" title="系统监控"></a>系统监控</h3><p>我们可以建立多个会话，分别监控我们需要关注的系统性能、报警等信息，比如cpu使用情况、网络使用情况、内存是否正常、磁盘是否够用等等，然后在每个会话里，我们还可以通过屏幕切割达到对于每项监控更加细致的分类，一目了然，掌控全局！</p>
+<h3 id="记忆标签"><a href="#记忆标签" class="headerlink" title="记忆标签"></a>记忆标签</h3><h4 id="本地"><a href="#本地" class="headerlink" title="本地"></a>本地</h4><p>很多使用Mac的同学都一个不成文的习惯，电脑长时间不关机，并且同时开启很多终端，原因有很多，比如担心重启电脑以后丢失之前进行到一半的任务，或则只是因为懒……当然，mac本身设计的很好，就算长期不重启也毫无压力。这个时候，其实我们需要一个记忆标签工具，来管理我们打开的数量庞大的终端们。不管开启多少个终端，只要我们简单的取个名字作为标记，下次再找的时候会快捷很多！</p>
+<h4 id="服务器"><a href="#服务器" class="headerlink" title="服务器"></a>服务器</h4><p>对于服务器来说，重启的机会更加微乎其微，这个时候，我们就更需要一个终端记忆标签工具来管理我们的远程会话了，当我们ssh连接服务器时，遇到突发事件，比如被叫去开会，或者下班了，没关系！在开完会或者第二天上班以后，我们还可以进入当时那个会话，继续之前没有完成的工作。</p>
 
       
     </div>
