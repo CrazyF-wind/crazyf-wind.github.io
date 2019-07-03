@@ -304,7 +304,8 @@
       
         
           
-            <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>PM2（process manage）是JavaScript运行时Node.js的进程管理器。</p>
+            <p><img src="pm2学习笔记.jpg" alt></p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>PM2（process manage）是JavaScript运行时Node.js的进程管理器。</p>
 <h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 借助npm包管理器安装</span></span><br><span class="line">npm install -g pm2</span><br></pre></td></tr></table></figure>
 <h3 id="启动进程"><a href="#启动进程" class="headerlink" title="启动进程"></a>启动进程</h3><h4 id="命令行启动"><a href="#命令行启动" class="headerlink" title="命令行启动"></a>命令行启动</h4><ol>
 <li><p>默认启动</p>
@@ -356,8 +357,7 @@
 <h3 id="还原配置"><a href="#还原配置" class="headerlink" title="还原配置"></a>还原配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 还原最后一个保存的所有进程任务</span></span><br><span class="line">pm2 resurrect</span><br></pre></td></tr></table></figure>
 <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><h3 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h3><p>当进程出现崩溃、异常停止等现象时，pm2会帮你重启该进程。</p>
 <h3 id="进程监控-1"><a href="#进程监控-1" class="headerlink" title="进程监控"></a>进程监控</h3><p>实时查看进程的cpu、内存占有情况以及运行状态等。</p>
-<h3 id="日志管理"><a href="#日志管理" class="headerlink" title="日志管理"></a>日志管理</h3><p>所有pm2日志会默认保存在～/.pm2_logs目录下，以进程名命名生成相应的日志文件，可以借助pm2-logrotate模块实现日志的按时间或者大小切割，便于归档记录，排查故障。</p>
-<p>#study/pm2</p>
+<h3 id="日志管理"><a href="#日志管理" class="headerlink" title="日志管理"></a>日志管理</h3><p>所有pm2日志会默认保存在～/.pm2/logs目录下，以进程名命名生成相应的日志文件，可以借助pm2-logrotate模块实现日志的按时间或者大小切割，便于归档记录，排查故障。</p>
 
           
         

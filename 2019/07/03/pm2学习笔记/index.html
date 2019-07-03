@@ -79,21 +79,22 @@
 
 
 
-<meta name="description" content="概念PM2（process manage）是JavaScript运行时Node.js的进程管理器。 基本操作安装12# 借助npm包管理器安装npm install -g pm2 启动进程命令行启动 默认启动 12# 启动一个nodejs进程，进程名默认为nodejs文件名，默认为fork单进程模式pm2 start app.js  自定义启动 12# 启动并自定义进程名pm2 start app">
+<meta name="description" content="概念PM2（process manage）是JavaScript运行时Node.js的进程管理器。 基本操作安装12# 借助npm包管理器安装npm install -g pm2 启动进程命令行启动 默认启动 12# 启动一个nodejs进程，进程名默认为nodejs文件名，默认为fork单进程模式pm2 start app.js  自定义启动 12# 启动并自定义进程名pm2 start ap">
 <meta name="keywords" content="linux,nodejs,npm">
 <meta property="og:type" content="article">
 <meta property="og:title" content="pm2学习笔记">
 <meta property="og:url" content="http://yoursite.com/2019/07/03/pm2学习笔记/index.html">
 <meta property="og:site_name" content="fwind&#39;s blog">
-<meta property="og:description" content="概念PM2（process manage）是JavaScript运行时Node.js的进程管理器。 基本操作安装12# 借助npm包管理器安装npm install -g pm2 启动进程命令行启动 默认启动 12# 启动一个nodejs进程，进程名默认为nodejs文件名，默认为fork单进程模式pm2 start app.js  自定义启动 12# 启动并自定义进程名pm2 start app">
+<meta property="og:description" content="概念PM2（process manage）是JavaScript运行时Node.js的进程管理器。 基本操作安装12# 借助npm包管理器安装npm install -g pm2 启动进程命令行启动 默认启动 12# 启动一个nodejs进程，进程名默认为nodejs文件名，默认为fork单进程模式pm2 start app.js  自定义启动 12# 启动并自定义进程名pm2 start ap">
 <meta property="og:locale" content="zh">
+<meta property="og:image" content="http://yoursite.com/2019/07/03/pm2学习笔记/pm2学习笔记.jpg">
 <meta property="og:image" content="http://yoursite.com/2019/07/03/pm2学习笔记/list.png">
 <meta property="og:image" content="http://yoursite.com/2019/07/03/pm2学习笔记/monit.png">
-<meta property="og:updated_time" content="2019-07-03T05:37:07.447Z">
+<meta property="og:updated_time" content="2019-07-03T05:47:58.308Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="pm2学习笔记">
-<meta name="twitter:description" content="概念PM2（process manage）是JavaScript运行时Node.js的进程管理器。 基本操作安装12# 借助npm包管理器安装npm install -g pm2 启动进程命令行启动 默认启动 12# 启动一个nodejs进程，进程名默认为nodejs文件名，默认为fork单进程模式pm2 start app.js  自定义启动 12# 启动并自定义进程名pm2 start app">
-<meta name="twitter:image" content="http://yoursite.com/2019/07/03/pm2学习笔记/list.png">
+<meta name="twitter:description" content="概念PM2（process manage）是JavaScript运行时Node.js的进程管理器。 基本操作安装12# 借助npm包管理器安装npm install -g pm2 启动进程命令行启动 默认启动 12# 启动一个nodejs进程，进程名默认为nodejs文件名，默认为fork单进程模式pm2 start app.js  自定义启动 12# 启动并自定义进程名pm2 start ap">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/03/pm2学习笔记/pm2学习笔记.jpg">
 
 
 
@@ -303,7 +304,8 @@
       
 
       
-        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>PM2（process manage）是JavaScript运行时Node.js的进程管理器。</p>
+        <p><img src="pm2学习笔记.jpg" alt></p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>PM2（process manage）是JavaScript运行时Node.js的进程管理器。</p>
 <h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 借助npm包管理器安装</span></span><br><span class="line">npm install -g pm2</span><br></pre></td></tr></table></figure>
 <h3 id="启动进程"><a href="#启动进程" class="headerlink" title="启动进程"></a>启动进程</h3><h4 id="命令行启动"><a href="#命令行启动" class="headerlink" title="命令行启动"></a>命令行启动</h4><ol>
 <li><p>默认启动</p>
@@ -355,8 +357,7 @@
 <h3 id="还原配置"><a href="#还原配置" class="headerlink" title="还原配置"></a>还原配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 还原最后一个保存的所有进程任务</span></span><br><span class="line">pm2 resurrect</span><br></pre></td></tr></table></figure>
 <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><h3 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h3><p>当进程出现崩溃、异常停止等现象时，pm2会帮你重启该进程。</p>
 <h3 id="进程监控-1"><a href="#进程监控-1" class="headerlink" title="进程监控"></a>进程监控</h3><p>实时查看进程的cpu、内存占有情况以及运行状态等。</p>
-<h3 id="日志管理"><a href="#日志管理" class="headerlink" title="日志管理"></a>日志管理</h3><p>所有pm2日志会默认保存在～/.pm2_logs目录下，以进程名命名生成相应的日志文件，可以借助pm2-logrotate模块实现日志的按时间或者大小切割，便于归档记录，排查故障。</p>
-<p>#study/pm2</p>
+<h3 id="日志管理"><a href="#日志管理" class="headerlink" title="日志管理"></a>日志管理</h3><p>所有pm2日志会默认保存在～/.pm2/logs目录下，以进程名命名生成相应的日志文件，可以借助pm2-logrotate模块实现日志的按时间或者大小切割，便于归档记录，排查故障。</p>
 
       
     </div>
