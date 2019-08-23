@@ -329,7 +329,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tesseract [待识别图片路径] [目标识别结果路径] -l <span class="built_in">test</span> makebox</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
-<p>识别结果会以box后缀文件形式保存在目标路径下，坐标内容包含识别结果左上角的横纵坐标以及长宽值，比如识别如下字符：<br><img src="train000.jpeg" alt><br>其结果为：<br><img src="8282192B-28F4-47CC-9C84-B35C55B85523.png" alt></p>
+<p>识别结果会以box后缀文件形式保存在目标路径下，坐标内容包含识别结果左上角的横纵坐标以及长宽值，比如识别如下字符：<br><img src="train000.jpeg" alt><br>其结果为（啧啧啧，通用中文库识别效果很差）：<br><img src="CE4BA33A-2FC7-4D6B-85FA-6FD5F92014E3.png" alt></p>
 <h2 id="数据训练"><a href="#数据训练" class="headerlink" title="数据训练"></a>数据训练</h2><h3 id="借助第三方工具"><a href="#借助第三方工具" class="headerlink" title="借助第三方工具"></a>借助第三方工具</h3><p>jTessBoxEditor是一款辅助标记的工具，在本地安装完tesseract-ocr以后，可以在jTessBoxEditor中配置tesseract-ocr的启动路径，然后基于tesseract-ocr进行可视化标注。如下图所示：<br><img src="582990A8-6E55-46D2-93D2-3D12AEFB8412.png" alt></p>
 <h4 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h4><p>在jTessBoxEditor的Trainer标签下，主要功能说明：</p>
 <ol>

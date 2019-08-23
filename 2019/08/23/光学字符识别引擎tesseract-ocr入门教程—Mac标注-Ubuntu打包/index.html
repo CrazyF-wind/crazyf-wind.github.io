@@ -88,12 +88,12 @@
 <meta property="og:description" content="概念 Tesseract是一个光学字符识别引擎，支持多种操作系统。Tesseract是基于Apache许可证的自由软件，自2006 年起由Google赞助开发。 2006年，Tesseract被认为是最精准的开源光学字符识别引擎之一。【维基百科】    声明在使用tesseract-ocr的过程中，我遇到了一些问题，并找到了一种适合我的使用方式，在这里给大家分享一下。 困境 在Mac下使用Home">
 <meta property="og:locale" content="zh">
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/train000.jpeg">
-<meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/8282192B-28F4-47CC-9C84-B35C55B85523.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/CE4BA33A-2FC7-4D6B-85FA-6FD5F92014E3.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/582990A8-6E55-46D2-93D2-3D12AEFB8412.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/6938E61D-E2CD-4DAF-9C73-F9DE8AAA2246.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/0FB5D384-F43A-4890-9E24-505A65475F79.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/744B0A5C-67AB-41C3-A582-1EAE41CF9CFA.png">
-<meta property="og:updated_time" content="2019-08-23T09:02:24.256Z">
+<meta property="og:updated_time" content="2019-08-23T09:18:15.492Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="光学字符识别引擎tesseract-ocr入门教程—Mac标注+Ubuntu打包">
 <meta name="twitter:description" content="概念 Tesseract是一个光学字符识别引擎，支持多种操作系统。Tesseract是基于Apache许可证的自由软件，自2006 年起由Google赞助开发。 2006年，Tesseract被认为是最精准的开源光学字符识别引擎之一。【维基百科】    声明在使用tesseract-ocr的过程中，我遇到了一些问题，并找到了一种适合我的使用方式，在这里给大家分享一下。 困境 在Mac下使用Home">
@@ -332,7 +332,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tesseract [待识别图片路径] [目标识别结果路径] -l <span class="built_in">test</span> makebox</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
-<p>识别结果会以box后缀文件形式保存在目标路径下，坐标内容包含识别结果左上角的横纵坐标以及长宽值，比如识别如下字符：<br><img src="train000.jpeg" alt><br>其结果为：<br><img src="8282192B-28F4-47CC-9C84-B35C55B85523.png" alt></p>
+<p>识别结果会以box后缀文件形式保存在目标路径下，坐标内容包含识别结果左上角的横纵坐标以及长宽值，比如识别如下字符：<br><img src="train000.jpeg" alt><br>其结果为（啧啧啧，通用中文库识别效果很差）：<br><img src="CE4BA33A-2FC7-4D6B-85FA-6FD5F92014E3.png" alt></p>
 <h2 id="数据训练"><a href="#数据训练" class="headerlink" title="数据训练"></a>数据训练</h2><h3 id="借助第三方工具"><a href="#借助第三方工具" class="headerlink" title="借助第三方工具"></a>借助第三方工具</h3><p>jTessBoxEditor是一款辅助标记的工具，在本地安装完tesseract-ocr以后，可以在jTessBoxEditor中配置tesseract-ocr的启动路径，然后基于tesseract-ocr进行可视化标注。如下图所示：<br><img src="582990A8-6E55-46D2-93D2-3D12AEFB8412.png" alt></p>
 <h4 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h4><p>在jTessBoxEditor的Trainer标签下，主要功能说明：</p>
 <ol>
