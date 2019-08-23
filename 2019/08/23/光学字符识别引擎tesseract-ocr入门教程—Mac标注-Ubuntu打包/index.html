@@ -93,7 +93,7 @@
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/6938E61D-E2CD-4DAF-9C73-F9DE8AAA2246.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/0FB5D384-F43A-4890-9E24-505A65475F79.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/744B0A5C-67AB-41C3-A582-1EAE41CF9CFA.png">
-<meta property="og:updated_time" content="2019-08-23T08:39:41.048Z">
+<meta property="og:updated_time" content="2019-08-23T09:02:24.256Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="光学字符识别引擎tesseract-ocr入门教程—Mac标注+Ubuntu打包">
 <meta name="twitter:description" content="概念 Tesseract是一个光学字符识别引擎，支持多种操作系统。Tesseract是基于Apache许可证的自由软件，自2006 年起由Google赞助开发。 2006年，Tesseract被认为是最精准的开源光学字符识别引擎之一。【维基百科】    声明在使用tesseract-ocr的过程中，我遇到了一些问题，并找到了一种适合我的使用方式，在这里给大家分享一下。 困境 在Mac下使用Home">
@@ -313,12 +313,15 @@
 <h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><p>在使用tesseract-ocr的过程中，我遇到了一些问题，并找到了一种适合我的使用方式，在这里给大家分享一下。</p>
 <h3 id="困境"><a href="#困境" class="headerlink" title="困境"></a>困境</h3><ol>
 <li>在Mac下使用Homebrew安装tesseract-ocr时，—with-training-tools参数取消，所以无法训练数据；如果使用github下载源码，然后编译安装的话，需要安装很多依赖，比较麻烦；</li>
-<li>如果在ubuntu下使用apt-get安装，默认是携带各种训练工具的，但是我的ubuntu系统是server版，不支持桌面，所以在标注图片时很不方便。<h3 id="我的解决方案"><a href="#我的解决方案" class="headerlink" title="我的解决方案"></a>我的解决方案</h3>我的解决方案是：在MacOS下标注，然后把标注好的box文件送到Ubuntu Server下，打包训练语言模型。<br>注意：如果您满足我在上文中提到的困境，就可以继续往下读了。<h3 id="其他方案"><a href="#其他方案" class="headerlink" title="其他方案"></a>其他方案</h3></li>
+<li>如果在ubuntu下使用apt-get安装，默认是携带各种训练工具的，但是我的ubuntu系统是server版，不支持桌面，所以在标注图片时很不方便。<h3 id="我的解决方案"><a href="#我的解决方案" class="headerlink" title="我的解决方案"></a>我的解决方案</h3>我的解决方案是：在MacOS下标注，然后把标注好的box文件送到Ubuntu Server下，打包训练语言模型。<br>注意：如果您满足我在上文中提到的困境，就可以继续往下读了。</li>
+</ol>
+<h3 id="其他方案"><a href="#其他方案" class="headerlink" title="其他方案"></a>其他方案</h3><ol>
 <li>在Mac下编译tesseract，使用jTessBoxEditor标注+训练</li>
 <li>在Linux桌面版安装tesseract，使用jTessBoxEditor标注+训练</li>
-<li>在Windows安装tesseract，使用jTessBoxEditor标注+训练<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2>tesseract-ocr支持Linux、Windows、MacOS、Android、IOS等操作系统。由于本人使用的操作系统是MacOS和Linux ubuntu server，所以本文只介绍这两个环境的安装。<h3 id="Mac"><a href="#Mac" class="headerlink" title="Mac"></a>Mac</h3>借助Homebrew，执行命令：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install tesseract-ocr</span><br></pre></td></tr></table></figure>
-</li>
+<li>在Windows安装tesseract，使用jTessBoxEditor标注+训练</li>
 </ol>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>tesseract-ocr支持Linux、Windows、MacOS、Android、IOS等操作系统。由于本人使用的操作系统是MacOS和Linux ubuntu server，所以本文只介绍这两个环境的安装。</p>
+<h3 id="Mac"><a href="#Mac" class="headerlink" title="Mac"></a>Mac</h3><p>借助Homebrew，执行命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install tesseract-ocr</span><br></pre></td></tr></table></figure></p>
 <p>安装完以后，截至今天为止，默认是4.0.0版本，不支持—with-training-tools，所以也不支持训练功能。如果直接使用github下载源码编译安装，是可以支持的，但是我比较懒，在需要训练操作时，我就去Linux上搞了（Linux的4.0.0是携带辅助训练工具包的）。</p>
 <h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><p>借助apt-get，执行命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install tesseract-ocr</span><br></pre></td></tr></table></figure></p>
 <h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><ol>
@@ -330,16 +333,21 @@
 </li>
 </ol>
 <p>识别结果会以box后缀文件形式保存在目标路径下，坐标内容包含识别结果左上角的横纵坐标以及长宽值，比如识别如下字符：<br><img src="train000.jpeg" alt><br>其结果为：<br><img src="8282192B-28F4-47CC-9C84-B35C55B85523.png" alt></p>
-<h2 id="数据训练"><a href="#数据训练" class="headerlink" title="数据训练"></a>数据训练</h2><p>借助第三方工具<br>jTessBoxEditor是一款辅助标记的工具，在本地安装完tesseract-ocr以后，可以在jTessBoxEditor中配置tesseract-ocr的启动路径，然后基于tesseract-ocr进行可视化标注。如下图所示：<br><img src="582990A8-6E55-46D2-93D2-3D12AEFB8412.png" alt></p>
+<h2 id="数据训练"><a href="#数据训练" class="headerlink" title="数据训练"></a>数据训练</h2><h3 id="借助第三方工具"><a href="#借助第三方工具" class="headerlink" title="借助第三方工具"></a>借助第三方工具</h3><p>jTessBoxEditor是一款辅助标记的工具，在本地安装完tesseract-ocr以后，可以在jTessBoxEditor中配置tesseract-ocr的启动路径，然后基于tesseract-ocr进行可视化标注。如下图所示：<br><img src="582990A8-6E55-46D2-93D2-3D12AEFB8412.png" alt></p>
 <h4 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h4><p>在jTessBoxEditor的Trainer标签下，主要功能说明：</p>
 <ol>
 <li>Tesseract Executables配置tesseract程序启动路径</li>
 <li>Training Data存放训练数据路径</li>
 <li>Language为自定义训练集名称</li>
 <li>Bootstrap Language是训练之前需要借助的语言模型名称</li>
-<li>然后选择Make Box File Only<br>注意：使用jTessBoxEditor需要配置Java环境变量。<h4 id="初步识别"><a href="#初步识别" class="headerlink" title="初步识别"></a>初步识别</h4></li>
+<li>然后选择Make Box File Only<br>注意：使用jTessBoxEditor需要配置Java环境变量。</li>
+</ol>
+<h4 id="初步识别"><a href="#初步识别" class="headerlink" title="初步识别"></a>初步识别</h4><ol>
 <li>选择Make Box File Only</li>
-<li>点击run按钮，就可以出来借助默认语言模型执行的识别结果。<h4 id="开始标注"><a href="#开始标注" class="headerlink" title="开始标注"></a>开始标注</h4>在获取到执行结果以后，切换到Box Editor标签，如下图所示：<br><img src="6938E61D-E2CD-4DAF-9C73-F9DE8AAA2246.png" alt><br>标注过程：</li>
+<li>点击run按钮，就可以出来借助默认语言模型执行的识别结果。</li>
+</ol>
+<h4 id="开始标注"><a href="#开始标注" class="headerlink" title="开始标注"></a>开始标注</h4><p>在获取到执行结果以后，切换到Box Editor标签，如下图所示：<br><img src="6938E61D-E2CD-4DAF-9C73-F9DE8AAA2246.png" alt><br>标注过程：</p>
+<ol>
 <li>首先点击“open”按钮打，打开之前识别结果box</li>
 <li>在左侧列表中，选择一个字符，比如上图中手写版的“测”字，然后在右侧提示框中对其进行调整，直到红色框完美包含字符</li>
 <li>然后依次调整其余所有字符</li>
@@ -348,7 +356,9 @@
 <li>点击“save”保存box</li>
 <li>返回上个标签Trainer，然后选择“Train with Existing Box”，点击“run”执行</li>
 <li>这时会在训练路径下生存.traindate语言模型</li>
-<li>最后，再换一张与训练数据类似的图片，点击Validate进行验证。<br>注意：如果你没有在Mac上编译安装tesseract，只是通过brew安装了4.x.x版本，那么到第6步就可以停止了，因为该版本不携带训练工具，你可以拿着标注好的box文件，找一个linux机器手动生存语言模型包，过程参考上述“命令行打包语言模型”。<h3 id="命令行打包语言模型"><a href="#命令行打包语言模型" class="headerlink" title="命令行打包语言模型"></a>命令行打包语言模型</h3></li>
+<li>最后，再换一张与训练数据类似的图片，点击Validate进行验证。<br>注意：如果你没有在Mac上编译安装tesseract，只是通过brew安装了4.x.x版本，那么到第6步就可以停止了，因为该版本不携带训练工具，你可以拿着标注好的box文件，找一个linux机器手动生存语言模型包，过程参考上述“命令行打包语言模型”。</li>
+</ol>
+<h3 id="命令行打包语言模型"><a href="#命令行打包语言模型" class="headerlink" title="命令行打包语言模型"></a>命令行打包语言模型</h3><ol>
 <li>使用tesseract命令生成识别结果box文件</li>
 <li>调整box（或者直接使用jTessBoxEditor标注结果）</li>
 <li><p>依次执行以下命令：</p>
@@ -360,9 +370,9 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># test是刚才生成的语言模型名称</span></span><br><span class="line">tesseract test1.jpeg test1 -l <span class="built_in">test</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p>执行结果：（效果还是不错的）<br><img src="0FB5D384-F43A-4890-9E24-505A65475F79.png" alt><br><img src="744B0A5C-67AB-41C3-A582-1EAE41CF9CFA.png" alt></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总体而言，虽然是桌面版标准+服务器端处理，但是使用起来还是可以接受的。如果将来有时间，可以研究一下在mac下之间编译tesseract源码</p>
 </li>
 </ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总体而言，虽然是桌面版标准+服务器端处理，但是使用起来还是可以接受的。如果将来有时间，可以研究一下在mac下之间编译tesseract源码</p>
 
       
     </div>
@@ -518,7 +528,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概念"><span class="nav-number">1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#声明"><span class="nav-number">2.</span> <span class="nav-text">声明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#困境"><span class="nav-number">2.1.</span> <span class="nav-text">困境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我的解决方案"><span class="nav-number">2.2.</span> <span class="nav-text">我的解决方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他方案"><span class="nav-number">2.3.</span> <span class="nav-text">其他方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">3.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mac"><span class="nav-number">3.1.</span> <span class="nav-text">Mac</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux"><span class="nav-number">3.2.</span> <span class="nav-text">Linux</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本用法"><span class="nav-number">4.</span> <span class="nav-text">基本用法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据训练"><span class="nav-number">5.</span> <span class="nav-text">数据训练</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#环境配置"><span class="nav-number">5.0.1.</span> <span class="nav-text">环境配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#初步识别"><span class="nav-number">5.0.2.</span> <span class="nav-text">初步识别</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开始标注"><span class="nav-number">5.0.3.</span> <span class="nav-text">开始标注</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行打包语言模型"><span class="nav-number">5.1.</span> <span class="nav-text">命令行打包语言模型</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概念"><span class="nav-number">1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#声明"><span class="nav-number">2.</span> <span class="nav-text">声明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#困境"><span class="nav-number">2.1.</span> <span class="nav-text">困境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我的解决方案"><span class="nav-number">2.2.</span> <span class="nav-text">我的解决方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他方案"><span class="nav-number">2.3.</span> <span class="nav-text">其他方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">3.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mac"><span class="nav-number">3.1.</span> <span class="nav-text">Mac</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux"><span class="nav-number">3.2.</span> <span class="nav-text">Linux</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本用法"><span class="nav-number">4.</span> <span class="nav-text">基本用法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据训练"><span class="nav-number">5.</span> <span class="nav-text">数据训练</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#借助第三方工具"><span class="nav-number">5.1.</span> <span class="nav-text">借助第三方工具</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#环境配置"><span class="nav-number">5.1.1.</span> <span class="nav-text">环境配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#初步识别"><span class="nav-number">5.1.2.</span> <span class="nav-text">初步识别</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开始标注"><span class="nav-number">5.1.3.</span> <span class="nav-text">开始标注</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行打包语言模型"><span class="nav-number">5.2.</span> <span class="nav-text">命令行打包语言模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
             
 
           </div>
