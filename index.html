@@ -233,6 +233,144 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/26/ES6函数简写及思考/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fwind">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/26/ES6函数简写及思考/" itemprop="url">ES6函数简写及思考</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-26T16:49:09+08:00">
+                2019-09-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><img src="ES6函数简写及思考.jpg" alt></p>
+<blockquote>
+<p>初闻    </p>
+</blockquote>
+<p>一次，一个同事在群里问，有谁知道这个函数该如何用ES6的方式简写：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn</span>(<span class="params">n</span>)</span>&#123;</span><br><span class="line"> <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">m</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> m+n</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我当时也没动脑子，直接按潜意识改了一下，发出去了：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fn=<span class="function">(<span class="params">n</span>)=&gt;</span>&#123;</span><br><span class="line"> <span class="keyword">return</span> <span class="function">(<span class="params">m</span>)=&gt;</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> m+n</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>果然，发code的那家伙神秘一笑，说你再继续简化一下试试。我后背一凉，赶紧又看了看，改成这个样子又抛出去了：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fn=<span class="function">(<span class="params">n</span>)=&gt;</span><span class="function">(<span class="params">m</span>)=&gt;</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> m+n</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我自认为这种总该差不多了吧，结果又被生生打脸。题主笑而不语，然后我恍然大悟，看来之前真是自以为会用，根本没有认真思考过，其实还可以进一步简化：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fn=<span class="function">(<span class="params">n</span>)=&gt;</span><span class="function">(<span class="params">m</span>)=&gt;</span> m+n</span><br></pre></td></tr></table></figure></p>
+<p>最后题主说，把括弧也去了吧：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fn = <span class="function"><span class="params">n</span> =&gt;</span> m =&gt; m + n</span><br></pre></td></tr></table></figure></p>
+<p>看着这段code，我沉默了……原来code可以如此简洁、优美、易懂。</p>
+<blockquote>
+<p>偶遇    </p>
+</blockquote>
+<p>上面的故事发生没多久以后，我在看一个帖子时，发现如下code：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [</span><br><span class="line">            &#123; <span class="attr">name</span>:<span class="string">"小明"</span>, <span class="attr">age</span>:<span class="number">12</span> &#125;,</span><br><span class="line">            &#123; <span class="attr">name</span>:<span class="string">"小红"</span>, <span class="attr">age</span>:<span class="number">11</span> &#125;,</span><br><span class="line">            &#123; <span class="attr">name</span>:<span class="string">"小刚"</span>, <span class="attr">age</span>:<span class="number">15</span> &#125;,</span><br><span class="line">            &#123; <span class="attr">name</span>:<span class="string">"小华"</span>, <span class="attr">age</span>:<span class="number">13</span> &#125;</span><br><span class="line">];</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">compare</span>(<span class="params">p</span>) </span>&#123; <span class="comment">//这是比较函数</span></span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params">m, n</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> a = m[p];</span><br><span class="line">        <span class="keyword">var</span> b = n[p];</span><br><span class="line">        <span class="keyword">return</span> a - b; <span class="comment">//升序</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">arr.sort(compares(<span class="string">"age"</span>));</span><br><span class="line"><span class="built_in">console</span>.log(arr);</span><br></pre></td></tr></table></figure></p>
+<p>然后我笑了，在评论区默默地留下了compares函数的简版：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">compare = <span class="function"><span class="params">p</span> =&gt;</span> (m, n) =&gt; m[p] - n[p]</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>思考    </p>
+</blockquote>
+<p>Coding这么多年，其实大部分时间是比较麻木的，不走脑子的reading、copy以及coding，糊弄完了一个又一个项目。随着时光的飞逝，真正有意义的东西很少能留下来，所谓很少，其实还是有的，要不真该转行了，就比如这个ES6简写的过程，就是非常有趣并且优美的。但是这个过程很偶然，首先，你得初步了解过这个技术，然后，在一个被动的机会下，你静下心来，认真的体会技术带来的愉悦感，并真正的掌握这项技能。这似乎需要一个积累的过程，大量阅读以后再反复推敲，然后在这个过程中，自我成长，体会技术的真谛，并且使自己快乐！</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/23/光学字符识别引擎tesseract-ocr入门教程—Mac标注-Ubuntu打包/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1469,7 +1607,7 @@ workspace@username:~$ reboot
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1482,7 +1620,7 @@ workspace@username:~$ reboot
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
