@@ -233,6 +233,177 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/10/Linux服务器守护进程方案及实现/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fwind">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/10/10/Linux服务器守护进程方案及实现/" itemprop="url">Linux服务器守护进程方案及实现</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-10-10T17:26:31+08:00">
+                2019-10-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><img src="Linux服务器进程守护思路.jpg" alt></p>
+<blockquote>
+<p>总体思路  </p>
+<ol>
+<li>在linux服务器新建无登录账号（/sbin/nologin/）</li>
+<li>构建自动化启动进程脚本</li>
+<li>新建计划任务定时监控服务（crontab）</li>
+</ol>
+</blockquote>
+<h2 id="初衷"><a href="#初衷" class="headerlink" title="初衷"></a>初衷</h2><p>在服务器的管理中，我们需要启动一些服务，出于安全方面的考虑，我们不希望以root的方式启动它，而是为这些服务单独建立相应的账号，并且禁用它们的shell登录权限。</p>
+<h2 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h2><h3 id="场景说明"><a href="#场景说明" class="headerlink" title="场景说明"></a>场景说明</h3><p>在linux服务器上实现对于nodejs进程进行守护的场景。</p>
+<h3 id="构建nodejs程序"><a href="#构建nodejs程序" class="headerlink" title="构建nodejs程序"></a>构建nodejs程序</h3><ol>
+<li><p>我们新建一个nodejs程序server.js：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> http = <span class="built_in">require</span>(‘http’)</span><br><span class="line"><span class="keyword">const</span> server = http.createServer(<span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">    res.writeHead(<span class="number">200</span>, &#123;</span><br><span class="line">        ‘Content-Type’: ‘application/json’</span><br><span class="line">    &#125;);</span><br><span class="line">    res.end(‘&#123;“server”:”nodejs”&#125;’);</span><br><span class="line">&#125;);</span><br><span class="line">server.listen(<span class="number">8080</span>)</span><br><span class="line"><span class="built_in">console</span>.log(“port = <span class="number">8080</span>”)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>常规启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node server.js</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>启动以后，server.js进程属于root用户，或者其他可以shell登录的用户：<br><img src="726223FE-043B-4807-8E96-82F553517F36.png" alt></p>
+<ol start="3">
+<li>在浏览器敲入ip加端口即可查看运行结果：<br><img src="04EDB1C0-7455-42D4-8141-C14059419131.png" alt></li>
+</ol>
+<h3 id="新建无登录账号"><a href="#新建无登录账号" class="headerlink" title="新建无登录账号"></a>新建无登录账号</h3><ol>
+<li><p>新建账号：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">useradd -M -s /sbin/nologin nodejsUser</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在/etc/passwd下查看账号状态：<br><img src="1F2C7BA3-B386-43FC-AD9C-55AB2D45E8E7.png" alt><br>nodejsUser是无法shell登录的，我们可以使用如下命令启动server.js：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 赋予nodejsUser账号可访问server.js文件的权限</span></span><br><span class="line">sudo chown nodejsUser /opt/nodejsUser/server.js</span><br><span class="line"><span class="comment"># 启动</span></span><br><span class="line">sudo -u nodejsUser node /opt/nodejsUser/server.js</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>此时查看8080端口，可以发现，现在用户是nodejsUser了：<br><img src="1AC51472-D033-4089-99C9-FD407A4ED153.png" alt></p>
+</li>
+</ol>
+<h3 id="编写自动化启动脚本"><a href="#编写自动化启动脚本" class="headerlink" title="编写自动化启动脚本"></a>编写自动化启动脚本</h3><ol>
+<li><p>此处我们需要借助tmux工具来实现实时监控nodejs进程的功能，下面是具体实现过程server.sh：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># tumx启动脚本</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 兼容zsh</span></span><br><span class="line"><span class="built_in">export</span> DISABLE_AUTO_TITLE=<span class="string">"true"</span></span><br><span class="line"><span class="comment"># 会话名称</span></span><br><span class="line">session=“sever”</span><br><span class="line"><span class="comment"># 判断server.js进程是否存在</span></span><br><span class="line">ps -ef|grep <span class="string">"node /opt/nodejsUser/server.js"</span> |grep -v grep</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"start process....."</span></span><br><span class="line">	  <span class="comment"># 判断tmux会话是否存在</span></span><br><span class="line">    tmux has-session -t <span class="variable">$session</span></span><br><span class="line">    <span class="keyword">if</span> [ $? = 0 ]</span><br><span class="line">        <span class="keyword">then</span></span><br><span class="line">		  <span class="comment"># 如果存在，则进入该会话</span></span><br><span class="line">        tmux attach-session -t <span class="variable">$session</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">		  <span class="comment"># 如果不存在，则新建会话</span></span><br><span class="line">        tmux new-session -d -s <span class="variable">$session</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">	  <span class="comment"># 发送启动程序命令</span></span><br><span class="line">    tmux send-keys -t <span class="variable">$session</span> <span class="string">"sudo -u nodejsUser node /opt/nodejsUser/server.js"</span> C-m</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">	  <span class="built_in">echo</span> <span class="string">"runing....."</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当tmux会话启动以后，可以随时查看server.js运行的情况：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 	启动会话</span></span><br><span class="line">tmux a -t server</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="自定义计划任务"><a href="#自定义计划任务" class="headerlink" title="自定义计划任务"></a>自定义计划任务</h3><ol>
+<li><p>新建计划任务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crontab -e</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>任务内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*/1 * * * * /bin/bash /opt/nodejsUser/server.sh &gt;&gt; /opt/nodejsUser/run.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>每分钟执行一次server.sh脚本，执行情况记录到日志文件run.log当中。crontab的定时机制可以自行查阅，比较好理解，这里不再赘述。</p>
+<h2 id="写在最后的话"><a href="#写在最后的话" class="headerlink" title="写在最后的话"></a>写在最后的话</h2><p>到此为止，所有功能均已实现，我们的计划任务会定时对server.js进程扫描，当发现该进程crash时，会自动重启。当服务器重启时，计划任务也会超常运行。</p>
+<p>其实在这之前，我在管理nodejs项目时，使用的是pm2监控工具，现成的免费工具，用起来确实也比较方便，但是在无登录账号下遇到无法启动pm2的问题，虽然花了一些时间攻克，但最终并没有解决，因此就有了本文中的解决方案，先用一段时间看看效果吧。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/26/ES6函数简写及思考/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1607,7 +1778,7 @@ workspace@username:~$ reboot
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1620,7 +1791,7 @@ workspace@username:~$ reboot
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
