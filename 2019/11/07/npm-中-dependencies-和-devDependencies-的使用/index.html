@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT">
+  <meta name="keywords" content="npm,">
 
 
 
@@ -79,20 +79,20 @@
 
 
 
-<meta name="description" content="介绍Secure Shell（安全外壳协议，简称SSH）是一种加密的网络传输协议，可在不安全的网络中为网络服务提供安全的传输环境。 连接方式秘密验证连接命令：1ssh username@ip 注释：其中username是服务器的用户名，ip是服务器的地址，然后输入服务器端该用户的登录密码即可完成连接验证。 密钥验证 生成密钥在客户端生成公钥和私钥，此处我们使用rsa作为加密方式（加密方式另外还有">
-<meta name="keywords" content="blog">
+<meta name="description" content="导读    使用 npm 作为包管理工具已经很多年了，但是常用的其实就那么几个功能，一些基础的但很重要的概念和用法反而不太清楚。最近抽空整理并探索一下，重新学习 npm 。 今天先对 package.json 配置文件中的 dependencies 和 devDependencies 做一番研究。 dependencies 使用环境：生产环境下所依赖的 npm 包集合； 命令行安装单个包的方式">
+<meta name="keywords" content="npm">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ssh学习笔记">
-<meta property="og:url" content="http://yoursite.com/2019/06/24/ssh学习笔记/index.html">
+<meta property="og:title" content=" npm 中 dependencies 和 devDependencies 的使用 ">
+<meta property="og:url" content="http://yoursite.com/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/index.html">
 <meta property="og:site_name" content="fwind&#39;s blog">
-<meta property="og:description" content="介绍Secure Shell（安全外壳协议，简称SSH）是一种加密的网络传输协议，可在不安全的网络中为网络服务提供安全的传输环境。 连接方式秘密验证连接命令：1ssh username@ip 注释：其中username是服务器的用户名，ip是服务器的地址，然后输入服务器端该用户的登录密码即可完成连接验证。 密钥验证 生成密钥在客户端生成公钥和私钥，此处我们使用rsa作为加密方式（加密方式另外还有">
+<meta property="og:description" content="导读    使用 npm 作为包管理工具已经很多年了，但是常用的其实就那么几个功能，一些基础的但很重要的概念和用法反而不太清楚。最近抽空整理并探索一下，重新学习 npm 。 今天先对 package.json 配置文件中的 dependencies 和 devDependencies 做一番研究。 dependencies 使用环境：生产环境下所依赖的 npm 包集合； 命令行安装单个包的方式">
 <meta property="og:locale" content="zh">
-<meta property="og:image" content="http://yoursite.com/2019/06/24/ssh学习笔记/ssh学习笔记.jpg">
-<meta property="og:updated_time" content="2019-09-26T08:51:41.093Z">
+<meta property="og:image" content="http://yoursite.com/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/@luca-bravo-rnBzqZ8bgAY-unsplash.jpg">
+<meta property="og:updated_time" content="2019-11-07T09:12:48.966Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="ssh学习笔记">
-<meta name="twitter:description" content="介绍Secure Shell（安全外壳协议，简称SSH）是一种加密的网络传输协议，可在不安全的网络中为网络服务提供安全的传输环境。 连接方式秘密验证连接命令：1ssh username@ip 注释：其中username是服务器的用户名，ip是服务器的地址，然后输入服务器端该用户的登录密码即可完成连接验证。 密钥验证 生成密钥在客户端生成公钥和私钥，此处我们使用rsa作为加密方式（加密方式另外还有">
-<meta name="twitter:image" content="http://yoursite.com/2019/06/24/ssh学习笔记/ssh学习笔记.jpg">
+<meta name="twitter:title" content=" npm 中 dependencies 和 devDependencies 的使用 ">
+<meta name="twitter:description" content="导读    使用 npm 作为包管理工具已经很多年了，但是常用的其实就那么几个功能，一些基础的但很重要的概念和用法反而不太清楚。最近抽空整理并探索一下，重新学习 npm 。 今天先对 package.json 配置文件中的 dependencies 和 devDependencies 做一番研究。 dependencies 使用环境：生产环境下所依赖的 npm 包集合； 命令行安装单个包的方式">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/@luca-bravo-rnBzqZ8bgAY-unsplash.jpg">
 
 
 
@@ -122,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/06/24/ssh学习笔记/">
+  <link rel="canonical" href="http://yoursite.com/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/">
 
 
 
 
 
-  <title>ssh学习笔记 | fwind's blog</title>
+  <title> npm 中 dependencies 和 devDependencies 的使用  | fwind's blog</title>
   
 
 
@@ -235,7 +235,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/24/ssh学习笔记/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="fwind">
@@ -252,7 +252,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">ssh学习笔记</h1>
+          <h1 class="post-title" itemprop="name headline"> npm 中 dependencies 和 devDependencies 的使用 </h1>
         
 
         <div class="post-meta">
@@ -264,8 +264,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-24T10:18:40+08:00">
-                2019-06-24
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-07T16:51:08+08:00">
+                2019-11-07
               </time>
             
 
@@ -302,33 +302,39 @@
       
 
       
-        <p><img src="ssh学习笔记.jpg" alt></p>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secure Shell（安全外壳协议，简称SSH）是一种加密的网络传输协议，可在不安全的网络中为网络服务提供安全的传输环境。</p>
-<h2 id="连接方式"><a href="#连接方式" class="headerlink" title="连接方式"></a>连接方式</h2><h3 id="秘密验证"><a href="#秘密验证" class="headerlink" title="秘密验证"></a>秘密验证</h3><p>连接命令：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh username@ip</span><br></pre></td></tr></table></figure></p>
-<p>注释：其中username是服务器的用户名，ip是服务器的地址，然后输入服务器端该用户的登录密码即可完成连接验证。</p>
-<h3 id="密钥验证"><a href="#密钥验证" class="headerlink" title="密钥验证"></a>密钥验证</h3><ol>
-<li>生成密钥<br>在客户端生成公钥和私钥，此处我们使用rsa作为加密方式（加密方式另外还有rsa1、ecdsa、ed25519、dsa等），使用以下命令生成密钥：<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+        <p><img src="@luca-bravo-rnBzqZ8bgAY-unsplash.jpg" alt></p>
+<blockquote>
+<p>导读  </p>
+</blockquote>
+<p>使用 npm 作为包管理工具已经很多年了，但是常用的其实就那么几个功能，一些基础的但很重要的概念和用法反而不太清楚。最近抽空整理并探索一下，重新学习 npm 。</p>
+<p>今天先对 package.json 配置文件中的 dependencies 和 devDependencies 做一番研究。</p>
+<h2 id="dependencies"><a href="#dependencies" class="headerlink" title="dependencies"></a>dependencies</h2><ol>
+<li>使用环境：生产环境下所依赖的 npm 包集合；</li>
+<li><p>命令行安装单个包的方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># —sava-prod 为默认安装模式</span></span><br><span class="line"><span class="comment"># 安装以后会自动在 package.json 的 dependencies 下添加 &lt;package-name&gt;</span></span><br><span class="line">npm install &lt;package-name&gt; [—sava-prod]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>命令行集成安装方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># 安装 dependencies 和 devDependencies 中的所有 npm 包</span></span><br><span class="line">npm install</span><br><span class="line"><span class="comment"># 仅安装 dependencies 下的所有 npm 包</span></span><br><span class="line">npm install —production</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>被调用：如果将当前工程作为一个单独包，提供给其他人使用，在对方使用 npm install 命令安装时，会自动下载 dependencies 下的包集合。</p>
 </li>
 </ol>
-<p>并设置文件名和秘密（这里我们定义文件名为id_rsa），然后会在目录~<em>.ssh</em>下生成私钥文件id_rsa和公钥文件id_rsa.pub。</p>
-<ol start="2">
-<li>连接验证<br>生成密钥文件以后，将公钥放置在服务器端的目录~_.ssh_authorized_keys下，然后在客户端使用私钥进行免秘密验证，连接命令：<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -i ~/.ssh/id_rsa username@ip</span><br></pre></td></tr></table></figure>
+<h2 id="devDependencies"><a href="#devDependencies" class="headerlink" title="devDependencies"></a>devDependencies</h2><ol>
+<li>使用环境：开发和测试环境下所依赖的 npm 包集合；</li>
+<li><p>命令行安装单个包的方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># 安装以后会自动在 package.json 的 devDependencies 下添加 &lt;package-name&gt;</span></span><br><span class="line">npm install &lt;package-name&gt; —sava-dev</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>命令行集成安装方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># 安装 dependencies 和 devDependencies 中的所有 npm 包</span></span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>被调用：如果将当前工程作为一个单独包，提供给其他人使用，在对方使用 npm install 命令安装时，不会自动下载 devDependencies 下的包集合。</p>
 </li>
 </ol>
-<h2 id="快速连接配置"><a href="#快速连接配置" class="headerlink" title="快速连接配置"></a>快速连接配置</h2><p>在文件目录~<em>.ssh</em>下有个config文件，我们可以将上文两种连接方式中写在里面，然后直接以ssh+服务器简称的方式进行快速连接。</p>
-<ol>
-<li>秘密配置<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Host    server01</span><br><span class="line">    HostName        192.168.1.10</span><br><span class="line">    Port            22</span><br><span class="line">    User            username</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>注释：22是ssh的默认连接端口（可变更）。配置完成以后，可以通过以下命令连接，连接时需要再次输入密码。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh server01</span><br></pre></td></tr></table></figure></p>
-<ol start="2">
-<li>密钥配置<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Host    server02</span><br><span class="line">    HostName        192.168.1.11</span><br><span class="line">    Port            22</span><br><span class="line">    User            username</span><br><span class="line">    IdentityFile    ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>注释：其中IdentityFile为私钥文件的路径。配置完成以后，可以通过以下命令连接，连接时无需再次输入密码。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh server02</span><br></pre></td></tr></table></figure></p>
-<h2 id="搭建通道"><a href="#搭建通道" class="headerlink" title="搭建通道"></a>搭建通道</h2><p>最简单的文件复制通道，执行命令：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp -i ~/.ssh/id_rsa '待传送文件' username@ip:'目标传送目录'</span><br></pre></td></tr></table></figure></p>
-<p>通过以上命令，可以建立客户机和服务器之间或者两台服务器之间，文件单向传送的通道。</p>
-<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><p>SSH旨在保证非安全网络环境（例如互联网）中信息加密完整可靠。不过，SSH它也被指出有被嗅探甚至解密的漏洞。这里我们就不做具体介绍了。</p>
+<h2 id="建议"><a href="#建议" class="headerlink" title="建议"></a>建议</h2><h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><p>在我以往写代码的过程中，对于需要引用包的位置，并没有做任何区分，因为在使用 npm install 时会一起安装，所以没有太在意，直到使用 nest.js 时发现，默认安装的包居然有 200M 之多。</p>
+<p>当我需要自动化部署它们到一台线上服务器时，会花费很多时间，但其实像 @nestjs/cli 、 @types/supertest 等开发和测试工具在线上根本是用不着的。</p>
+<p>于是我对于要往线上环境上传的工程使用了 npm install —production 命令，这时文件大小缩小为 11M ，然后再压缩以后，最终仅仅剩下了 5M 。</p>
+<h3 id="发布"><a href="#发布" class="headerlink" title="发布"></a>发布</h3><p>当整个工程开发完毕，作为一个独立包待发布时，同样需要注意！如果不对 dependencies 和 devDependencies 加以区分，将开发/测试依赖写在生产依赖下，会导致调用该 npm 包的用户下载很多与其无关的包，从而造成不必要的资源浪费。</p>
+<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><p><a href="https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file" target="_blank" rel="noopener">Specifying dependencies and devDependencies in a package.json file |                 npm Documentation</a><br><a href="https://blog.csdn.net/csdn_yudong/article/details/83721870" target="_blank" rel="noopener">npm install 你很明白吗 - NeverYu - CSDN博客</a></p>
 
       
     </div>
@@ -344,6 +350,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/npm/" rel="tag"># npm</a>
+          
+        </div>
+      
 
       
       
@@ -353,8 +365,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/05/28/linux下root用户连接ssh/" rel="next" title="linux下root用户连接ssh">
-                <i class="fa fa-chevron-left"></i> linux下root用户连接ssh
+              <a href="/2019/11/01/记一次在github上提交issue的经历/" rel="next" title="记一次在 github 上提交 issue 的经历">
+                <i class="fa fa-chevron-left"></i> 记一次在 github 上提交 issue 的经历
               </a>
             
           </div>
@@ -362,10 +374,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/06/28/tmux学习笔记/" rel="prev" title="tmux学习笔记">
-                tmux学习笔记 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -488,7 +496,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#连接方式"><span class="nav-number">2.</span> <span class="nav-text">连接方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#秘密验证"><span class="nav-number">2.1.</span> <span class="nav-text">秘密验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#密钥验证"><span class="nav-number">2.2.</span> <span class="nav-text">密钥验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快速连接配置"><span class="nav-number">3.</span> <span class="nav-text">快速连接配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搭建通道"><span class="nav-number">4.</span> <span class="nav-text">搭建通道</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安全性"><span class="nav-number">5.</span> <span class="nav-text">安全性</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#dependencies"><span class="nav-number">1.</span> <span class="nav-text">dependencies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#devDependencies"><span class="nav-number">2.</span> <span class="nav-text">devDependencies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#建议"><span class="nav-number">3.</span> <span class="nav-text">建议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#部署"><span class="nav-number">3.1.</span> <span class="nav-text">部署</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发布"><span class="nav-number">3.2.</span> <span class="nav-text">发布</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考来源"><span class="nav-number">4.</span> <span class="nav-text">参考来源</span></a></li></ol></div>
             
 
           </div>

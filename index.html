@@ -233,6 +233,158 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fwind">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/" itemprop="url"> npm 中 dependencies 和 devDependencies 的使用 </a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-07T16:51:08+08:00">
+                2019-11-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><img src="@luca-bravo-rnBzqZ8bgAY-unsplash.jpg" alt></p>
+<blockquote>
+<p>导读  </p>
+</blockquote>
+<p>使用 npm 作为包管理工具已经很多年了，但是常用的其实就那么几个功能，一些基础的但很重要的概念和用法反而不太清楚。最近抽空整理并探索一下，重新学习 npm 。</p>
+<p>今天先对 package.json 配置文件中的 dependencies 和 devDependencies 做一番研究。</p>
+<h2 id="dependencies"><a href="#dependencies" class="headerlink" title="dependencies"></a>dependencies</h2><ol>
+<li>使用环境：生产环境下所依赖的 npm 包集合；</li>
+<li><p>命令行安装单个包的方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># —sava-prod 为默认安装模式</span></span><br><span class="line"><span class="comment"># 安装以后会自动在 package.json 的 dependencies 下添加 &lt;package-name&gt;</span></span><br><span class="line">npm install &lt;package-name&gt; [—sava-prod]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>命令行集成安装方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># 安装 dependencies 和 devDependencies 中的所有 npm 包</span></span><br><span class="line">npm install</span><br><span class="line"><span class="comment"># 仅安装 dependencies 下的所有 npm 包</span></span><br><span class="line">npm install —production</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>被调用：如果将当前工程作为一个单独包，提供给其他人使用，在对方使用 npm install 命令安装时，会自动下载 dependencies 下的包集合。</p>
+</li>
+</ol>
+<h2 id="devDependencies"><a href="#devDependencies" class="headerlink" title="devDependencies"></a>devDependencies</h2><ol>
+<li>使用环境：开发和测试环境下所依赖的 npm 包集合；</li>
+<li><p>命令行安装单个包的方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># 安装以后会自动在 package.json 的 devDependencies 下添加 &lt;package-name&gt;</span></span><br><span class="line">npm install &lt;package-name&gt; —sava-dev</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>命令行集成安装方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在与 package.json 同级目录下执行</span></span><br><span class="line"><span class="comment"># 安装 dependencies 和 devDependencies 中的所有 npm 包</span></span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>被调用：如果将当前工程作为一个单独包，提供给其他人使用，在对方使用 npm install 命令安装时，不会自动下载 devDependencies 下的包集合。</p>
+</li>
+</ol>
+<h2 id="建议"><a href="#建议" class="headerlink" title="建议"></a>建议</h2><h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><p>在我以往写代码的过程中，对于需要引用包的位置，并没有做任何区分，因为在使用 npm install 时会一起安装，所以没有太在意，直到使用 nest.js 时发现，默认安装的包居然有 200M 之多。</p>
+<p>当我需要自动化部署它们到一台线上服务器时，会花费很多时间，但其实像 @nestjs/cli 、 @types/supertest 等开发和测试工具在线上根本是用不着的。</p>
+<p>于是我对于要往线上环境上传的工程使用了 npm install —production 命令，这时文件大小缩小为 11M ，然后再压缩以后，最终仅仅剩下了 5M 。</p>
+<h3 id="发布"><a href="#发布" class="headerlink" title="发布"></a>发布</h3><p>当整个工程开发完毕，作为一个独立包待发布时，同样需要注意！如果不对 dependencies 和 devDependencies 加以区分，将开发/测试依赖写在生产依赖下，会导致调用该 npm 包的用户下载很多与其无关的包，从而造成不必要的资源浪费。</p>
+<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><p><a href="https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file" target="_blank" rel="noopener">Specifying dependencies and devDependencies in a package.json file |                 npm Documentation</a><br><a href="https://blog.csdn.net/csdn_yudong/article/details/83721870" target="_blank" rel="noopener">npm install 你很明白吗 - NeverYu - CSDN博客</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/01/记一次在github上提交issue的经历/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1598,148 +1750,6 @@ workspace@username:~$ reboot
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/一些有趣的linux指令/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="fwind">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fwind's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/01/一些有趣的linux指令/" itemprop="url">一些有趣的linux指令</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-03-01T11:34:04+08:00">
-                2019-03-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>linux，ubuntu，command</p>
-</blockquote>
-<ul>
-<li><p>黑客帝国来袭<br>安装：</p>
-<pre><code>apt-get install cmatrix
-</code></pre><p>执行：</p>
-<pre><code>cmatrix
-</code></pre><p>效果：<br><img src="http://upload-images.jianshu.io/upload_images/282480-bbf26883f08d3900.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/640" alt="cmatrix.png"></p>
-</li>
-<li><p>火焰<br>安装：</p>
-<pre><code>apt-get install libaa-bin
-</code></pre><p>执行：</p>
-<pre><code>aafire
-</code></pre><p>效果：<br><img src="http://upload-images.jianshu.io/upload_images/282480-cd6a6713e8e5b89d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/640" alt="aafire.png"></p>
-</li>
-<li><p>小火车，呜呜呜<br>安装：</p>
-<pre><code>apt-get install sl
-</code></pre><p>执行：</p>
-<pre><code>sl
-</code></pre><p>效果：<br><img src="http://upload-images.jianshu.io/upload_images/282480-8e88fc9fcf3b3ce5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/640" alt="sl.png"></p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1790,7 +1800,7 @@ workspace@username:~$ reboot
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1803,7 +1813,7 @@ workspace@username:~$ reboot
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
