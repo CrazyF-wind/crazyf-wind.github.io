@@ -233,6 +233,149 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/14/Node-js-下使用-gm-模块的一些思考/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fwind">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/14/Node-js-下使用-gm-模块的一些思考/" itemprop="url"> Node.js 下使用 gm 模块的一些思考</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-14T15:20:06+08:00">
+                2019-11-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><img src="@aman-dhakal-YkWz_coLm84-unsplash.jpg" alt></p>
+<blockquote>
+<p> 楔子  </p>
+</blockquote>
+<p>在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child Process | Node.js v12.13.0 Documentation](https://nodejs.org/dist/latest-v12.x/docs/api/child_process.html#child_process_child_process_spawn_command_args_options)</span></span><br><span class="line"><span class="keyword">const</span> &#123; spawn &#125; = <span class="built_in">require</span>(‘child_process’);</span><br><span class="line"><span class="keyword">const</span> ls = spawn(‘ls’, [‘-lh’, ‘/Users’]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 控制台正常输出</span></span><br><span class="line">ls.stdout.on(‘data’, (data) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`stdout: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 控制台异常输出</span></span><br><span class="line">ls.stderr.on(<span class="string">'data'</span>, (data) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关闭</span></span><br><span class="line">ls.on(<span class="string">'close'</span>, (code) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`child process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>事实上，我们可以通过以上方式，来实现任何与本地 Linux 服务交互的工作。任何 Linux 服务器下的系统命令，或者安装的第三方软件，均可以通过 Node.js 来使用。</p>
+<blockquote>
+<p>达摩克利斯之剑  </p>
+</blockquote>
+<p>当时只是觉得这个功能好玩、实用，但是没有进一步深入研究。直到 <a href="https://mp.weixin.qq.com/s/j_U6vQRu360iXwieG33DBA" target="_blank" rel="noopener">周下载量过 200万的 npm 包被注入恶意代码 </a> 事件的发生，让我意识到 Node.js 的子进程功能还是一把达摩克利斯之剑。在安全防范较低或者没有的情况下，极其容易被恶意利用，而且后果不堪设想。</p>
+<p>当然，该事件当中还藏着另外一把达摩克利斯之剑：JavaScript 下的 eval 函数 。eval 函数中可以执行几乎所有的 JavaScript 代码，简直就是一个行走的编译器。在使用该函数时，同样需要做好相关的安全工作，比如限制未知用户往里面传入任何数据。</p>
+<p>当然，事件热的时候，关注过，凉了之后也就不了了之。</p>
+<blockquote>
+<p>又见，思考  </p>
+</blockquote>
+<p>直到最近一段时间，在做一个项目，需要对图像文件做一下处理。在 Linux/Mac 下有一个图形图像处理工具，叫  imagemagick ，里面有瑞士军刀般多的好用功能。下意识中，我就想到了使用 Node.js 的子进程功能来直接使用。但是我又觉得这么实现似乎过于简单，而且太依赖本地环境。</p>
+<p>于是，我就去 Node.js 官网查找了一下，看有没有新增处理图形图像的新特性，很遗憾，并没有！但是我并没死心，又继续在 bing 中搜索了一下。这时我找到一片文章（<a href="https://blog.csdn.net/dreamer2020/article/details/51647885" target="_blank" rel="noopener">nodejs图片处理工具gm用法</a>），介绍了如何在 Node.js 环境下，使用 npm 包 gm 来处理图形图像文件。</p>
+<p>我很高兴，并认为这是一个理想的方案，因为那篇文中关于 gm 的介绍十分清楚，并且使用起来也很简洁。在甚至连 gm 在 npm 官网上的使用手册都没有看的前提下，我就贸然使用了 gm 。</p>
+<p>当我激动地盯着屏幕，看着那段脚步启动，然后报异常后，我的心情先是失落，然后转为意外，最后，我静静地笑了。因为异常提示没有找到 convert 命令，而 convert 命令正是我上面提到 imagemagick 工具一下的一个命令。所以我推测这个 gm 包其实就是按照我最初的那种思路实现的。</p>
+<p>为了一探究竟并验证我的想法。首先，我看了 gm 在 npm 上的官方使用手册。果然，文档的一开始就清楚的提示，使用该工具之前需要先安装 imagemagick 。那它到底是如何使用的 imagemagick 呢？让我们接着往下看。 </p>
+<p>我看了 gm 的源码。果然， gm 引用了一个叫 cross-spawn 的包，来执行 convert 命令，而 cross-spawn 的源码中，确实是使用 child_process 子进程来实现的。</p>
+<p>到此为止，整个过程已经理顺。而我则陷入了沉思……</p>
+<p>可想而知，利用这种模式，即 Node.js + child_process 的方式，可以实现很多基于操作系统命令行的功能。在没有遇到 gm 之前，我只是简单地这么认为。在遇到 gm 之后，我才发现，原来真的有工程师利用这种模式来输出被广泛（ gm 在 npm 上的周下载量，截止我写这篇文章为止，已经超 10 万了）使用的工具。有时候，编程技术迭代很快，日新月异，每隔一段时间就会有一个新的很炫酷的技术冒出来，然后受到大家的追捧。而有时候，编程技术迭代又很慢，很多技术明明是新瓶装旧酒，却同样可以焕发出耀眼的光芒。</p>
+<p>所以说，在计算机这一行，如果你真心的热爱她，就应该沉下心来，认真地去理解和感悟技术的本质，而不是去一个劲儿地追逐新时髦。唯有看透本质，才是获取真理钥匙的最佳途径。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1616,140 +1759,6 @@ workspace@username:~$ reboot
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/28/linux下神级编辑器vim-简说/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="fwind">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fwind's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/05/28/linux下神级编辑器vim-简说/" itemprop="url">linux下神级编辑器vim 简说</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-28T09:07:16+08:00">
-                2019-05-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>linux，vim</p>
-</blockquote>
-<ul>
-<li>查看<br>在控制台下直接输入vim可以查看vim基本信息：<pre><code>vim
-</code></pre><img src="http://upload-images.jianshu.io/upload_images/282480-13621f813a57e9cb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vim.png"><br>键入以下命令，即可使用vim查看文件内容 ：<pre><code>vim [文件名]
-</code></pre></li>
-<li>显示行标<br>在查看模式下，输入组合键<strong>Shift加:</strong>，输入命令：set number</li>
-<li>行操作<br>1.定位最后一行：输入组合键<strong>Shift加G</strong><br>2.定位第一行：输入组合键<strong>Shift加1G</strong><br>3.定位第n行：输入组合键<strong>Shift加nG</strong></li>
-<li>移动光标<br>1.移动光标到行首：：输入组合键<strong>Shift加^</strong><br>2.移动光标到行首：：输入组合键<strong>Shift加$</strong>  </li>
-<li>编辑<br>直接输入<strong>i</strong>，可以开启编辑模式，使用键盘方向键移动光标进行编辑，退出编辑模式按<strong>Esc键</strong>即可。</li>
-<li>删除<br>1.删除一行：双击d</li>
-<li>退出<br>在查看模式下，输入组合键<strong>Shift加:</strong>，如果文件内容有变化，输入<strong>!wq</strong>保存退出；如果文件内容无变化，直接输入<strong>q</strong>即可退出；如果文件内容有变化但是又不打算保存，可以输入<strong>!q</strong>强制退出不保存。</li>
-</ul>
-<p><strong>ps：vim编辑器极为强大，这里只是冰山入门一角，感兴趣的同学可以自行查阅学习。</strong></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1800,7 +1809,7 @@ workspace@username:~$ reboot
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1813,7 +1822,7 @@ workspace@username:~$ reboot
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
