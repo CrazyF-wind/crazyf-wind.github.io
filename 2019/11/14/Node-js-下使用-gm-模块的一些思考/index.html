@@ -88,7 +88,7 @@
 <meta property="og:description" content="楔子    在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：123456789101112131415161718// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child">
 <meta property="og:locale" content="zh">
 <meta property="og:image" content="http://yoursite.com/2019/11/14/Node-js-下使用-gm-模块的一些思考/@aman-dhakal-YkWz_coLm84-unsplash.jpg">
-<meta property="og:updated_time" content="2019-11-14T07:29:16.838Z">
+<meta property="og:updated_time" content="2020-03-13T07:15:23.779Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content=" Node.js 下使用 gm 模块的一些思考">
 <meta name="twitter:description" content="楔子    在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：123456789101112131415161718// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child">
@@ -320,7 +320,7 @@
 <p>直到最近一段时间，在做一个项目，需要对图像文件做一下处理。在 Linux/Mac 下有一个图形图像处理工具，叫  imagemagick ，里面有瑞士军刀般多的好用功能。下意识中，我就想到了使用 Node.js 的子进程功能来直接使用。但是我又觉得这么实现似乎过于简单，而且太依赖本地环境。</p>
 <p>于是，我就去 Node.js 官网查找了一下，看有没有新增处理图形图像的新特性，很遗憾，并没有！但是我并没死心，又继续在 bing 中搜索了一下。这时我找到一片文章（<a href="https://blog.csdn.net/dreamer2020/article/details/51647885" target="_blank" rel="noopener">nodejs图片处理工具gm用法</a>），介绍了如何在 Node.js 环境下，使用 npm 包 gm 来处理图形图像文件。</p>
 <p>我很高兴，并认为这是一个理想的方案，因为那篇文中关于 gm 的介绍十分清楚，并且使用起来也很简洁。在甚至连 gm 在 npm 官网上的使用手册都没有看的前提下，我就贸然使用了 gm 。</p>
-<p>当我激动地盯着屏幕，看着那段脚步启动，然后报异常后，我的心情先是失落，然后转为意外，最后，我静静地笑了。因为异常提示没有找到 convert 命令，而 convert 命令正是我上面提到 imagemagick 工具一下的一个命令。所以我推测这个 gm 包其实就是按照我最初的那种思路实现的。</p>
+<p>当我激动地盯着屏幕，看着那段脚本启动，然后报异常后，我的心情先是失落，然后转为意外，最后，我静静地笑了。因为异常提示没有找到 convert 命令，而 convert 命令正是我上面提到 imagemagick 工具一下的一个命令。所以我推测这个 gm 包其实就是按照我最初的那种思路实现的。</p>
 <p>为了一探究竟并验证我的想法。首先，我看了 gm 在 npm 上的官方使用手册。果然，文档的一开始就清楚的提示，使用该工具之前需要先安装 imagemagick 。那它到底是如何使用的 imagemagick 呢？让我们接着往下看。 </p>
 <p>我看了 gm 的源码。果然， gm 引用了一个叫 cross-spawn 的包，来执行 convert 命令，而 cross-spawn 的源码中，确实是使用 child_process 子进程来实现的。</p>
 <p>到此为止，整个过程已经理顺。而我则陷入了沉思……</p>
@@ -482,7 +482,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
