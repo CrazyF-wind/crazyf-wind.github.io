@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,nodejs,npm,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="楔子    在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：123456789101112131415161718// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child">
+<meta name="keywords" content="Linux,nodejs,npm">
+<meta property="og:type" content="article">
+<meta property="og:title" content=" Node.js 下使用 gm 模块的一些思考">
+<meta property="og:url" content="http://yoursite.com/2019/11/14/Node-js-下使用-gm-模块的一些思考/index.html">
+<meta property="og:site_name" content="fwind&#39;s blog">
+<meta property="og:description" content="楔子    在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：123456789101112131415161718// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="http://yoursite.com/2019/11/14/Node-js-下使用-gm-模块的一些思考/@aman-dhakal-YkWz_coLm84-unsplash.jpg">
+<meta property="og:updated_time" content="2020-03-13T07:15:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content=" Node.js 下使用 gm 模块的一些思考">
+<meta name="twitter:description" content="楔子    在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：123456789101112131415161718// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/14/Node-js-下使用-gm-模块的一些思考/@aman-dhakal-YkWz_coLm84-unsplash.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/11/14/Node-js-下使用-gm-模块的一些思考/">
+
+
+
+
+
+  <title> Node.js 下使用 gm 模块的一些思考 | fwind's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">fwind's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">coder</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/14/Node-js-下使用-gm-模块的一些思考/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fwind">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline"> Node.js 下使用 gm 模块的一些思考</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-14T15:20:06+08:00">
+                2019-11-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2019/11/14/Node-js-下使用-gm-模块的一些思考/" class="leancloud_visitors" data-flag-title=" Node.js 下使用 gm 模块的一些思考">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="@aman-dhakal-YkWz_coLm84-unsplash.jpg" alt></p>
+<blockquote>
+<p> 楔子  </p>
+</blockquote>
+<p>在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child Process | Node.js v12.13.0 Documentation](https://nodejs.org/dist/latest-v12.x/docs/api/child_process.html#child_process_child_process_spawn_command_args_options)</span></span><br><span class="line"><span class="keyword">const</span> &#123; spawn &#125; = <span class="built_in">require</span>(‘child_process’);</span><br><span class="line"><span class="keyword">const</span> ls = spawn(‘ls’, [‘-lh’, ‘/Users’]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 控制台正常输出</span></span><br><span class="line">ls.stdout.on(‘data’, (data) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`stdout: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 控制台异常输出</span></span><br><span class="line">ls.stderr.on(<span class="string">'data'</span>, (data) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关闭</span></span><br><span class="line">ls.on(<span class="string">'close'</span>, (code) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`child process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>事实上，我们可以通过以上方式，来实现任何与本地 Linux 服务交互的工作。任何 Linux 服务器下的系统命令，或者安装的第三方软件，均可以通过 Node.js 来使用。</p>
+<blockquote>
+<p>达摩克利斯之剑  </p>
+</blockquote>
+<p>当时只是觉得这个功能好玩、实用，但是没有进一步深入研究。直到 <a href="https://mp.weixin.qq.com/s/j_U6vQRu360iXwieG33DBA" target="_blank" rel="noopener">周下载量过 200万的 npm 包被注入恶意代码 </a> 事件的发生，让我意识到 Node.js 的子进程功能还是一把达摩克利斯之剑。在安全防范较低或者没有的情况下，极其容易被恶意利用，而且后果不堪设想。</p>
+<p>当然，该事件当中还藏着另外一把达摩克利斯之剑：JavaScript 下的 eval 函数 。eval 函数中可以执行几乎所有的 JavaScript 代码，简直就是一个行走的编译器。在使用该函数时，同样需要做好相关的安全工作，比如限制未知用户往里面传入任何数据。</p>
+<p>当然，事件热的时候，关注过，凉了之后也就不了了之。</p>
+<blockquote>
+<p>又见，思考  </p>
+</blockquote>
+<p>直到最近一段时间，在做一个项目，需要对图像文件做一下处理。在 Linux/Mac 下有一个图形图像处理工具，叫  imagemagick ，里面有瑞士军刀般多的好用功能。下意识中，我就想到了使用 Node.js 的子进程功能来直接使用。但是我又觉得这么实现似乎过于简单，而且太依赖本地环境。</p>
+<p>于是，我就去 Node.js 官网查找了一下，看有没有新增处理图形图像的新特性，很遗憾，并没有！但是我并没死心，又继续在 bing 中搜索了一下。这时我找到一片文章（<a href="https://blog.csdn.net/dreamer2020/article/details/51647885" target="_blank" rel="noopener">nodejs图片处理工具gm用法</a>），介绍了如何在 Node.js 环境下，使用 npm 包 gm 来处理图形图像文件。</p>
+<p>我很高兴，并认为这是一个理想的方案，因为那篇文中关于 gm 的介绍十分清楚，并且使用起来也很简洁。在甚至连 gm 在 npm 官网上的使用手册都没有看的前提下，我就贸然使用了 gm 。</p>
+<p>当我激动地盯着屏幕，看着那段脚本启动，然后报异常后，我的心情先是失落，然后转为意外，最后，我静静地笑了。因为异常提示没有找到 convert 命令，而 convert 命令正是我上面提到 imagemagick 工具一下的一个命令。所以我推测这个 gm 包其实就是按照我最初的那种思路实现的。</p>
+<p>为了一探究竟并验证我的想法。首先，我看了 gm 在 npm 上的官方使用手册。果然，文档的一开始就清楚的提示，使用该工具之前需要先安装 imagemagick 。那它到底是如何使用的 imagemagick 呢？让我们接着往下看。 </p>
+<p>我看了 gm 的源码。果然， gm 引用了一个叫 cross-spawn 的包，来执行 convert 命令，而 cross-spawn 的源码中，确实是使用 child_process 子进程来实现的。</p>
+<p>到此为止，整个过程已经理顺。而我则陷入了沉思……</p>
+<p>可想而知，利用这种模式，即 Node.js + child_process 的方式，可以实现很多基于操作系统命令行的功能。在没有遇到 gm 之前，我只是简单地这么认为。在遇到 gm 之后，我才发现，原来真的有工程师利用这种模式来输出被广泛（ gm 在 npm 上的周下载量，截止我写这篇文章为止，已经超 10 万了）使用的工具。有时候，编程技术迭代很快，日新月异，每隔一段时间就会有一个新的很炫酷的技术冒出来，然后受到大家的追捧。而有时候，编程技术迭代又很慢，很多技术明明是新瓶装旧酒，却同样可以焕发出耀眼的光芒。</p>
+<p>所以说，在计算机这一行，如果你真心的热爱她，就应该沉下心来，认真地去理解和感悟技术的本质，而不是去一个劲儿地追逐新时髦。唯有看透本质，才是获取真理钥匙的最佳途径。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux-nodejs-npm/" rel="tag"># Linux,nodejs,npm</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/07/npm-中-dependencies-和-devDependencies-的使用/" rel="next" title=" npm 中 dependencies 和 devDependencies 的使用 ">
+                <i class="fa fa-chevron-left"></i>  npm 中 dependencies 和 devDependencies 的使用 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">fwind</p>
+              <p class="site-description motion-element" itemprop="description">code</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fwind</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("dXnXeuqOPcVUWeAsQ0WWIf88-gzGzoHsz", "R5DP2Bqt59nsevH469zvJnne");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
