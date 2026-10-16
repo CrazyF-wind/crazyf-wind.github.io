@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"crazyf-wind.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="楔子    在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能： 123456789101112131415161718&#x2F;&#x2F; 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Chil">
+<meta property="og:type" content="article">
+<meta property="og:title" content=" Node.js 下使用 gm 模块的一些思考">
+<meta property="og:url" content="https://crazyf-wind.github.io/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/index.html">
+<meta property="og:site_name" content="fwind&#39;s blog">
+<meta property="og:description" content="楔子    在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能： 123456789101112131415161718&#x2F;&#x2F; 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Chil">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://crazyf-wind.github.io/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/@aman-dhakal-YkWz_coLm84-unsplash.jpg">
+<meta property="article:published_time" content="2019-11-14T07:20:06.000Z">
+<meta property="article:modified_time" content="2025-02-25T03:05:32.656Z">
+<meta property="article:author" content="fwind">
+<meta property="article:tag" content="Linux,nodejs,npm">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyf-wind.github.io/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/@aman-dhakal-YkWz_coLm84-unsplash.jpg">
+
+
+<link rel="canonical" href="https://crazyf-wind.github.io/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/","path":"2019/11/14/Node-js-下使用-gm-模块的一些思考/","title":" Node.js 下使用 gm 模块的一些思考"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title> Node.js 下使用 gm 模块的一些思考 | fwind's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">fwind's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">coder</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">fwind</p>
+  <div class="site-description" itemprop="description">code</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" Node.js 下使用 gm 模块的一些思考 | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+           Node.js 下使用 gm 模块的一些思考
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-11-14 15:20:06" itemprop="dateCreated datePublished" datetime="2019-11-14T15:20:06+08:00">2019-11-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-02-25 11:05:32" itemprop="dateModified" datetime="2025-02-25T11:05:32+08:00">2025-02-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><img src="/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/@aman-dhakal-YkWz_coLm84-unsplash.jpg"></p>
+<blockquote>
+<p> 楔子  </p>
+</blockquote>
+<p>在早些年开发 Node.js 项目的过程中，我使用过其子进程（child_process）模块的部分功能，当时需要在 Node.js 的程序中使用 Linux 下的一个命令来处理一些数据。比如实现一个使用 ls 命令来查看当前目录结构的功能：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是 Node.js 官方版本 12.x 文档下提供的一个实现例子 [Child Process | Node.js v12.13.0 Documentation](https://nodejs.org/dist/latest-v12.x/docs/api/child_process.html#child_process_child_process_spawn_command_args_options)</span></span><br><span class="line"><span class="keyword">const</span> &#123; spawn &#125; = <span class="built_in">require</span>(‘child_process’);</span><br><span class="line"><span class="keyword">const</span> ls = <span class="title function_">spawn</span>(‘ls’, [‘-lh’, ‘/<span class="title class_">Users</span>’]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 控制台正常输出</span></span><br><span class="line">ls.<span class="property">stdout</span>.<span class="title function_">on</span>(‘data’, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`stdout: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 控制台异常输出</span></span><br><span class="line">ls.<span class="property">stderr</span>.<span class="title function_">on</span>(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">`stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关闭</span></span><br><span class="line">ls.<span class="title function_">on</span>(<span class="string">&#x27;close&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`child process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>事实上，我们可以通过以上方式，来实现任何与本地 Linux 服务交互的工作。任何 Linux 服务器下的系统命令，或者安装的第三方软件，均可以通过 Node.js 来使用。</p>
+<blockquote>
+<p>达摩克利斯之剑  </p>
+</blockquote>
+<p>当时只是觉得这个功能好玩、实用，但是没有进一步深入研究。直到 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/j_U6vQRu360iXwieG33DBA">周下载量过 200万的 npm 包被注入恶意代码 </a> 事件的发生，让我意识到 Node.js 的子进程功能还是一把达摩克利斯之剑。在安全防范较低或者没有的情况下，极其容易被恶意利用，而且后果不堪设想。</p>
+<p>当然，该事件当中还藏着另外一把达摩克利斯之剑：JavaScript 下的 eval 函数 。eval 函数中可以执行几乎所有的 JavaScript 代码，简直就是一个行走的编译器。在使用该函数时，同样需要做好相关的安全工作，比如限制未知用户往里面传入任何数据。</p>
+<p>当然，事件热的时候，关注过，凉了之后也就不了了之。</p>
+<blockquote>
+<p>又见，思考  </p>
+</blockquote>
+<p>直到最近一段时间，在做一个项目，需要对图像文件做一下处理。在 Linux&#x2F;Mac 下有一个图形图像处理工具，叫  imagemagick ，里面有瑞士军刀般多的好用功能。下意识中，我就想到了使用 Node.js 的子进程功能来直接使用。但是我又觉得这么实现似乎过于简单，而且太依赖本地环境。</p>
+<p>于是，我就去 Node.js 官网查找了一下，看有没有新增处理图形图像的新特性，很遗憾，并没有！但是我并没死心，又继续在 bing 中搜索了一下。这时我找到一片文章（<a target="_blank" rel="noopener" href="https://blog.csdn.net/dreamer2020/article/details/51647885">nodejs图片处理工具gm用法</a>），介绍了如何在 Node.js 环境下，使用 npm 包 gm 来处理图形图像文件。</p>
+<p>我很高兴，并认为这是一个理想的方案，因为那篇文中关于 gm 的介绍十分清楚，并且使用起来也很简洁。在甚至连 gm 在 npm 官网上的使用手册都没有看的前提下，我就贸然使用了 gm 。</p>
+<p>当我激动地盯着屏幕，看着那段脚本启动，然后报异常后，我的心情先是失落，然后转为意外，最后，我静静地笑了。因为异常提示没有找到 convert 命令，而 convert 命令正是我上面提到 imagemagick 工具一下的一个命令。所以我推测这个 gm 包其实就是按照我最初的那种思路实现的。</p>
+<p>为了一探究竟并验证我的想法。首先，我看了 gm 在 npm 上的官方使用手册。果然，文档的一开始就清楚的提示，使用该工具之前需要先安装 imagemagick 。那它到底是如何使用的 imagemagick 呢？让我们接着往下看。 </p>
+<p>我看了 gm 的源码。果然， gm 引用了一个叫 cross-spawn 的包，来执行 convert 命令，而 cross-spawn 的源码中，确实是使用 child_process 子进程来实现的。</p>
+<p>到此为止，整个过程已经理顺。而我则陷入了沉思……</p>
+<p>可想而知，利用这种模式，即 Node.js + child_process 的方式，可以实现很多基于操作系统命令行的功能。在没有遇到 gm 之前，我只是简单地这么认为。在遇到 gm 之后，我才发现，原来真的有工程师利用这种模式来输出被广泛（ gm 在 npm 上的周下载量，截止我写这篇文章为止，已经超 10 万了）使用的工具。有时候，编程技术迭代很快，日新月异，每隔一段时间就会有一个新的很炫酷的技术冒出来，然后受到大家的追捧。而有时候，编程技术迭代又很慢，很多技术明明是新瓶装旧酒，却同样可以焕发出耀眼的光芒。</p>
+<p>所以说，在计算机这一行，如果你真心的热爱她，就应该沉下心来，认真地去理解和感悟技术的本质，而不是去一个劲儿地追逐新时髦。唯有看透本质，才是获取真理钥匙的最佳途径。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux-nodejs-npm/" rel="tag"># Linux,nodejs,npm</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/11/07/npm-%E4%B8%AD-dependencies-%E5%92%8C-devDependencies-%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="prev" title=" npm 中 dependencies 和 devDependencies 的使用 ">
+                  <i class="fa fa-angle-left"></i>  npm 中 dependencies 和 devDependencies 的使用 
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">fwind</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
