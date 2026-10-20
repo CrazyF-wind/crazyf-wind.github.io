@@ -139,7 +139,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -161,6 +161,156 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/20/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/10/20/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/" class="post-title-link" itemprop="url">未命名</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-20 14:15:54 / 修改时间：16:20:01" itemprop="dateCreated datePublished" datetime="2026-10-20T14:15:54+08:00">2026-10-20</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="Redis-字典与渐进式-rehash：为什么“慢慢搬”是合理的选择"><a href="#Redis-字典与渐进式-rehash：为什么“慢慢搬”是合理的选择" class="headerlink" title="Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择"></a>Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择</h1><p>如果你用过 Redis，大概率知道它“快”。但“快”从来不是偶然的。Redis 字典的渐进式 rehash，就是一个典型的例子：<strong>它为了不阻塞，主动选择了一种“看起来更慢”的搬迁方式。</strong></p>
+<p>这篇文章不贴源码，而是回答几个具体问题：一次性 rehash 到底会阻塞多久？迁移过程中增删改查怎么处理？为什么是“每次搬一点”，而不是“分批定时搬”？以及——这个设计牺牲了什么。</p>
+<hr>
+<h2 id="一、字典的基本结构：两个哈希表"><a href="#一、字典的基本结构：两个哈希表" class="headerlink" title="一、字典的基本结构：两个哈希表"></a>一、字典的基本结构：两个哈希表</h2><p>Redis 的字典 <code>dict</code> 内部有两个哈希表：<code>ht[0]</code> 和 <code>ht[1]</code>。</p>
+<p>正常情况下，数据都在 <code>ht[0]</code> 里，<code>ht[1]</code> 是空的。只有当需要扩容或缩容时，<code>ht[1]</code> 才会被分配空间，然后数据从 <code>ht[0]</code> 逐渐迁移到 <code>ht[1]</code>。</p>
+<p>为什么要两个表？</p>
+<p>因为 Redis 是<strong>单线程</strong>的。如果只用一张表，扩容时你得原地把所有元素重新计算位置——这在单线程下意味着<strong>什么都干不了</strong>。两张表 + 一个 <code>rehashidx</code> 索引，让迁移可以“边干活边搬”。</p>
+<p>每个哈希表底层是<strong>数组 + 链表</strong>，用链地址法解决冲突。<code>dictEntry</code> 就是链表节点，同一个桶里的元素用 <code>next</code> 指针串起来。</p>
+<hr>
+<h2 id="二、一次性-rehash-到底会阻塞多久？"><a href="#二、一次性-rehash-到底会阻塞多久？" class="headerlink" title="二、一次性 rehash 到底会阻塞多久？"></a>二、一次性 rehash 到底会阻塞多久？</h2><p>这是核心问题。要回答它，先看数据量。</p>
+<p><strong>假设</strong>：一个字典有 <strong>1 亿个键值对</strong>。</p>
+<p><strong>关键数字</strong>：Redis 迁移一个键值对的典型耗时，保守估计在 <strong>100 纳秒</strong>左右。</p>
+<p>那么：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 亿 × 100 ns = 10,000,000,000 ns = 10 秒</span><br></pre></td></tr></table></figure>
+
+<p><strong>10 秒。</strong> 在这 10 秒里，Redis 的主线程完全被占住。<strong>所有客户端请求全部排队等待。</strong> 对于一个标榜 P99 延迟在毫秒级的服务来说，这是灾难性的。</p>
+<p>更极端的场景：如果 value 是<strong>大 key</strong>（比如一个几百 MB 的 List），单次迁移的耗时可能以<strong>秒</strong>为单位。有测试数据显示，迁移一个 600MB 的 list 类型 key 需要 <strong>6.7 秒</strong>。这还只是一个 key。</p>
+<p>所以答案很明确：<strong>一次性 rehash 的阻塞时间与数据量成正比，在百万级以上的字典中，阻塞时间会达到秒级甚至更长。</strong> 对 Redis 来说，这等于服务中断。</p>
+<hr>
+<h2 id="三、渐进式-rehash-到底“渐进”在哪里？"><a href="#三、渐进式-rehash-到底“渐进”在哪里？" class="headerlink" title="三、渐进式 rehash 到底“渐进”在哪里？"></a>三、渐进式 rehash 到底“渐进”在哪里？</h2><p>Redis 的解法是：<strong>不一次性搬完，而是把搬迁工作分摊到每一次操作里。</strong></p>
+<p>具体机制：</p>
+<ol>
+<li>扩容时，为 <code>ht[1]</code> 分配新空间（通常是 <code>ht[0].used * 2</code> 向上取最近的 2 的幂）；</li>
+<li>把 <code>rehashidx</code> 设为 <code>0</code>，表示 rehash 正式开始；</li>
+<li><strong>每次对字典执行增删改查时</strong>，顺带把 <code>ht[0]</code> 中 <code>rehashidx</code> 位置上的<strong>整个桶</strong>（链表上所有节点）迁移到 <code>ht[1]</code>；</li>
+<li>迁移完成后，<code>rehashidx</code> 加一，指向下一个桶；</li>
+<li>当所有桶都迁移完毕，把 <code>ht[1]</code> 设为新的 <code>ht[0]</code>，清空旧表，<code>rehashidx</code> 重置为 <code>-1</code>。</li>
+</ol>
+<p>关键细节：<strong>一次迁移的是一个“桶”，不是“一个键值对”</strong>。因为一个桶可能是一个链表，上面挂着多个节点。但从实际数据看，由于负载因子控制在合理范围，<strong>平均每个桶通常只有 1 个节点，最多一般不超过 5 个</strong>。所以单次迁移的开销很小。</p>
+<hr>
+<h2 id="四、迁移过程中，增删改查怎么处理？"><a href="#四、迁移过程中，增删改查怎么处理？" class="headerlink" title="四、迁移过程中，增删改查怎么处理？"></a>四、迁移过程中，增删改查怎么处理？</h2><p>这是设计中最精妙的部分。<strong>两个表同时存在，但操作规则不同。</strong></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>规则</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>查找</strong></td>
+<td>先在 <code>ht[0]</code> 找，找不到再去 <code>ht[1]</code> 找</td>
+</tr>
+<tr>
+<td><strong>删除</strong></td>
+<td>两个表都要操作（因为 key 可能在任意一个表里）</td>
+</tr>
+<tr>
+<td><strong>更新</strong></td>
+<td>两个表都要操作（先找到，再更新）</td>
+</tr>
+<tr>
+<td><strong>新增</strong></td>
+<td><strong>只往 <code>ht[1]</code> 里加</strong>，绝不往 <code>ht[0]</code> 加</td>
+</tr>
+</tbody></table>
+<p>新增只写 <code>ht[1]</code> 的原因很直接：<strong>保证 <code>ht[0]</code> 的节点数量只减不增。</strong> 如果新增还往旧表里写，那 <code>ht[0]</code> 永远清不空，rehash 永远结束不了。</p>
+<p>这个规则带来的一个副作用是：<strong>迁移期间的查找可能比平时稍慢</strong>，因为最坏情况下要找两张表。但这是可接受的代价。</p>
+<hr>
+<h2 id="五、为什么是“每次操作顺带搬”，而不是“分批定时搬”？"><a href="#五、为什么是“每次操作顺带搬”，而不是“分批定时搬”？" class="headerlink" title="五、为什么是“每次操作顺带搬”，而不是“分批定时搬”？"></a>五、为什么是“每次操作顺带搬”，而不是“分批定时搬”？</h2><p>Redis 其实<strong>两种都有</strong>。</p>
+<ul>
+<li><strong>被动搬迁</strong>：每次增删改查时顺带迁移一个桶（<code>_dictRehashStep</code>）；</li>
+<li><strong>主动搬迁</strong>：服务器定时任务（<code>databasesCron</code>）中调用 <code>dictRehashMilliseconds</code>，在<strong>1 毫秒</strong>内尽可能多地迁移。</li>
+</ul>
+<p><strong>为什么以被动为主、主动为辅？</strong></p>
+<p>因为纯定时搬迁有一个问题：<strong>如果客户端一直不发请求，定时任务也不一定能保证及时搬完。</strong> 而且定时任务的执行时机依赖于 Redis 的事件循环，在高负载时可能被推迟。</p>
+<p>被动搬迁的好处是：<strong>搬迁的开销天然地跟随负载分布。</strong> 请求越多，搬迁越快；请求越少，系统本身也不忙，晚一点搬完也无所谓。这是一种<strong>自适应</strong>的节奏。</p>
+<p>主动搬迁则作为兜底：<strong>当客户端闲下来了，没有后续指令来触发被动搬迁时</strong>，Redis 不会“置之不理”，而是通过定时任务主动推进。<code>dictRehashMilliseconds</code> 每次只花 <strong>1ms</strong> 的 CPU 时间做搬迁，然后让出控制权。</p>
+<p>所以准确地说：<strong>不是“不做定时”，而是“被动为主、定时为辅”。</strong> 两者结合，既保证了有请求时搬迁不拖后腿，也保证了没请求时不会永远卡在半途。</p>
+<hr>
+<h2 id="六、这个设计牺牲了什么，换来了什么？"><a href="#六、这个设计牺牲了什么，换来了什么？" class="headerlink" title="六、这个设计牺牲了什么，换来了什么？"></a>六、这个设计牺牲了什么，换来了什么？</h2><p><strong>牺牲的：</strong></p>
+<ol>
+<li><strong>单次操作略慢。</strong> 迁移期间，每次增删改查都可能附带一次搬迁，或者需要查两张表。但开销被控制在<strong>单个桶的粒度</strong>，通常只有 1~5 个节点，对响应时间的影响很小。</li>
+<li><strong>内存占用翻倍。</strong> rehash 期间两个哈希表同时存在，内存使用量会上升。这是“空间换时间”的典型体现。</li>
+<li><strong>实现复杂度上升。</strong> 所有字典操作都必须考虑“是否处于 rehash 状态”，代码路径分叉，更容易出 bug。</li>
+</ol>
+<p><strong>换来的：</strong></p>
+<ol>
+<li><strong>不阻塞。</strong> 这是最核心的收益。无论字典多大，Redis 主线程永远不会因为 rehash 而停下来。</li>
+<li><strong>平滑的延迟曲线。</strong> 一次性 rehash 会导致 P99.9 和 max 延迟飙升；渐进式 rehash 把开销摊薄，让延迟保持稳定。</li>
+<li><strong>自适应节奏。</strong> 搬迁进度跟随负载，忙时搬得快，闲时搬得慢，不浪费 CPU。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1162,99 +1312,6 @@
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp -i ~/.ssh/id_rsa &#x27;待传送文件&#x27; username@ip:&#x27;目标传送目录&#x27;</span><br></pre></td></tr></table></figure>
 <p>通过以上命令，可以建立客户机和服务器之间或者两台服务器之间，文件单向传送的通道。</p>
 <h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><p>SSH旨在保证非安全网络环境（例如互联网）中信息加密完整可靠。不过，SSH它也被指出有被嗅探甚至解密的漏洞。这里我们就不做具体介绍了。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2019/05/28/linux%E4%B8%8Broot%E7%94%A8%E6%88%B7%E8%BF%9E%E6%8E%A5ssh/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="fwind">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fwind's blog">
-      <meta itemprop="description" content="code">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | fwind's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/05/28/linux%E4%B8%8Broot%E7%94%A8%E6%88%B7%E8%BF%9E%E6%8E%A5ssh/" class="post-title-link" itemprop="url">linux下root用户连接ssh</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-05-28 09:11:36" itemprop="dateCreated datePublished" datetime="2019-05-28T09:11:36+08:00">2019-05-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-25 11:05:32" itemprop="dateModified" datetime="2025-02-25T11:05:32+08:00">2025-02-25</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <blockquote>
-<p>linux，ubuntu，root，xshell，ssh</p>
-</blockquote>
-<ul>
-<li>启用root用户</li>
-</ul>
-<ol>
-<li>配置过程<br>[workspace]@username:<del>$ sudo passwd root<br>[sudo] password for fwind:<br>Enter new UNIX password:<br>Retype new UNIX password:<br>passwd: password updated successfully<br>workspace@username:</del>$ reboot</li>
-<li>完成<br>root@username:~$</li>
-</ol>
-<ul>
-<li>连接ssh</li>
-</ul>
-<ol>
-<li>修改配置文件<br>使用<strong>root权限</strong>用户打开ssh配置文件：<br>vim &#x2F;etc&#x2F;ssh&#x2F;sshd_config</li>
-</ol>
-<p>找到“<strong>PermitRootLogin prohibit-password</strong>”一行，将“prohibit-password”改为“yes”，然后重启ssh服务；<br>2. 重启<br>在root下重启ssh服务，然后。。。就可以在xshell下使用ssh肆无忌惮的连接linux了。<br>       sudo service sshd restart</p>
-<p><strong>ps: vim 是linux下一款非常强大的编辑器，后续会有相关使用心得，敬请期待！</strong></p>
 
       
     </div>
