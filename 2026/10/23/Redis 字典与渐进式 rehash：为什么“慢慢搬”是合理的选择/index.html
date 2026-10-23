@@ -23,21 +23,21 @@
     <meta name="description" content="Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择如果你用过 Redis，大概率知道它“快”。但“快”从来不是偶然的。Redis 字典的渐进式 rehash，就是一个典型的例子：它为了不阻塞，主动选择了一种“看起来更慢”的搬迁方式。 这篇文章不贴源码，而是回答几个具体问题：一次性 rehash 到底会阻塞多久？迁移过程中增删改查怎么处理？为什么是“每次搬一点”，而不是“分批定时搬">
 <meta property="og:type" content="article">
 <meta property="og:title" content="fwind&#39;s blog">
-<meta property="og:url" content="https://crazyf-wind.github.io/2026/10/20/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/index.html">
+<meta property="og:url" content="https://crazyf-wind.github.io/2026/10/23/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/index.html">
 <meta property="og:site_name" content="fwind&#39;s blog">
 <meta property="og:description" content="Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择如果你用过 Redis，大概率知道它“快”。但“快”从来不是偶然的。Redis 字典的渐进式 rehash，就是一个典型的例子：它为了不阻塞，主动选择了一种“看起来更慢”的搬迁方式。 这篇文章不贴源码，而是回答几个具体问题：一次性 rehash 到底会阻塞多久？迁移过程中增删改查怎么处理？为什么是“每次搬一点”，而不是“分批定时搬">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-10-20T06:15:54.152Z">
-<meta property="article:modified_time" content="2026-10-20T08:20:01.513Z">
+<meta property="article:published_time" content="2026-10-23T03:28:49.939Z">
+<meta property="article:modified_time" content="2026-10-23T03:28:49.939Z">
 <meta property="article:author" content="fwind">
 <meta property="article:tag" content="blog">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://crazyf-wind.github.io/2026/10/20/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/">
+<link rel="canonical" href="https://crazyf-wind.github.io/2026/10/23/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2026/10/20/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/","path":"2026/10/20/Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择/","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2026/10/23/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/","path":"2026/10/23/Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择/","title":""}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title> | fwind's blog</title>
@@ -142,12 +142,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -174,7 +174,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/20/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/23/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -202,9 +202,8 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2026-10-20 14:15:54 / 修改时间：16:20:01" itemprop="dateCreated datePublished" datetime="2026-10-20T14:15:54+08:00">2026-10-20</time>
+      <time title="创建时间：2026-10-23 11:28:49" itemprop="dateCreated datePublished" datetime="2026-10-23T11:28:49+08:00">2026-10-23</time>
     </span>
 
   
@@ -310,8 +309,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="prev" title=" Node.js 下使用 gm 模块的一些思考">
-                  <i class="fa fa-angle-left"></i>  Node.js 下使用 gm 模块的一些思考
+                <a href="/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/" rel="prev" title="哈希表、跳表还是 B+ 树：怎么选">
+                  <i class="fa fa-angle-left"></i> 哈希表、跳表还是 B+ 树：怎么选
                 </a>
             </div>
             <div class="post-nav-item">

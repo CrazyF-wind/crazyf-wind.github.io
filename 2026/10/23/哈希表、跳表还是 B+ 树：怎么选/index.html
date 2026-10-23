@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"crazyf-wind.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="选择哈希表、跳表还是 B+ 树，本质上不是在选“哪个数据结构更好”，而是在回答一个问题：你的数据放在哪里，以及你打算怎么查它。 如果数据全在内存里、只按 key 精确找，哈希表是首选；如果数据在内存里、既要按 key 找又要按顺序取一段，跳表是那个“刚刚好”的答案；如果数据在磁盘上、既要等值查又要范围扫还要排序，B+ 树是几十年工程实践筛选出来的默认选项——但“磁盘”本身还要再拆一层：机械硬盘（">
+<meta property="og:type" content="article">
+<meta property="og:title" content="哈希表、跳表还是 B+ 树：怎么选">
+<meta property="og:url" content="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/index.html">
+<meta property="og:site_name" content="fwind&#39;s blog">
+<meta property="og:description" content="选择哈希表、跳表还是 B+ 树，本质上不是在选“哪个数据结构更好”，而是在回答一个问题：你的数据放在哪里，以及你打算怎么查它。 如果数据全在内存里、只按 key 精确找，哈希表是首选；如果数据在内存里、既要按 key 找又要按顺序取一段，跳表是那个“刚刚好”的答案；如果数据在磁盘上、既要等值查又要范围扫还要排序，B+ 树是几十年工程实践筛选出来的默认选项——但“磁盘”本身还要再拆一层：机械硬盘（">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/hero-circuit-board.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/diagram-skiplist.gif">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/diagram-bplus-tree.gif">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/diagram-hdd-vs-ssd.gif">
+<meta property="article:published_time" content="2026-10-23T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-23T05:55:51.639Z">
+<meta property="article:author" content="fwind">
+<meta property="article:tag" content="数据结构,Redis,MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/hero-circuit-board.jpg">
+
+
+<link rel="canonical" href="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/","path":"2026/10/23/哈希表、跳表还是 B+ 树：怎么选/","title":"哈希表、跳表还是 B+ 树：怎么选"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>哈希表、跳表还是 B+ 树：怎么选 | fwind's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">fwind's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">coder</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%9A%E5%8F%AA%E8%A7%A3%E5%86%B3%E2%80%9C%E8%BF%99%E4%B8%80%E4%B8%AA-key-%E5%9C%A8%E5%93%AA%E2%80%9D"><span class="nav-number">1.</span> <span class="nav-text">一、哈希表：只解决“这一个 key 在哪”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E8%B7%B3%E8%A1%A8%EF%BC%9A%E5%86%85%E5%AD%98%E9%87%8C%E7%9A%84%E6%9C%89%E5%BA%8F%E7%BB%93%E6%9E%84%EF%BC%8C%E7%94%A8%E7%AE%80%E5%8D%95%E6%8D%A2%E7%A1%AE%E5%AE%9A%E6%80%A7"><span class="nav-number">2.</span> <span class="nav-text">二、跳表：内存里的有序结构，用简单换确定性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81B-%E6%A0%91%EF%BC%9A%E4%B8%BA%E7%A3%81%E7%9B%98-I-O-%E8%80%8C%E7%94%9F%EF%BC%8C%E4%BD%86%E6%9C%89%E5%89%8D%E6%8F%90"><span class="nav-number">3.</span> <span class="nav-text">三、B+ 树：为磁盘 I&#x2F;O 而生，但有前提</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E7%A3%81%E7%9B%98%E8%A6%81%E5%88%86-HDD-%E5%92%8C-SSD%EF%BC%9A%E7%93%B6%E9%A2%88%E5%8F%98%E4%BA%86%EF%BC%8C%E7%BB%93%E8%AE%BA%E8%A6%81%E5%BE%AE%E8%B0%83"><span class="nav-number">4.</span> <span class="nav-text">四、磁盘要分 HDD 和 SSD：瓶颈变了，结论要微调</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-HDD%EF%BC%9AB-%E6%A0%91%E4%BB%8D%E7%84%B6%E6%98%AF%E6%A0%87%E5%87%86%E7%AD%94%E6%A1%88"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 HDD：B+ 树仍然是标准答案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-SSD%EF%BC%9AB-%E6%A0%91%E5%8F%AF%E7%94%A8%EF%BC%8C%E4%BD%86%E6%9C%89%E4%B8%A4%E4%B8%AA%E6%96%B0%E9%97%AE%E9%A2%98"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 SSD：B+ 树可用，但有两个新问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E9%80%89%E5%9E%8B%E5%88%A4%E6%96%AD%EF%BC%9A%E5%8A%A0%E4%B8%80%E5%B1%82%E2%80%9C%E5%86%99%E5%85%A5%E5%BC%BA%E5%BA%A6%E2%80%9D"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 选型判断：加一层“写入强度”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E4%B8%80%E5%BC%A0%E8%A1%A8%E6%94%B6%E5%B0%BE"><span class="nav-number">5.</span> <span class="nav-text">五、一张表收尾</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E4%B8%8E%E8%87%B4%E8%B0%A2"><span class="nav-number">6.</span> <span class="nav-text">引用与致谢</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">fwind</p>
+  <div class="site-description" itemprop="description">code</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="哈希表、跳表还是 B+ 树：怎么选 | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          哈希表、跳表还是 B+ 树：怎么选
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-23 11:00:00 / 修改时间：13:55:51" itemprop="dateCreated datePublished" datetime="2026-10-23T11:00:00+08:00">2026-10-23</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><img src="/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/hero-circuit-board.jpg"></p>
+<p>选择哈希表、跳表还是 B+ 树，本质上不是在选“哪个数据结构更好”，而是在回答一个问题：<strong>你的数据放在哪里，以及你打算怎么查它。</strong></p>
+<p>如果数据全在内存里、只按 key 精确找，哈希表是首选；如果数据在内存里、既要按 key 找又要按顺序取一段，跳表是那个“刚刚好”的答案；如果数据在磁盘上、既要等值查又要范围扫还要排序，B+ 树是几十年工程实践筛选出来的默认选项——但“磁盘”本身还要再拆一层：机械硬盘（HDD）和固态硬盘（SSD）的瓶颈不同，选型结论也会随之松动。</p>
+<p>下面按场景拆开讲。</p>
+<hr>
+<h2 id="一、哈希表：只解决“这一个-key-在哪”"><a href="#一、哈希表：只解决“这一个-key-在哪”" class="headerlink" title="一、哈希表：只解决“这一个 key 在哪”"></a>一、哈希表：只解决“这一个 key 在哪”</h2><p>哈希表的核心优势只有一个：<strong>等值查询期望 O(1)</strong>。给定一个 key，算个哈希，直接跳到数组对应位置。没有树高，没有指针跳转，没有页分裂。</p>
+<p>但它的问题也同样明确：<strong>数据是无序的</strong>。哈希函数打散了顺序，你无法高效地回答“比这个 key 大的下一个是谁”或者“把 100 到 200 之间的都取出来”。</p>
+<p>所以哈希表的适用边界很清晰：</p>
+<ul>
+<li><strong>纯内存场景</strong>。哈希表依赖连续数组和指针跳转，放到磁盘上，一次查询可能对应多次随机 I&#x2F;O；更关键的是它无法把多个 key 打包进一个页，扩容和冲突处理在磁盘上代价极高。磁盘哈希并非完全不存在（如某些 KV 引擎的哈希索引），但在需要范围&#x2F;排序的场景下劣势明显，工程复杂度也高。</li>
+<li><strong>只有等值查询</strong>。Memcached、Redis 的键值对空间、以及各种内存字典，都是这个场景。一旦业务需要 <code>WHERE id &gt; 100</code> 或者 <code>ORDER BY</code>，哈希表直接出局。</li>
+</ul>
+<p><strong>一句话</strong>：如果你确定永远不需要范围查询和排序，哈希表是最快的。但真实业务里，“永远确定”往往不成立。</p>
+<hr>
+<h2 id="二、跳表：内存里的有序结构，用简单换确定性"><a href="#二、跳表：内存里的有序结构，用简单换确定性" class="headerlink" title="二、跳表：内存里的有序结构，用简单换确定性"></a>二、跳表：内存里的有序结构，用简单换确定性</h2><p>跳表解决的是哈希表解决不了的问题：<strong>在保持期望 O(log n) 查找的同时，支持范围查询和有序遍历</strong>。</p>
+<p>它的结构是在有序链表上建多级索引，查找时从高层往低层跳，最终落到目标区间，然后沿底层链表顺序扫过去。范围查询的代价是“定位起点 + 顺序遍历”，非常自然。</p>
+<p><img src="/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/diagram-skiplist.gif"></p>
+<p><em>图 1：跳表的两件事。上半部分是一条三层索引链，查找 90 时从 L3 一路往右下跳，折线只比较 4 次就命中；下半部分是范围查询，先用索引定位到区间起点，再沿底层有序链表一路扫过去。</em></p>
+<p>跳表真正的竞争力，不在理论复杂度，而在<strong>工程上的“刚刚好”</strong>：</p>
+<ul>
+<li><strong>实现比平衡树简单得多</strong>。红黑树插入删除要旋转、变色，跳表只改指针加概率建层；范围查询上，跳表沿底层链表直接扫，平衡树要走中序遍历（递归或显式栈）。对于需要自己实现或维护数据结构的系统来说，这是一个被低估的优势。</li>
+<li><strong>局部修改、读路径易无锁化</strong>。这在 <code>ConcurrentSkipListMap</code> 这类并发容器里是实打实的优势。不过要注意，<strong>Redis ZSet 和 LevelDB MemTable 选跳表的主因并不是并发</strong>——Redis 命令执行本身是单线程，LevelDB 的写入也由 mutex 保护——而是<strong>实现简单 + 范围遍历顺手 + 内存开销可控</strong>。</li>
+<li><strong>内存场景下 B+ 树的优势用不上</strong>。B+ 树为磁盘 I&#x2F;O 做的所有优化（大扇出、页对齐、减少树高）在内存里都失去了意义。内存里一次指针跳转和一次数组访问的差距，远小于磁盘寻道和顺序读的差距。</li>
+</ul>
+<p>Redis 的 ZSet 选跳表而不是 B+ 树或红黑树，逻辑就在这里：数据在内存，需要按 score 排序和范围取，跳表实现简单、范围查询顺手、内存开销可控。</p>
+<p><strong>一句话</strong>：内存 + 有序 + 范围查询，跳表是那个“没有明显短板”的选择。</p>
+<hr>
+<h2 id="三、B-树：为磁盘-I-O-而生，但有前提"><a href="#三、B-树：为磁盘-I-O-而生，但有前提" class="headerlink" title="三、B+ 树：为磁盘 I&#x2F;O 而生，但有前提"></a>三、B+ 树：为磁盘 I&#x2F;O 而生，但有前提</h2><p>B+ 树的所有设计，都指向同一个目标：<strong>把磁盘 I&#x2F;O 次数压到最低</strong>。</p>
+<p>它的关键特征：</p>
+<ol>
+<li><strong>非叶子节点只存 key，不存数据</strong>。这让每个磁盘页（InnoDB 默认 16KB）能塞下几百上千个索引项，扇出极高，树很矮。几百万行数据，树高通常只有 3~4 层。</li>
+<li><strong>数据全在叶子节点，叶子之间用链表串起来</strong>。范围查询和全表扫描变成沿着叶子链表顺序读，磁盘顺序读的性能远高于随机读。</li>
+<li><strong>节点大小对齐磁盘页</strong>。每次读一个节点就是读一个页，不浪费，也不多读。</li>
+</ol>
+<p><img src="/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/diagram-bplus-tree.gif"></p>
+<p><em>图 2：B+ 树为什么磁盘友好。非叶子节点只存 key，所以一个 16KB 的页能塞下几百上千个索引项，扇出极高、树只有三层。数据全部落在叶子层，叶子之间用链表串起来——等值查询沿左侧虚线走「根 → 内部节点 → 叶子」，范围查询则沿底部绿色箭头在叶子链表上顺序扫。右下角对比了跳表：节点零散分布、每节点只存一个 KV，放到磁盘上一次范围查询就是多次随机 I&#x2F;O。</em></p>
+<p>关于 I&#x2F;O 次数还要补一句：B+ 树的根节点和上层节点通常常驻 buffer pool，实际查询的磁盘 I&#x2F;O 往往只有 1 到 2 次，比“树高 3 到 4 层”更乐观——树高是上界，不是每次查询都要走满。</p>
+<p>代价同样明确：<strong>随机写、页分裂、写放大</strong>。这正是 LSM-Tree 用“顺序写 + 后台合并”换“读放大”的动机——那是另一个话题，但说明 B+ 树不是没有代价的“最优解”，而是在读写之间平衡得最稳的默认选项。</p>
+<p>为什么 MySQL 不用跳表？因为跳表是为内存设计的。它的节点零散分布，每个节点只存一个 KV，放到磁盘上，一次范围查询可能触发大量随机 I&#x2F;O。B+ 树把多个 key 打包进一个页，一次 I&#x2F;O 取回一批，这才是磁盘友好的做法。</p>
+<p><strong>一句话</strong>：B+ 树不是“最好的”，但它是在等值、范围、排序、写入之间平衡得最稳的那个——前提是瓶颈在机械寻道或页级读取代价，而这一点在 HDD 和 SSD 上并不完全相同。</p>
+<hr>
+<h2 id="四、磁盘要分-HDD-和-SSD：瓶颈变了，结论要微调"><a href="#四、磁盘要分-HDD-和-SSD：瓶颈变了，结论要微调" class="headerlink" title="四、磁盘要分 HDD 和 SSD：瓶颈变了，结论要微调"></a>四、磁盘要分 HDD 和 SSD：瓶颈变了，结论要微调</h2><p>把“磁盘”笼统当成一个东西，会掩盖一个关键事实：<strong>HDD 的瓶颈是机械寻道，SSD 的瓶颈是闪存写放大和擦除块约束</strong>。B+ 树的大扇出和页对齐是为前者设计的；面对后者，它仍然可用，但需要正视新问题，而 LSM-Tree 在某些写入场景下更具优势。</p>
+<h3 id="4-1-HDD：B-树仍然是标准答案"><a href="#4-1-HDD：B-树仍然是标准答案" class="headerlink" title="4.1 HDD：B+ 树仍然是标准答案"></a>4.1 HDD：B+ 树仍然是标准答案</h3><p>机械硬盘的随机访问代价极高（寻道 5–50 ms，加上旋转延迟），而 B+ 树把几百上千个 key 打包进一个页，一次 I&#x2F;O 取回一批，正好把“随机寻道”转化为“少量页读取 + 页内二分”。叶子链表让范围扫描变成顺序读，顺序读在 HDD 上远快于随机读。所以前面“B+ 树为磁盘 I&#x2F;O 而生”的论述，主要就是针对 HDD 的，逻辑几乎不需要调整。</p>
+<h3 id="4-2-SSD：B-树可用，但有两个新问题"><a href="#4-2-SSD：B-树可用，但有两个新问题" class="headerlink" title="4.2 SSD：B+ 树可用，但有两个新问题"></a>4.2 SSD：B+ 树可用，但有两个新问题</h3><p>SSD 没有机械寻道，随机读的代价极低（页级读取只需几十微秒），这意味着“把数据打包进页以减少寻道”的收益变小了。但 SSD 有自己的麻烦：</p>
+<p><strong>第一，原地更新代价高。</strong> 闪存必须先擦除整个块（128–512 KB）才能覆写，而 B+ 树的节点更新往往是原地写。SSD 通过 FTL（闪存转换层）做重映射来掩盖这个问题，但代价是写放大和垃圾回收（GC）。在写入密集的场景下，B+ 树的随机小更新会持续触发 GC，拖累性能。</p>
+<p><strong>第二，ZNS SSD 等新形态让问题更尖锐。</strong> 传统 SSD 靠 FTL 隐藏闪存特性，而 ZNS SSD 把写入约束暴露给主机：只能顺序写、同时打开的 zone 数量有限。把未经改造的 B+ 树直接部署到 ZNS SSD 上，吞吐量会明显下降，写入次数增加——这说明 B+ 树“为块设备设计”的前提，在新型 SSD 上并不自动成立。</p>
+<p><img src="/2026/10/23/%E5%93%88%E5%B8%8C%E8%A1%A8%E3%80%81%E8%B7%B3%E8%A1%A8%E8%BF%98%E6%98%AF%20B+%20%E6%A0%91%EF%BC%9A%E6%80%8E%E4%B9%88%E9%80%89/diagram-hdd-vs-ssd.gif"></p>
+<p><em>图 3：HDD 与 SSD 的瓶颈不在同一处。左边机械硬盘，代价大头是磁头寻道（5~50 ms）加旋转延迟，B+ 树把几百个 key 打包进一页，正好把随机寻道换成少量页读取；右边固态硬盘没有寻道，但闪存必须先擦除整个块才能覆写，原地更新经 FTL 重映射后留下写放大和 GC，于是要再按写入强度分岔：读多写少仍是 B+ 树，写密集则考虑 LSM-Tree 或改造后的 B+ 树。</em></p>
+<h3 id="4-3-选型判断：加一层“写入强度”"><a href="#4-3-选型判断：加一层“写入强度”" class="headerlink" title="4.3 选型判断：加一层“写入强度”"></a>4.3 选型判断：加一层“写入强度”</h3><p>在原有三步选型（数据在哪 → 要不要顺序 → 实现成本）的基础上，磁盘场景可以拆成两条分支：</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>推荐</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HDD，或读多写少的 SSD 场景</td>
+<td><strong>B+ 树</strong></td>
+<td>读路径依然高效，工程成熟度无可替代</td>
+</tr>
+<tr>
+<td>SSD，写入密集，且能接受读放大</td>
+<td><strong>LSM-Tree</strong></td>
+<td>把随机写转为顺序写，避开 SSD 的原地更新痛点</td>
+</tr>
+<tr>
+<td>SSD，写入密集，但需要稳定读延迟</td>
+<td><strong>改造后的 B+ 树</strong>（如 buffered B+ tree &#x2F; 冷热分层）</td>
+<td>用缓冲或分层存储减少对闪存的随机小写</td>
+</tr>
+</tbody></table>
+<p>LSM-Tree 在 SSD 上的优势来自它“顺序写 + 后台合并”的机制，这与闪存“顺序写友好、原地更新昂贵”的特性天然匹配。代价是读放大和空间放大，所以它不是无条件更优，只是在<strong>写密集场景</strong>下值得优先考虑。</p>
+<p>所以“磁盘 → B+ 树”更准确的表述是：<strong>HDD → B+ 树；SSD → 看写入强度，读多写少选 B+ 树，写密集考虑 LSM-Tree 或对 B+ 树做闪存友好改造</strong>。</p>
+<hr>
+<h2 id="五、一张表收尾"><a href="#五、一张表收尾" class="headerlink" title="五、一张表收尾"></a>五、一张表收尾</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>哈希表</th>
+<th>跳表</th>
+<th>B+ 树</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>存储介质</strong></td>
+<td>内存</td>
+<td>内存</td>
+<td>磁盘（HDD 为主；SSD 上可用但需权衡写入）</td>
+</tr>
+<tr>
+<td><strong>等值查询</strong></td>
+<td>期望 O(1)，最快</td>
+<td>期望 O(log n)</td>
+<td>O(log n)，实际 1~2 次 I&#x2F;O</td>
+</tr>
+<tr>
+<td><strong>范围查询</strong></td>
+<td>不支持</td>
+<td>支持，定位后顺序扫</td>
+<td>支持，叶子链表顺序扫</td>
+</tr>
+<tr>
+<td><strong>有序遍历</strong></td>
+<td>不支持</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>写入模式</strong></td>
+<td>随机写（扩容代价高）</td>
+<td>随机写（局部改指针）</td>
+<td>随机写 + 页分裂，有写放大</td>
+</tr>
+<tr>
+<td><strong>核心优势</strong></td>
+<td>极致的点查速度</td>
+<td>内存有序 + 实现简单</td>
+<td>磁盘 I&#x2F;O 最小化（尤其 HDD）</td>
+</tr>
+<tr>
+<td><strong>典型系统</strong></td>
+<td>Redis KV、Memcached</td>
+<td>Redis ZSet、LevelDB MemTable</td>
+<td>MySQL InnoDB、大多数关系库</td>
+</tr>
+</tbody></table>
+<p>所以怎么选，顺序是：</p>
+<ol>
+<li><strong>先问数据在哪</strong>。内存 → 继续往下。磁盘 → 再问是 HDD 还是 SSD、写入强度如何：HDD 或读多写少的 SSD → B+ 树；SSD 写密集 → LSM-Tree 或闪存友好改造的 B+ 树（LSM 本身是另一个话题，但它是这个分支的自然候选）。</li>
+<li><strong>再问要不要顺序</strong>。不要 → 哈希表。要 → 跳表。</li>
+<li><strong>最后问实现和维护成本</strong>。在内存有序结构里，跳表比平衡树更容易写对、更容易并发，这是一个经常被忽略但很实际的加分项。</li>
+</ol>
+<p>前两步根据数据特征圈定候选集，第三步在候选集内做最终取舍。</p>
+<hr>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><p>本文配图所用资源如下：</p>
+<p><strong>封面图</strong></p>
+<ul>
+<li>图片来源：<a target="_blank" rel="noopener" href="https://unsplash.com/">Unsplash</a>（免费可商用图库，遵循 <a target="_blank" rel="noopener" href="https://unsplash.com/license">Unsplash License</a>）。</li>
+</ul>
+<p><strong>动图（图 1 ~ 图 3）</strong></p>
+<ul>
+<li>生成工具：<strong>Animated Sketch Diagram</strong> —— 一个把技术概念画成「黑墨手绘涂鸦 + 米色纸面」风格动画图的 Claude Code 插件。</li>
+<li>项目地址：<a target="_blank" rel="noopener" href="https://github.com/OLDyade/animated-sketch-diagram">https://github.com/OLDyade/animated-sketch-diagram</a></li>
+<li>作者：<a target="_blank" rel="noopener" href="https://github.com/OLDyade">OLDyade</a></li>
+<li>许可：见项目仓库中的 LICENSE 文件。</li>
+<li>说明：三张动图均由该工具生成 SVG + CSS 动画后导出为无缝循环 GIF，文字内容依据本文正文整理，图中数据为示意值（节点数、页大小、耗时区间等取的是文中给出的典型量级，不是某次真实压测的结果）。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-Redis-MySQL/" rel="tag"># 数据结构,Redis,MySQL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/11/14/Node-js-%E4%B8%8B%E4%BD%BF%E7%94%A8-gm-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="prev" title=" Node.js 下使用 gm 模块的一些思考">
+                  <i class="fa fa-angle-left"></i>  Node.js 下使用 gm 模块的一些思考
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/10/23/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/" rel="next" title="">
+                   <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">fwind</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
