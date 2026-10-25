@@ -144,7 +144,7 @@
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -170,7 +170,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/23/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/25/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -188,7 +188,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/10/23/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/" class="post-title-link" itemprop="url">未命名</a>
+          <a href="/2026/10/25/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/" class="post-title-link" itemprop="url">Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择</a>
         </h2>
 
         <div class="post-meta-container">
@@ -198,8 +198,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2026-10-23 11:28:49" itemprop="dateCreated datePublished" datetime="2026-10-23T11:28:49+08:00">2026-10-23</time>
+      <time title="创建时间：2026-10-25 11:00:00 / 修改时间：09:45:48" itemprop="dateCreated datePublished" datetime="2026-10-25T11:00:00+08:00">2026-10-25</time>
     </span>
 
   
@@ -212,14 +213,20 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="Redis-字典与渐进式-rehash：为什么“慢慢搬”是合理的选择"><a href="#Redis-字典与渐进式-rehash：为什么“慢慢搬”是合理的选择" class="headerlink" title="Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择"></a>Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择</h1><p>如果你用过 Redis，大概率知道它“快”。但“快”从来不是偶然的。Redis 字典的渐进式 rehash，就是一个典型的例子：<strong>它为了不阻塞，主动选择了一种“看起来更慢”的搬迁方式。</strong></p>
-<p>这篇文章不贴源码，而是回答几个具体问题：一次性 rehash 到底会阻塞多久？迁移过程中增删改查怎么处理？为什么是“每次搬一点”，而不是“分批定时搬”？以及——这个设计牺牲了什么。</p>
+          <p><img src="/2026/10/25/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/%E6%B3%A2%E5%A5%B4%E9%B2%81%E9%B2%81%E5%9B%BD%E5%AE%B6%E5%85%AC%E5%9B%AD%E9%87%8C%E7%9A%84%E9%82%A6%E6%A0%BC%E5%B0%94%E9%82%A6%E6%A0%BC%E5%B0%94%E5%B1%B1%E8%84%89.jpg"></p>
+<p>如果你用过 Redis，大概率知道它“快”。但“快”从来不是偶然的。Redis 字典的渐进式 rehash，就是一个典型的例子：<strong>它为了不阻塞，主动选择了一种“看起来更慢”的搬迁方式。</strong></p>
+<p>这个选择的本质，是在回答一个问题：<strong>当一次维护操作的耗时随数据量线性增长时，你愿意把它摊开，还是让它一次性砸下来？</strong></p>
+<p>一次性 rehash 的账很好算：1 亿个键值对、单个迁移约 100 纳秒，乘起来就是 10 秒。对一个标榜毫秒级延迟的服务来说，这 10 秒等于服务中断。渐进式 rehash 的答案是——<strong>不追求“搬得快”，只追求“永远不停”</strong>。它把搬迁拆成一个个桶，塞进每一次普通的增删改查里，让开销跟着请求量自然摊薄。</p>
+<p>代价也很实在：迁移期间内存占用翻倍、每次操作要查两张表、所有字典操作都要多一条“是否在 rehash 中”的分支。</p>
+<p>下面按问题拆开讲：一次性 rehash 到底会阻塞多久？两个哈希表怎么协作？迁移过程中增删改查各走哪条路？为什么是“每次操作顺带搬”而不是“分批定时搬”？以及——这个设计最终牺牲了什么、换来了什么。</p>
 <hr>
 <h2 id="一、字典的基本结构：两个哈希表"><a href="#一、字典的基本结构：两个哈希表" class="headerlink" title="一、字典的基本结构：两个哈希表"></a>一、字典的基本结构：两个哈希表</h2><p>Redis 的字典 <code>dict</code> 内部有两个哈希表：<code>ht[0]</code> 和 <code>ht[1]</code>。</p>
 <p>正常情况下，数据都在 <code>ht[0]</code> 里，<code>ht[1]</code> 是空的。只有当需要扩容或缩容时，<code>ht[1]</code> 才会被分配空间，然后数据从 <code>ht[0]</code> 逐渐迁移到 <code>ht[1]</code>。</p>
 <p>为什么要两个表？</p>
 <p>因为 Redis 是<strong>单线程</strong>的。如果只用一张表，扩容时你得原地把所有元素重新计算位置——这在单线程下意味着<strong>什么都干不了</strong>。两张表 + 一个 <code>rehashidx</code> 索引，让迁移可以“边干活边搬”。</p>
 <p>每个哈希表底层是<strong>数组 + 链表</strong>，用链地址法解决冲突。<code>dictEntry</code> 就是链表节点，同一个桶里的元素用 <code>next</code> 指针串起来。</p>
+<p><img src="/2026/10/25/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/diagram-double-ht.gif"></p>
+<p><em>图 1：两张表怎么协作。上半部分画迁移进行中的状态——<code>ht[0]</code> 左侧几个桶已经搬空，游标 <code>rehashidx</code> 停在当前要处理的桶上，箭头表示这一次只搬这一个桶（桶内通常 1~5 个节点），搬完游标右移一格；<code>ht[1]</code> 是新分配的、容量翻倍的表，搬来的节点落在里面。下半部分把迁移期间四种操作的规则并排放：查找要先查 <code>ht[0]</code> 再查 <code>ht[1]</code>，删除和更新两张表都要动，而新增只写 <code>ht[1]</code>——最后这条是关键，它保证 <code>ht[0]</code> 的节点数只减不增，否则旧表永远清不空。</em></p>
 <hr>
 <h2 id="二、一次性-rehash-到底会阻塞多久？"><a href="#二、一次性-rehash-到底会阻塞多久？" class="headerlink" title="二、一次性 rehash 到底会阻塞多久？"></a>二、一次性 rehash 到底会阻塞多久？</h2><p>这是核心问题。要回答它，先看数据量。</p>
 <p><strong>假设</strong>：一个字典有 <strong>1 亿个键值对</strong>。</p>
@@ -230,6 +237,8 @@
 <p><strong>10 秒。</strong> 在这 10 秒里，Redis 的主线程完全被占住。<strong>所有客户端请求全部排队等待。</strong> 对于一个标榜 P99 延迟在毫秒级的服务来说，这是灾难性的。</p>
 <p>更极端的场景：如果 value 是<strong>大 key</strong>（比如一个几百 MB 的 List），单次迁移的耗时可能以<strong>秒</strong>为单位。有测试数据显示，迁移一个 600MB 的 list 类型 key 需要 <strong>6.7 秒</strong>。这还只是一个 key。</p>
 <p>所以答案很明确：<strong>一次性 rehash 的阻塞时间与数据量成正比，在百万级以上的字典中，阻塞时间会达到秒级甚至更长。</strong> 对 Redis 来说，这等于服务中断。</p>
+<p><img src="/2026/10/25/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/diagram-rehash-blocking.gif"></p>
+<p><em>图 2：两种搬法的差别只在“什么时候搬”。左边一次性 rehash 把全部工作压成一根长条——这 10 秒里主线程被占满，客户端请求只能排队，延迟曲线上出现一根 P99.9 尖刺；右边渐进式 rehash 用同样的总工作量，但把它切成一个个小格，和请求交替执行，单次操作只多搬一个桶，延迟曲线保持平稳。底部一行是这张图的重点：两者*<em>总搬迁耗时相同</em></em>（都是约 10 秒的 CPU 工作量），差别只在单次最大停顿——从 10 秒降到微秒级的单桶开销，代价是迁移期间内存占用翻倍。*</p>
 <hr>
 <h2 id="三、渐进式-rehash-到底“渐进”在哪里？"><a href="#三、渐进式-rehash-到底“渐进”在哪里？" class="headerlink" title="三、渐进式 rehash 到底“渐进”在哪里？"></a>三、渐进式 rehash 到底“渐进”在哪里？</h2><p>Redis 的解法是：<strong>不一次性搬完，而是把搬迁工作分摊到每一次操作里。</strong></p>
 <p>具体机制：</p>
@@ -293,6 +302,22 @@
 <li><strong>平滑的延迟曲线。</strong> 一次性 rehash 会导致 P99.9 和 max 延迟飙升；渐进式 rehash 把开销摊薄，让延迟保持稳定。</li>
 <li><strong>自适应节奏。</strong> 搬迁进度跟随负载，忙时搬得快，闲时搬得慢，不浪费 CPU。</li>
 </ol>
+<hr>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><p>本文配图所用资源如下：</p>
+<p><strong>封面图</strong></p>
+<ul>
+<li>图片来源：<a target="_blank" rel="noopener" href="https://unsplash.com/">Unsplash</a>（免费可商用图库，遵循 <a target="_blank" rel="noopener" href="https://unsplash.com/license">Unsplash License</a>）。</li>
+</ul>
+<p><strong>动图（图 1 ~ 图 2）</strong></p>
+<ul>
+<li>生成工具：<strong>Animated Sketch Diagram</strong> —— 一个把技术概念画成「黑墨手绘涂鸦 + 米色纸面」风格动画图的 Claude Code 插件。</li>
+<li>项目地址：<a target="_blank" rel="noopener" href="https://github.com/OLDyade/animated-sketch-diagram">https://github.com/OLDyade/animated-sketch-diagram</a></li>
+<li>作者：<a target="_blank" rel="noopener" href="https://github.com/OLDyade">OLDyade</a></li>
+<li>许可：见项目仓库中的 LICENSE 文件。</li>
+<li>说明：两张动图均由该工具生成 SVG + CSS 动画后导出为无缝循环 GIF，文字内容依据本文正文整理。图中数据为示意值（1 亿键、单次 100 ns、约 10 秒总耗时、桶内 1~5 个节点等，取的是文中给出的典型量级），<strong>不是某次真实压测的结果</strong>。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
 
       
     </div>
