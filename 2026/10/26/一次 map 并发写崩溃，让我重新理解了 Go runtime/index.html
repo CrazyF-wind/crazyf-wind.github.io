@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"crazyf-wind.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":true,"height":240},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="线上服务在压测时挂了一次。日志里最显眼的是这一行： 1fatal error: concurrent map writes  它后面其实跟了一段堆栈，但那段堆栈只指向“发现冲突的那个 goroutine”——另一个对手是谁，它并不知道。也没有任何可以 recover 的 panic 信息，程序直接以 exit(2) 结束。更让人困惑的是，这段代码在本地跑了一周都没事，QPS 一上来几秒钟就崩了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次 map 并发写崩溃，让我重新理解了 Go runtime">
+<meta property="og:url" content="https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/index.html">
+<meta property="og:site_name" content="fwind&#39;s blog">
+<meta property="og:description" content="线上服务在压测时挂了一次。日志里最显眼的是这一行： 1fatal error: concurrent map writes  它后面其实跟了一段堆栈，但那段堆栈只指向“发现冲突的那个 goroutine”——另一个对手是谁，它并不知道。也没有任何可以 recover 的 panic 信息，程序直接以 exit(2) 结束。更让人困惑的是，这段代码在本地跑了一周都没事，QPS 一上来几秒钟就崩了。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/%E7%BE%8E%E5%9B%BD%E5%9B%BD%E5%AE%B6%E6%AD%A5%E9%81%93%E7%B3%BB%E7%BB%9F%EF%BC%8C%E5%AE%89%E5%A1%9E%E5%B0%94%C2%B7%E4%BA%9A%E5%BD%93%E6%96%AF%E7%9A%84%E8%8D%92%E9%87%8E.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/diagram-flag-not-lock.gif">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/diagram-panic-vs-throw.gif">
+<meta property="article:published_time" content="2026-10-26T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-26T04:17:40.442Z">
+<meta property="article:author" content="fwind">
+<meta property="article:tag" content="Go,并发,runtime">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/%E7%BE%8E%E5%9B%BD%E5%9B%BD%E5%AE%B6%E6%AD%A5%E9%81%93%E7%B3%BB%E7%BB%9F%EF%BC%8C%E5%AE%89%E5%A1%9E%E5%B0%94%C2%B7%E4%BA%9A%E5%BD%93%E6%96%AF%E7%9A%84%E8%8D%92%E9%87%8E.jpg">
+
+
+<link rel="canonical" href="https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/","path":"2026/10/26/一次 map 并发写崩溃，让我重新理解了 Go runtime/","title":"一次 map 并发写崩溃，让我重新理解了 Go runtime"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>一次 map 并发写崩溃，让我重新理解了 Go runtime | fwind's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">fwind's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">coder</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%B4%A9%E6%BA%83%E7%8E%B0%E5%9C%BA%EF%BC%9A%E4%B8%80%E4%B8%AA%E5%85%B8%E5%9E%8B%E7%9A%84%E2%80%9C%E7%9C%8B%E8%B5%B7%E6%9D%A5%E6%B2%A1%E9%97%AE%E9%A2%98%E2%80%9D"><span class="nav-number">1.</span> <span class="nav-text">一、崩溃现场：一个典型的“看起来没问题”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81runtime-%E6%98%AF%E6%80%8E%E4%B9%88%E5%8F%91%E7%8E%B0%E7%9A%84%EF%BC%9A%E4%B8%80%E4%B8%AA%E6%A0%87%E5%BF%97%E4%BD%8D"><span class="nav-number">2.</span> <span class="nav-text">二、runtime 是怎么发现的：一个标志位</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%B0%E8%A1%8C%E5%AE%9E%E7%8E%B0%EF%BC%88Go-1-24-%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">现行实现（Go 1.24+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2%E5%AE%9E%E7%8E%B0%EF%BC%88Go-1-23-%E5%8F%8A%E6%9B%B4%E6%97%A9%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">历史实现（Go 1.23 及更早）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-throw%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF-panic"><span class="nav-number">3.</span> <span class="nav-text">三、为什么是 throw，而不是 panic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81sync-Map-%E4%B8%8D%E6%98%AF%E4%B8%87%E8%83%BD%E8%A7%A3%E8%8D%AF"><span class="nav-number">4.</span> <span class="nav-text">四、sync.Map 不是万能解药</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3-runtime-%E7%9A%84%E2%80%9C%E4%B8%8D%E5%AE%BD%E5%AE%B9%E2%80%9D"><span class="nav-number">5.</span> <span class="nav-text">五、重新理解 runtime 的“不宽容”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E4%B8%8E%E8%87%B4%E8%B0%A2"><span class="nav-number">6.</span> <span class="nav-text">引用与致谢</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">fwind</p>
+  <div class="site-description" itemprop="description">code</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="一次 map 并发写崩溃，让我重新理解了 Go runtime | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          一次 map 并发写崩溃，让我重新理解了 Go runtime
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-26 11:00:00 / 修改时间：12:17:40" itemprop="dateCreated datePublished" datetime="2026-10-26T11:00:00+08:00">2026-10-26</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><img src="/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/%E7%BE%8E%E5%9B%BD%E5%9B%BD%E5%AE%B6%E6%AD%A5%E9%81%93%E7%B3%BB%E7%BB%9F%EF%BC%8C%E5%AE%89%E5%A1%9E%E5%B0%94%C2%B7%E4%BA%9A%E5%BD%93%E6%96%AF%E7%9A%84%E8%8D%92%E9%87%8E.jpg" alt="美国国家步道系统，安塞尔·亚当斯的荒野"></p>
+<p>线上服务在压测时挂了一次。日志里最显眼的是这一行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fatal error: concurrent map writes</span><br></pre></td></tr></table></figure>
+
+<p>它后面其实跟了一段堆栈，但那段堆栈只指向“发现冲突的那个 goroutine”——另一个对手是谁，它并不知道。也没有任何可以 recover 的 panic 信息，程序直接以 <code>exit(2)</code> 结束。更让人困惑的是，这段代码在本地跑了一周都没事，QPS 一上来几秒钟就崩了。</p>
+<p>这篇文章不打算罗列“Go map 怎么加锁”的几种方式，而是回答一个更根本的问题：<strong>为什么 Go 选择让程序直接死掉，而不是像其他语言那样返回一个错误，或者至少让你 recover 一下？</strong></p>
+<p>答案藏在 runtime 的设计哲学里。</p>
+<hr>
+<h2 id="一、崩溃现场：一个典型的“看起来没问题”"><a href="#一、崩溃现场：一个典型的“看起来没问题”" class="headerlink" title="一、崩溃现场：一个典型的“看起来没问题”"></a>一、崩溃现场：一个典型的“看起来没问题”</h2><p>出问题的结构大致是这样：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> cache = <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Get</span><span class="params">(key <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> cache[key]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Set</span><span class="params">(key, value <span class="type">string</span>)</span></span> &#123;</span><br><span class="line">    cache[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>包级 map，HTTP handler 里同时调 <code>Get</code> 和 <code>Set</code>。本地单线程测试没问题，压测时多个 goroutine 同时进来，就炸了。</p>
+<p>触发的是两种 fatal error 之一：</p>
+<ul>
+<li><code>concurrent map read and map write</code>：一个 goroutine 读，另一个在写；</li>
+<li><code>concurrent map writes</code>：两个 goroutine 同时写。</li>
+</ul>
+<p>关键在于：<strong>它不是 panic，是 throw。</strong></p>
+<hr>
+<h2 id="二、runtime-是怎么发现的：一个标志位"><a href="#二、runtime-是怎么发现的：一个标志位" class="headerlink" title="二、runtime 是怎么发现的：一个标志位"></a>二、runtime 是怎么发现的：一个标志位</h2><p>这里要先说清版本。<strong>Go 1.24 起，内置 map 换成了基于 Swiss table 的实现</strong>，代码在 <code>internal/runtime/maps</code>；在此之前是 <code>runtime/map.go</code> 里的 <code>hmap</code> + bucket。两代实现的检测思路一样，但细节不同，网上的分析经常混着讲。</p>
+<h3 id="现行实现（Go-1-24-）"><a href="#现行实现（Go-1-24-）" class="headerlink" title="现行实现（Go 1.24+）"></a>现行实现（Go 1.24+）</h3><p><code>Map</code> 结构体里有一个 <code>writing uint8</code> 字段。写操作不是“上锁”，而是翻转这个标志位，并在进入和退出时各检查一次：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 写操作（赋值、删除）</span></span><br><span class="line"><span class="keyword">if</span> m.writing != <span class="number">0</span> &#123;</span><br><span class="line">    fatal(<span class="string">&quot;concurrent map writes&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line">m.writing ^= <span class="number">1</span>            <span class="comment">// 异或翻转，标记“正在写”</span></span><br><span class="line"><span class="comment">// ... 执行写入 ...</span></span><br><span class="line"><span class="keyword">if</span> m.writing == <span class="number">0</span> &#123;       <span class="comment">// 退出前再查一次</span></span><br><span class="line">    fatal(<span class="string">&quot;concurrent map writes&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line">m.writing ^= <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 读操作</span></span><br><span class="line"><span class="keyword">if</span> m.writing != <span class="number">0</span> &#123;</span><br><span class="line">    fatal(<span class="string">&quot;concurrent map read and map write&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>三个细节值得注意：</p>
+<ul>
+<li><strong>用异或而不是置 1／清 0。</strong> 源码注释说得很直白：并发写者不止一个时，翻转能提高双方都发现竞争的概率。如果只是置位，后到的写者看到 1 就死了；异或让状态在 0&#x2F;1 之间来回翻，两个写者都更容易撞见对方留下的痕迹。</li>
+<li><strong>进入和退出各查一次。</strong> 退出时的 <code>if m.writing == 0</code> 很容易被忽略：如果另一个写者在中途把标志翻回去了，这里也能抓到。</li>
+<li><strong>遍历有单独的报错。</strong> <code>mapiterinit</code> 检查的是同一个字段，但报的是 <code>concurrent map iteration and map write</code>。</li>
+</ul>
+<h3 id="历史实现（Go-1-23-及更早）"><a href="#历史实现（Go-1-23-及更早）" class="headerlink" title="历史实现（Go 1.23 及更早）"></a>历史实现（Go 1.23 及更早）</h3><p>旧实现是 <code>hmap</code> 结构体里的 <code>flags</code> 字段，其中一位叫 <code>hashWriting</code>，值是 4：</p>
+<ul>
+<li>写操作开始时 <code>h.flags |= hashWriting</code>，结束时 <code>h.flags &amp;^= hashWriting</code>；</li>
+<li>读操作检查 <code>h.flags &amp; hashWriting != 0</code>，发现有人在写就 <code>fatal</code>。</li>
+</ul>
+<p>思路完全一样，只是位运算和异或的区别。<strong>所以后面讨论的“为什么是 throw”，对两代实现都成立。</strong></p>
+<p><img src="/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/diagram-flag-not-lock.gif" alt="runtime 的并发 map 检测：一个标志位，不是一把锁"></p>
+<p><em>图 1：runtime 用的是“一个标志位 + 检查”，不是锁。写者进入时翻转标志，另一个写者或读者撞见非零值就触发 fatal；两边的操作并没有被串行化。</em></p>
+<p>注意：<strong>这只是一个检测，不是同步。</strong> 两个 goroutine 可能刚好错开，也可能刚好撞上。所以表现为“偶发”——本地不崩，压测崩；低流量不崩，高流量崩。</p>
+<p>还有一个容易踩的坑：<strong>对非空 map，<code>delete</code> 即使 key 不存在，也会走写路径、设置写标志</strong>。遍历时如果另一个 goroutine 在删任何 key，遍历都可能触发 fatal。</p>
+<hr>
+<h2 id="三、为什么是-throw，而不是-panic"><a href="#三、为什么是-throw，而不是-panic" class="headerlink" title="三、为什么是 throw，而不是 panic"></a>三、为什么是 throw，而不是 panic</h2><p>这是整个设计中最关键的问题。</p>
+<p>普通的 panic 会创建一个 <code>_panic</code> 结构体，挂到当前 goroutine 上，然后逆向遍历调用栈，执行 <code>defer</code>。如果某个 <code>defer</code> 里调了 <code>recover()</code>，程序就能继续跑。</p>
+<p><code>throw</code> 完全绕过这套机制。它把 <code>fatal error</code> 和当前 goroutine 的堆栈打印到标准错误，然后 <code>exit(2)</code>。<strong>没有 defer，没有 recover，没有“恢复”这个选项。</strong></p>
+<p>它选择这么做的理由很直接：<strong>当 map 的并发冲突被检测到时，内部状态可能已经损坏了。</strong></p>
+<p>想象一下：一个 goroutine 正在扩容、把旧表里的槽位搬到新表，另一个 goroutine 同时在读旧表的指针。runtime 发现的时候，控制字和槽位可能已经被改得面目全非——而检测本身只是一个标志位，它只知道“有人撞车了”，并不知道撞坏了多少东西。如果允许你 recover，程序继续跑，后续可能出现更诡异的行为——读到错误的数据、写入丢失、甚至内存越界。</p>
+<p><strong>直接死掉，是比“带着损坏的状态继续运行”更负责任的选择。</strong></p>
+<p>对比一下 Java 的 <code>ConcurrentModificationException</code>：它允许你捕获，然后继续用那个已经被并发修改过的集合。很多时候你的程序不会立刻崩，但数据对不对，就不好说了。</p>
+<p>Go 选择了另一条路：<strong>在检测到确定性错误的那一刻，终止进程。</strong> 用一次响亮的崩溃，换掉后续所有不可预测的 bug。</p>
+<p><img src="/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/diagram-panic-vs-throw.gif" alt="panic 与 throw 的分岔"></p>
+<p><em>图 2：panic 与 throw 的分岔——panic 会走 defer 链，路上还有 recover 这个出口；throw 直接打印堆栈并 exit(2)，没有回头路。</em></p>
+<hr>
+<h2 id="四、sync-Map-不是万能解药"><a href="#四、sync-Map-不是万能解药" class="headerlink" title="四、sync.Map 不是万能解药"></a>四、sync.Map 不是万能解药</h2><p>知道原因之后，修复方式看起来很简单：加锁，或者换成 <code>sync.Map</code>。</p>
+<p>但 <code>sync.Map</code> 的适用场景很窄，而且它的内部实现这些年也变过。</p>
+<p><strong>Go 1.24 起</strong>，<code>sync.Map</code> 换成了并发哈希 trie（<code>internal/sync.HashTrieMap</code>）：读操作沿树做原子加载，通常无锁；写操作只在命中的中间节点上加锁并替换节点。官方发布说明强调的改进是——修改<strong>不相交</strong>的 key 集合时，大 map 上的争用明显变少，而且不再需要预热（老实现要先攒出 dirty map，才能进入低争用状态）。</p>
+<p><strong>Go 1.23 及更早</strong>，它是 <code>read</code> + <code>dirty</code> 两层结构：读大多走 <code>read</code> 这层无锁快照，写则先在 <code>dirty</code> 里累积，攒够次数再提升为新的 <code>read</code>。</p>
+<p>两代实现的共同结论没变：它的优势都在<strong>读多写少、key 集合相对稳定</strong>的场景。写非常频繁时，<code>sync.Map</code> 的写路径（加锁、替换节点、分配）未必比一把 <code>sync.RWMutex</code> 便宜。而且无论哪一代，<code>Range</code> 都不保证一致性快照——遍历期间看到的可能是部分更新后的状态。</p>
+<p>所以实际选型通常是：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>读多写少，key 稳定</td>
+<td><code>sync.Map</code></td>
+</tr>
+<tr>
+<td>读写均衡，或需要强一致遍历</td>
+<td><code>sync.RWMutex</code> 保护的普通 map</td>
+</tr>
+<tr>
+<td>高并发，锁竞争严重</td>
+<td>分片锁（按 key hash 分到 N 个 map，各一把锁）</td>
+</tr>
+</tbody></table>
+<p>分片锁的思路和 Redis 的渐进式 rehash 有相似之处：<strong>把一个大问题拆成 N 个小问题，让冲突概率降下来。</strong></p>
+<hr>
+<h2 id="五、重新理解-runtime-的“不宽容”"><a href="#五、重新理解-runtime-的“不宽容”" class="headerlink" title="五、重新理解 runtime 的“不宽容”"></a>五、重新理解 runtime 的“不宽容”</h2><p>这次崩溃之后，我对 Go runtime 的看法变了一点。</p>
+<p>以前觉得 <code>fatal error</code> 太粗暴，为什么不能给个错误码，或者至少让我记录一下现场。后来想明白了：<strong>map 的并发冲突不是“可以优雅处理”的错误，它是一个已经发生的数据损坏事件。</strong></p>
+<p>runtime 在 <code>writing</code>（老版本是 <code>hashWriting</code>）标志上做的检测，本质是一种<strong>尽力而为的哨兵</strong>。它不保证一定能发现（两个写操作可能刚好错开标志位检查），但一旦发现，说明冲突已经真实发生了。这时候程序内部的状态是否还能安全使用，没有人能保证。</p>
+<p>所以它选择 <code>throw</code>。<strong>用进程的死亡，阻止损坏状态的扩散。</strong></p>
+<p>这其实和 Redis 渐进式 rehash 的设计哲学形成了有趣的对照：Redis 用复杂度换可用性，因为它是单线程的，不能让主线程卡住；Go 用进程死亡换正确性，因为 map 的状态一旦损坏，继续运行比崩溃更危险。</p>
+<p>两种选择，面对的是不同层面的“正确性”。</p>
+<hr>
+<p><strong>如果你也在线上遇到过这个崩溃</strong>，第一件事不是急着加锁，而是用 <code>go test -race</code> 或 <code>go run -race</code> 在测试环境复现一次。<code>-race</code> 能告诉你哪个 goroutine 在写、哪个在读、以及它们各自的调用栈。这比线上盲猜高效得多。</p>
+<p>至于那个包级 map——修法很简单，难的是意识到：<strong>Go 的 map 从来没有承诺过并发安全，而 runtime 用最不宽容的方式，让这个承诺变得无法忽视。</strong></p>
+<hr>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><p><strong>封面图</strong></p>
+<ul>
+<li>图片：<em>美国国家步道系统，安塞尔·亚当斯的荒野</em>，来源 <a target="_blank" rel="noopener" href="https://bing.com/">bing</a>。</li>
+</ul>
+<p><strong>动图（图 1 ~ 图 2）</strong></p>
+<ul>
+<li>生成工具：<strong>Animated Sketch Diagram</strong> —— 一个把技术概念画成「黑墨手绘涂鸦 + 米色纸面」风格动画图的 Claude Code 插件。</li>
+<li>项目地址：<a target="_blank" rel="noopener" href="https://github.com/OLDyade/animated-sketch-diagram">https://github.com/OLDyade/animated-sketch-diagram</a></li>
+<li>作者：<a target="_blank" rel="noopener" href="https://github.com/OLDyade">OLDyade</a></li>
+<li>许可：见项目仓库中的 LICENSE 文件。</li>
+<li>说明：两张动图均由该工具把正文对应段落转成 SVG + CSS 动画后导出为循环 GIF，图中的结构为示意，不是 runtime 内存布局的精确复刻。</li>
+</ul>
+<p><strong>事实核对</strong></p>
+<ul>
+<li>旧实现（Go 1.23 及更早）：<code>src/runtime/map.go</code> 中的 <code>hashWriting = 4</code> 与 <code>h.flags</code> 检查，见 <a target="_blank" rel="noopener" href="https://github.com/golang/go/blob/go1.23.0/src/runtime/map.go">go1.23.0 源码</a>。</li>
+<li>现行实现（Go 1.24+）：<code>src/internal/runtime/maps/map.go</code> 中的 <code>writing</code> 字段与异或翻转，本文按作者本机 Go 1.27.1 的源码核对。</li>
+<li><code>sync.Map</code> 的实现变更：<a target="_blank" rel="noopener" href="https://go.dev/doc/go1.24">Go 1.24 Release Notes</a>（<code>sync.Map</code> 与内置 map 都在这个版本换了实现）。</li>
+<li>文中崩溃输出（<code>fatal error</code> + 堆栈 + 程序 <code>exit(2)</code>）来自作者本机 Go 1.27.1 的实际复现；注意用 <code>go run</code> 运行时，外层工具自身会返回 1，日志里的 <code>exit status 2</code> 才是程序本身的退出码。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Go-%E5%B9%B6%E5%8F%91-runtime/" rel="tag"># Go,并发,runtime</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/25/Redis%20%E5%AD%97%E5%85%B8%E4%B8%8E%E6%B8%90%E8%BF%9B%E5%BC%8F%20rehash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%85%A2%E6%85%A2%E6%90%AC%E2%80%9D%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84%E9%80%89%E6%8B%A9/" rel="prev" title="Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择">
+                  <i class="fa fa-angle-left"></i> Redis 字典与渐进式 rehash：为什么“慢慢搬”是合理的选择
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/" rel="next" title="从零实现一个哈希表，理解它的每一个设计决策">
+                  从零实现一个哈希表，理解它的每一个设计决策 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">fwind</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

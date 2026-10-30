@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 610" width="1100" height="610" role="img" aria-label="链地址法哈希表的整体结构：桶数组加链表">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 8" refX="9.5" refY="4" markerWidth="8" markerHeight="7"
+          orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+    <path d="M0 0.6 L9.5 4 L0 7.4 Z" fill="context-stroke"/>
+  </marker>
+  <marker id="arrow-muted" viewBox="0 0 10 8" refX="9.5" refY="4" markerWidth="8" markerHeight="7"
+          orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+    <path d="M0 0.6 L9.5 4 L0 7.4 Z" fill="#6b7280"/>
+  </marker>
+<style>
+/* 变量声明在 svg 根元素上，不是 :root —— 独立 SVG 文档里 :root 不生效，
+   变量会解析失败并回退成黑色填充（曾导致整张图变成黑底）。 */
+svg {
+  --bg: #ffffff; --bg-soft: #f6f7f9;
+  --ink: #1f2328; --ink-muted: #6b7280;
+  --line: #c9ced6; --neutral: #eef0f3;
+  --primary: #3b6fd4; --primary-soft: #e4ecfb;
+  --accent: #2f9e8f; --accent-soft: #dff2ef;
+  --warn: #d98324; --warn-soft: #fbeedd;
+  --danger: #c8483c; --danger-soft: #fae5e2;
+  --violet: #7c5cbf; --violet-soft: #eee8f8;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Source Han Sans SC',sans-serif;
+}
+text { fill: var(--ink); }
+.t-title { font-size: 26px; font-weight: 650; }
+.t-sub { font-size: 14px; fill: var(--ink-muted); }
+.t-region { font-size: 15px; font-weight: 600; }
+.t-node { font-size: 14px; }
+.t-node-sub { font-size: 11.5px; fill: var(--ink-muted); }
+.t-label { font-size: 11.5px; fill: var(--ink-muted); }
+.t-conclusion { font-size: 13px; font-weight: 550; }
+.t-legend { font-size: 11.5px; fill: var(--ink-muted); }
+.t-mono { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 11.5px; }
+.edge { fill: none; }
+.edge-label-bg { fill: var(--bg); }
+</style>
+</defs>
+<rect width="1100" height="610" fill="#ffffff"/>
+<text class="t-title" x="32" y="54">链地址法哈希表的整体结构：桶数组加链表</text>
+<text class="t-sub" x="32" y="74">教学实现 · 字符串 key · 8 个桶</text>
+<rect x="32.0" y="104.0" width="1036.0" height="116.0" rx="12" fill="#f6f7f9" stroke="#c9ced6" stroke-width="1.2"/>
+<text class="t-region" x="50.0" y="135.0">桶数组 buckets</text>
+<text class="t-label" x="161.8" y="135.0">长度 m 为 2 的幂，初始 8</text>
+<rect x="32.0" y="242.0" width="1036.0" height="238.0" rx="12" fill="#f6f7f9" stroke="#c9ced6" stroke-width="1.2"/>
+<text class="t-region" x="50.0" y="273.0">冲突链 entry</text>
+<text class="t-label" x="144.0" y="273.0">next 指针串联，新节点插在头部</text>
+<path class="edge" d="M220.0 202.0 C220.0 248.0 198.0 248.0 198.0 294.0" stroke="var(--primary)" stroke-width="2.0" marker-end="url(#arrow)"/>
+<rect class="edge-label-bg" x="195.2" y="236.1" width="30.4" height="15" rx="3"/><text class="t-label" x="210.4" y="247.1" text-anchor="middle">next</text>
+<path class="edge" d="M257.7 325.0 C374.0 325.0 374.0 325.0 490.3 325.0" stroke="var(--line)" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect class="edge-label-bg" x="351.5" y="316.0" width="30.4" height="15" rx="3"/><text class="t-label" x="366.7" y="327.0" text-anchor="middle">next</text>
+<path class="edge" d="M518.5 179.0 C680.4 179.0 680.4 325.0 842.3 325.0" stroke="var(--primary)" stroke-width="2.0" marker-end="url(#arrow)"/>
+<rect class="edge-label-bg" x="655.0" y="233.9" width="30.4" height="15" rx="3"/><text class="t-label" x="670.3" y="244.9" text-anchor="middle">next</text>
+<path class="edge" d="M842.3 325.0 C550.0 325.0 550.0 431.0 257.7 431.0" stroke="var(--line)" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect class="edge-label-bg" x="553.1" y="362.4" width="30.4" height="15" rx="3"/><text class="t-label" x="568.3" y="373.4" text-anchor="middle">next</text>
+<rect x="53.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#eef0f3" stroke="#b9c0c9" stroke-width="1.3"/>
+<text class="t-node" x="88.0" y="182.4" text-anchor="middle" fill="#1f2328">buckets[0]</text>
+<rect x="185.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#e4ecfb" stroke="#3b6fd4" stroke-width="1.3"/>
+<text class="t-node" x="220.0" y="182.4" text-anchor="middle" fill="#1f2328">buckets[1]</text>
+<rect x="317.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#eef0f3" stroke="#b9c0c9" stroke-width="1.3"/>
+<text class="t-node" x="352.0" y="182.4" text-anchor="middle" fill="#1f2328">buckets[2]</text>
+<rect x="449.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#e4ecfb" stroke="#3b6fd4" stroke-width="1.3"/>
+<text class="t-node" x="484.0" y="182.4" text-anchor="middle" fill="#1f2328">buckets[3]</text>
+<rect x="581.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#ffffff" stroke="#c9ced6" stroke-width="1.3"/>
+<text class="t-node" x="616.0" y="182.4" text-anchor="middle" fill="#6b7280">buckets[4]</text>
+<rect x="713.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#eef0f3" stroke="#b9c0c9" stroke-width="1.3"/>
+<text class="t-node" x="748.0" y="182.4" text-anchor="middle" fill="#1f2328">buckets[5]</text>
+<rect x="845.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#eef0f3" stroke="#b9c0c9" stroke-width="1.3"/>
+<text class="t-node" x="880.0" y="182.4" text-anchor="middle" fill="#1f2328">buckets[6]</text>
+<rect x="977.5" y="156.0" width="69.0" height="46.0" rx="8.0" fill="#eef0f3" stroke="#b9c0c9" stroke-width="1.3"/>
+<text class="t-node" x="1012.0" y="182.4" text-anchor="middle" fill="#1f2328">buckets[7]</text>
+<rect x="138.3" y="294.0" width="119.4" height="62.0" rx="8.0" fill="#e4ecfb" stroke="#3b6fd4" stroke-width="1.3"/>
+<text class="t-node" x="198.0" y="321.6" text-anchor="middle" fill="#1f2328">entry</text>
+<text class="t-node-sub" x="198.0" y="338.6" text-anchor="middle">key, value, next</text>
+<rect x="490.3" y="294.0" width="119.4" height="62.0" rx="8.0" fill="#e4ecfb" stroke="#3b6fd4" stroke-width="1.3"/>
+<text class="t-node" x="550.0" y="321.6" text-anchor="middle" fill="#1f2328">entry</text>
+<text class="t-node-sub" x="550.0" y="338.6" text-anchor="middle">key, value, next</text>
+<rect x="842.3" y="294.0" width="119.4" height="62.0" rx="8.0" fill="#e4ecfb" stroke="#3b6fd4" stroke-width="1.3"/>
+<text class="t-node" x="902.0" y="321.6" text-anchor="middle" fill="#1f2328">entry</text>
+<text class="t-node-sub" x="902.0" y="338.6" text-anchor="middle">key, value, next</text>
+<rect x="138.3" y="400.0" width="119.4" height="62.0" rx="8.0" fill="#e4ecfb" stroke="#3b6fd4" stroke-width="1.3"/>
+<text class="t-node" x="198.0" y="427.6" text-anchor="middle" fill="#1f2328">entry</text>
+<text class="t-node-sub" x="198.0" y="444.6" text-anchor="middle">key, value, next</text>
+<rect x="32.0" y="506.0" width="1036.0" height="34" rx="7" fill="#e4ecfb" stroke="#3b6fd4" stroke-width="1.2"/>
+<text class="t-conclusion" x="46.0" y="528.0">链地址法的删除只需改指针、不需要墓碑，负载因子也可以超过 1； 代价是每条链都要额外的指针和内存分配。
+</text>
+<text class="t-label" x="32.0" y="560.0">图中链长与 key 取值均为示意；本结构描述本文教学实现，不代表任何语言原生 map 的内部布局。</text>
+</svg>

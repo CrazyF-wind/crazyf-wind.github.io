@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"crazyf-wind.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":true,"height":240},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="从数据结构选择到扩容、删除与工程边界  引言写一个能跑的哈希表不难。难的是，每到一个设计分叉路口，你都得做出选择：哈希函数用什么、冲突怎么解、扩容何时触发、删除如何处理、遍历应该遵守什么规则。 标准库替你做完了这些选择，所以平时使用 map 时，很容易只看到接口，看不到背后的权衡。自己从零实现一遍，这些问题才会逐个浮现。 本文按“设计决策”的顺序展开：先提出问题，再比较可选方案，最后说明本文的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零实现一个哈希表，理解它的每一个设计决策">
+<meta property="og:url" content="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/index.html">
+<meta property="og:site_name" content="fwind&#39;s blog">
+<meta property="og:description" content="从数据结构选择到扩容、删除与工程边界  引言写一个能跑的哈希表不难。难的是，每到一个设计分叉路口，你都得做出选择：哈希函数用什么、冲突怎么解、扩容何时触发、删除如何处理、遍历应该遵守什么规则。 标准库替你做完了这些选择，所以平时使用 map 时，很容易只看到接口，看不到背后的权衡。自己从零实现一遍，这些问题才会逐个浮现。 本文按“设计决策”的顺序展开：先提出问题，再比较可选方案，最后说明本文的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/%E5%8A%A0%E5%88%A9%E8%A5%BF%E4%BA%9A%E7%9C%81%E7%A7%91%E6%96%AF%E5%A1%94%E8%BE%BE%E8%8E%AB%E5%B0%94%E7%89%B9%E7%9A%84%E7%81%AF%E5%A1%94%EF%BC%8C%E8%A5%BF%E7%8F%AD%E7%89%99--%E6%AD%BB%E4%BA%A1%E6%B5%B7%E5%B2%B8.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/hashmap-structure.svg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/hashmap-bucket-index.svg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/hashmap-resize.svg">
+<meta property="article:published_time" content="2026-10-30T04:10:00.000Z">
+<meta property="article:modified_time" content="2026-10-30T05:18:06.372Z">
+<meta property="article:author" content="fwind">
+<meta property="article:tag" content="hash,Go,设计">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/%E5%8A%A0%E5%88%A9%E8%A5%BF%E4%BA%9A%E7%9C%81%E7%A7%91%E6%96%AF%E5%A1%94%E8%BE%BE%E8%8E%AB%E5%B0%94%E7%89%B9%E7%9A%84%E7%81%AF%E5%A1%94%EF%BC%8C%E8%A5%BF%E7%8F%AD%E7%89%99--%E6%AD%BB%E4%BA%A1%E6%B5%B7%E5%B2%B8.jpg">
+
+
+<link rel="canonical" href="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/","path":"2026/10/30/从零实现一个哈希表，理解它的每一个设计决策/","title":"从零实现一个哈希表，理解它的每一个设计决策"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从零实现一个哈希表，理解它的每一个设计决策 | fwind's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">fwind's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">coder</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E4%B8%80%EF%BC%9A%E5%BA%95%E5%B1%82%E7%94%A8%E4%BB%80%E4%B9%88%E7%BB%93%E6%9E%84%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">决策一：底层用什么结构？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E4%BA%8C%EF%BC%9A%E5%93%88%E5%B8%8C%E5%87%BD%E6%95%B0%E4%B8%8E%E6%A1%B6%E7%B4%A2%E5%BC%95%E6%80%8E%E4%B9%88%E8%AE%BE%E8%AE%A1%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">决策二：哈希函数与桶索引怎么设计？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E4%B8%89%EF%BC%9A%E5%86%B2%E7%AA%81%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">决策三：冲突怎么解决？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E5%9B%9B%EF%BC%9A%E8%B4%9F%E8%BD%BD%E5%9B%A0%E5%AD%90%E4%B8%8E%E6%89%A9%E5%AE%B9%E6%97%B6%E6%9C%BA%E6%80%8E%E4%B9%88%E5%AE%9A%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">决策四：负载因子与扩容时机怎么定？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E4%BA%94%EF%BC%9A%E5%88%A0%E9%99%A4%E6%80%8E%E4%B9%88%E5%A4%84%E7%90%86%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">决策五：删除怎么处理？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E5%85%AD%EF%BC%9A%E6%80%8E%E4%B9%88%E9%81%8D%E5%8E%86%E6%89%80%E6%9C%89%E5%85%83%E7%B4%A0%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">决策六：怎么遍历所有元素？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E4%B8%83%EF%BC%9A%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E8%A6%81%E4%B8%8D%E8%A6%81%E6%94%AF%E6%8C%81%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">决策七：并发安全要不要支持？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="nav-number">9.</span> <span class="nav-text">完整代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%88%86%E6%9E%90%EF%BC%9A%E8%BF%99%E4%BA%9B%E9%80%89%E6%8B%A9%E5%B8%A6%E6%9D%A5%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">10.</span> <span class="nav-text">复杂度分析：这些选择带来了什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%EF%BC%9A%E5%A6%82%E4%BD%95%E9%AA%8C%E8%AF%81%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96%EF%BC%9F"><span class="nav-number">11.</span> <span class="nav-text">测试：如何验证设计决策？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8E-Go-%E5%8E%9F%E7%94%9F-map-%E7%9A%84%E5%B7%AE%E8%B7%9D"><span class="nav-number">12.</span> <span class="nav-text">与 Go 原生 map 的差距</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD%EF%BC%9A%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96%E6%B2%A1%E6%9C%89%E5%85%8D%E8%B4%B9%E7%9A%84%E5%8D%88%E9%A4%90"><span class="nav-number">13.</span> <span class="nav-text">结语：设计决策没有免费的午餐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E4%B8%8E%E8%87%B4%E8%B0%A2"><span class="nav-number">14.</span> <span class="nav-text">引用与致谢</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">fwind</p>
+  <div class="site-description" itemprop="description">code</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从零实现一个哈希表，理解它的每一个设计决策 | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从零实现一个哈希表，理解它的每一个设计决策
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-30 12:10:00 / 修改时间：13:18:06" itemprop="dateCreated datePublished" datetime="2026-10-30T12:10:00+08:00">2026-10-30</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><img src="/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/%E5%8A%A0%E5%88%A9%E8%A5%BF%E4%BA%9A%E7%9C%81%E7%A7%91%E6%96%AF%E5%A1%94%E8%BE%BE%E8%8E%AB%E5%B0%94%E7%89%B9%E7%9A%84%E7%81%AF%E5%A1%94%EF%BC%8C%E8%A5%BF%E7%8F%AD%E7%89%99--%E6%AD%BB%E4%BA%A1%E6%B5%B7%E5%B2%B8.jpg" alt="加利西亚省科斯塔达莫尔特的灯塔，西班牙--死亡海岸"></p>
+<blockquote>
+<p>从数据结构选择到扩容、删除与工程边界</p>
+</blockquote>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>写一个能跑的哈希表不难。难的是，每到一个设计分叉路口，你都得做出选择：哈希函数用什么、冲突怎么解、扩容何时触发、删除如何处理、遍历应该遵守什么规则。</p>
+<p>标准库替你做完了这些选择，所以平时使用 map 时，很容易只看到接口，看不到背后的权衡。自己从零实现一遍，这些问题才会逐个浮现。</p>
+<p>本文按“设计决策”的顺序展开：先提出问题，再比较可选方案，最后说明本文的选择及其代价。代码使用 Go，但核心思路与语言无关。</p>
+<p>本文实现的是一个用于学习的数据结构，不追求替代 Go 原生 map。它采用字符串 key、链地址法和全量扩容，目标是让关键机制清楚、可验证。</p>
+<p>下面三张图分别对应「整体结构」「key 怎么落到桶」「桶满了怎么搬」这三个最容易被标准库遮住的部分。</p>
+<p><img src="/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/hashmap-structure.svg"></p>
+<p><em>图 1：桶数组只负责给出入口，链表负责承担冲突——所以查找成本是「1 次索引计算 + 一条链的长度」，而不是全表扫描；代价是每个元素都要多一次指针和内存分配。</em></p>
+<h2 id="决策一：底层用什么结构？"><a href="#决策一：底层用什么结构？" class="headerlink" title="决策一：底层用什么结构？"></a>决策一：底层用什么结构？</h2><p>问题：哈希表要保存 key-value，底层容器应该怎么选？</p>
+<p>常见方案有三类：</p>
+<ol>
+<li>纯链表：所有元素放在一条链上，查找需要逐个比较，平均查找成本随元素数量增长，不能发挥哈希索引的优势。</li>
+<li>数组 + 链地址法：数组中的每个位置称为桶；映射到同一个桶的元素，通过链表或其他小型容器组织起来。</li>
+<li>数组 + 开放寻址：所有元素都保存在数组中；遇到冲突时，按一定的探测序列继续寻找位置。</li>
+</ol>
+<p>本文选择数组 + 链地址法。原因是它实现直观，删除时可以通过修改链表指针移除节点；负载因子也可以超过 1。不过，链表会引入额外指针和内存分配，冲突链过长时，查找仍可能退化到 O(n)。</p>
+<p>开放寻址通常具有更紧凑的内存布局，但删除需要处理墓碑等状态，且性能对装载程度更敏感。这里选择链地址法，是为了突出哈希表的基本机制，而不是宣称它在所有场景中更优。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> entry <span class="keyword">struct</span> &#123;</span><br><span class="line">    key   <span class="type">string</span></span><br><span class="line">    value <span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">    next  *entry</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> HashMap <span class="keyword">struct</span> &#123;</span><br><span class="line">    buckets []*entry</span><br><span class="line">    size    <span class="type">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="决策二：哈希函数与桶索引怎么设计？"><a href="#决策二：哈希函数与桶索引怎么设计？" class="headerlink" title="决策二：哈希函数与桶索引怎么设计？"></a>决策二：哈希函数与桶索引怎么设计？</h2><p>问题：如何把字符串 key 映射到桶数组中的一个位置？这里其实包含两个独立步骤：先计算哈希值，再把哈希值映射为有效的桶索引。</p>
+<p>哈希函数负责将 key 转换为一个固定宽度的数值；索引计算则根据当前桶数量，把这个数值映射到 [0, bucketCount) 范围内。扩容会改变桶数量，因此索引可能变化，但哈希函数本身不必改变。</p>
+<p>常见选择包括使用语言或运行时提供的哈希函数，使用 FNV-1a、MurmurHash、xxHash 等现成算法，或者为特定数据设计哈希函数。直接对 key 取模并不能替代哈希函数：字符串需要先转换成数值，才能计算桶索引。</p>
+<p>本文选择 FNV-1a，主要是因为算法短小、容易手写，适合教学。它不是加密哈希，也不能抵御恶意碰撞攻击；生产系统应优先考虑运行时或经过充分评估的哈希实现。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">hashString</span><span class="params">(s <span class="type">string</span>)</span></span> <span class="type">uint32</span> &#123;</span><br><span class="line">    h := <span class="type">uint32</span>(<span class="number">2166136261</span>)</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(s); i++ &#123;</span><br><span class="line">        h ^= <span class="type">uint32</span>(s[i])</span><br><span class="line">        h *= <span class="number">16777619</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> h</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>桶数量采用 2 的幂，例如 8、16、32。此时可以用 h &amp; (m-1) 计算索引，而不是 h % m。对于 m 为 2 的幂的情况，两种计算在数学上等价；位掩码只是索引计算方式更直接，并不会自动改善哈希分布。由于它只使用哈希值的低位，哈希函数低位的分布质量仍然重要。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> index(key <span class="type">string</span>) <span class="type">int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="type">int</span>(hashString(key) &amp; <span class="type">uint32</span>(<span class="built_in">len</span>(m.buckets)<span class="number">-1</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个选择也约束了后续扩容：桶数量需要保持为 2 的幂。本文采用翻倍扩容，不采用增加任意素数或乘以 1.5 的策略。</p>
+<p><img src="/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/hashmap-bucket-index.svg"></p>
+<p><em>图 2：哈希函数和索引计算是两步，扩容只改第二步。把桶数定成 2 的幂，换来的是「取模变位与」，代价是分布质量全部压在哈希值的低位上。</em></p>
+<h2 id="决策三：冲突怎么解决？"><a href="#决策三：冲突怎么解决？" class="headerlink" title="决策三：冲突怎么解决？"></a>决策三：冲突怎么解决？</h2><p>问题：不同 key 可能映射到同一个桶。链地址法把这些元素放在同一条链表中，查询时遍历链表并比较 key。</p>
+<p>本文将新节点插入链表头部。头插只需要修改新节点的 next 指针和桶头指针，代码简单，也不需要遍历到链表尾部。它不保证查询更快：只有在新插入元素更容易被访问等特定访问模式下，头插才可能带来平均查找收益。哈希表本身也不承诺遍历顺序。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Set(key <span class="type">string</span>, value <span class="keyword">interface</span>&#123;&#125;) &#123;</span><br><span class="line">    idx := m.index(key)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> e := m.buckets[idx]; e != <span class="literal">nil</span>; e = e.next &#123;</span><br><span class="line">        <span class="keyword">if</span> e.key == key &#123;</span><br><span class="line">            e.value = value</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m.buckets[idx] = &amp;entry&#123;</span><br><span class="line">        key:   key,</span><br><span class="line">        value: value,</span><br><span class="line">        next:  m.buckets[idx],</span><br><span class="line">    &#125;</span><br><span class="line">    m.size++</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="type">float64</span>(m.size)/<span class="type">float64</span>(<span class="built_in">len</span>(m.buckets)) &gt; loadFactor &#123;</span><br><span class="line">        m.resize()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里先查找已有 key。若 key 已存在，只更新 value，不增加元素数量，也不触发扩容；只有新增 key 才会增加 size。</p>
+<h2 id="决策四：负载因子与扩容时机怎么定？"><a href="#决策四：负载因子与扩容时机怎么定？" class="headerlink" title="决策四：负载因子与扩容时机怎么定？"></a>决策四：负载因子与扩容时机怎么定？</h2><p>负载因子定义为 α &#x3D; n &#x2F; m，其中 n 是元素数量，m 是桶数量。链地址法允许 α 超过 1，但负载因子越高，平均每个桶中的元素通常越多。</p>
+<p>本文将扩容阈值设为 0.75，超过阈值后桶数翻倍。这是一个便于教学的经验值，不是链地址法的理论常数。阈值过低会占用更多桶数组空间；阈值过高则可能增加冲突链长度。实际系统应结合内存、访问模式、哈希分布和性能目标选择阈值。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> loadFactor = <span class="number">0.75</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> resize() &#123;</span><br><span class="line">    old := m.buckets</span><br><span class="line">    m.buckets = <span class="built_in">make</span>([]*entry, <span class="built_in">len</span>(old)*<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _, head := <span class="keyword">range</span> old &#123;</span><br><span class="line">        <span class="keyword">for</span> e := head; e != <span class="literal">nil</span>; &#123;</span><br><span class="line">            next := e.next</span><br><span class="line"></span><br><span class="line">            idx := m.index(e.key)</span><br><span class="line">            e.next = m.buckets[idx]</span><br><span class="line">            m.buckets[idx] = e</span><br><span class="line"></span><br><span class="line">            e = next</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为什么要先保存 next？因为后续会重写 e.next，把当前节点接到新桶链表中。如果不提前保存原来的 next，就会丢失旧链表中尚未迁移的后续节点。</p>
+<p>当前实现会重新计算每个 key 的哈希值。由于桶数量翻倍，旧索引与新索引之间其实存在更简单的关系：元素只会留在原索引对应的桶，或者移动到旧索引加旧桶数量的位置。实现可以缓存哈希值或利用该关系优化迁移，但为了让示例聚焦核心逻辑，这里暂不优化。</p>
+<p>扩容时机采用“先插入，再判断”。因此触发扩容的那次插入会先进入旧桶数组，再迁移到新数组。严格使用 &gt; 0.75，也意味着负载因子在某次插入后可能暂时超过阈值。</p>
+<p><img src="/2026/10/30/%E4%BB%8E%E9%9B%B6%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%8C%E7%90%86%E8%A7%A3%E5%AE%83%E7%9A%84%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96/hashmap-resize.svg"></p>
+<p><em>图 3：桶数翻倍时，旧桶 i 的元素只会去新桶 i 或 i + m——这是 2 的幂增长带来的性质，而不是巧合。一次扩容要搬 O(m+n) 个节点，代价是一次明显的停顿；而「只去两个桶」本可以拿来优化迁移，本文为了突出核心逻辑没有这么做。</em></p>
+<h2 id="决策五：删除怎么处理？"><a href="#决策五：删除怎么处理？" class="headerlink" title="决策五：删除怎么处理？"></a>决策五：删除怎么处理？</h2><p>链地址法删除节点时，需要找到目标节点，并修改桶头指针或前驱节点的 next 指针。删除头节点和删除链表中间节点是两个需要覆盖的边界情况。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Delete(key <span class="type">string</span>) &#123;</span><br><span class="line">    idx := m.index(key)</span><br><span class="line">    <span class="keyword">var</span> prev *entry</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> e := m.buckets[idx]; e != <span class="literal">nil</span>; e = e.next &#123;</span><br><span class="line">        <span class="keyword">if</span> e.key == key &#123;</span><br><span class="line">            <span class="keyword">if</span> prev == <span class="literal">nil</span> &#123;</span><br><span class="line">                m.buckets[idx] = e.next</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                prev.next = e.next</span><br><span class="line">            &#125;</span><br><span class="line">            m.size--</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        prev = e</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果 key 不存在，方法不修改任何状态。链地址法删除后不需要墓碑，因为从桶链表中移除节点不会影响其他节点的查找路径。开放寻址则不同：直接清空某个槽位可能切断后续探测路径，因此通常需要墓碑或其他删除修复机制。</p>
+<p>本文没有实现缩容。大量删除后，桶数组可能比当前元素数量所需的空间更大。缩容可以减少空间占用，但也会带来重建成本；如果元素数量在阈值附近波动，还可能出现反复扩容和缩容。因此，缩容应作为独立设计决策，并通过不同的扩容、缩容阈值避免频繁抖动。</p>
+<h2 id="决策六：怎么遍历所有元素？"><a href="#决策六：怎么遍历所有元素？" class="headerlink" title="决策六：怎么遍历所有元素？"></a>决策六：怎么遍历所有元素？</h2><p>常见接口包括返回元素切片、提供按需推进的迭代器，或者提供回调式 Range。本文选择 Range：不必先创建包含所有元素的副本，并且可以通过回调返回 false 提前终止。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Range(fn <span class="function"><span class="keyword">func</span><span class="params">(key <span class="type">string</span>, value <span class="keyword">interface</span>&#123;&#125;)</span></span> <span class="type">bool</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> _, head := <span class="keyword">range</span> m.buckets &#123;</span><br><span class="line">        <span class="keyword">for</span> e := head; e != <span class="literal">nil</span>; e = e.next &#123;</span><br><span class="line">            <span class="keyword">if</span> !fn(e.key, e.value) &#123;</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>本文规定：Range 执行期间，不允许修改哈希表结构。原因是插入、删除和扩容都会改变桶或链表结构，可能导致元素遗漏、重复访问等问题。这个限制是本实现主动定义的 API 契约，并不是说 Go 原生 map 在遍历期间的所有写入都一律非法。</p>
+<p>Go 原生 map 对遍历期间插入和删除有自己的语言规范语义；并发读写则是另一类问题。运行时可能检测到部分并发读写并触发 fatal error，但不能把它等同于普通的同 goroutine 遍历期间修改。</p>
+<h2 id="决策七：并发安全要不要支持？"><a href="#决策七：并发安全要不要支持？" class="headerlink" title="决策七：并发安全要不要支持？"></a>决策七：并发安全要不要支持？</h2><p>本文选择不提供并发安全保证，并要求调用方自行同步访问。这样可以避免把锁管理引入基础实现，但并不意味着加锁一定会明显拖慢所有单线程场景；实际成本取决于实现、竞争程度和访问模式。</p>
+<p>如果需要并发访问，可以在外层使用 sync.RWMutex 保护整个哈希表，也可以根据 key 分片加锁。不过，分片锁会增加实现复杂度，而且需要谨慎处理扩容、遍历以及跨分片操作。</p>
+<p>Go 原生 map 同样不提供通用的并发读写安全保证。sync.Map 是针对特定并发访问模式设计的另一种类型，并不是所有场景下都能直接替代带锁的 map。</p>
+<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><p>下面是前述设计决策组合后的完整实现。为保持代码聚焦，实例必须通过 New 创建；零值 HashMap 不可直接使用。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> hashmap</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> loadFactor = <span class="number">0.75</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> entry <span class="keyword">struct</span> &#123;</span><br><span class="line">    key   <span class="type">string</span></span><br><span class="line">    value <span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">    next  *entry</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> HashMap <span class="keyword">struct</span> &#123;</span><br><span class="line">    buckets []*entry</span><br><span class="line">    size    <span class="type">int</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">()</span></span> *HashMap &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;HashMap&#123;buckets: <span class="built_in">make</span>([]*entry, <span class="number">8</span>)&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">hashString</span><span class="params">(s <span class="type">string</span>)</span></span> <span class="type">uint32</span> &#123;</span><br><span class="line">    h := <span class="type">uint32</span>(<span class="number">2166136261</span>)</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(s); i++ &#123;</span><br><span class="line">        h ^= <span class="type">uint32</span>(s[i])</span><br><span class="line">        h *= <span class="number">16777619</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> h</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> index(key <span class="type">string</span>) <span class="type">int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="type">int</span>(hashString(key) &amp; <span class="type">uint32</span>(<span class="built_in">len</span>(m.buckets)<span class="number">-1</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Set(key <span class="type">string</span>, value <span class="keyword">interface</span>&#123;&#125;) &#123;</span><br><span class="line">    idx := m.index(key)</span><br><span class="line">    <span class="keyword">for</span> e := m.buckets[idx]; e != <span class="literal">nil</span>; e = e.next &#123;</span><br><span class="line">        <span class="keyword">if</span> e.key == key &#123;</span><br><span class="line">            e.value = value</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m.buckets[idx] = &amp;entry&#123;</span><br><span class="line">        key: key, value: value, next: m.buckets[idx],</span><br><span class="line">    &#125;</span><br><span class="line">    m.size++</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="type">float64</span>(m.size)/<span class="type">float64</span>(<span class="built_in">len</span>(m.buckets)) &gt; loadFactor &#123;</span><br><span class="line">        m.resize()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Get(key <span class="type">string</span>) (<span class="keyword">interface</span>&#123;&#125;, <span class="type">bool</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> e := m.buckets[m.index(key)]; e != <span class="literal">nil</span>; e = e.next &#123;</span><br><span class="line">        <span class="keyword">if</span> e.key == key &#123;</span><br><span class="line">            <span class="keyword">return</span> e.value, <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Delete(key <span class="type">string</span>) &#123;</span><br><span class="line">    idx := m.index(key)</span><br><span class="line">    <span class="keyword">var</span> prev *entry</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> e := m.buckets[idx]; e != <span class="literal">nil</span>; e = e.next &#123;</span><br><span class="line">        <span class="keyword">if</span> e.key == key &#123;</span><br><span class="line">            <span class="keyword">if</span> prev == <span class="literal">nil</span> &#123;</span><br><span class="line">                m.buckets[idx] = e.next</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                prev.next = e.next</span><br><span class="line">            &#125;</span><br><span class="line">            m.size--</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        prev = e</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Len() <span class="type">int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> m.size</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> resize() &#123;</span><br><span class="line">    old := m.buckets</span><br><span class="line">    m.buckets = <span class="built_in">make</span>([]*entry, <span class="built_in">len</span>(old)*<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _, head := <span class="keyword">range</span> old &#123;</span><br><span class="line">        <span class="keyword">for</span> e := head; e != <span class="literal">nil</span>; &#123;</span><br><span class="line">            next := e.next</span><br><span class="line">            idx := m.index(e.key)</span><br><span class="line">            e.next = m.buckets[idx]</span><br><span class="line">            m.buckets[idx] = e</span><br><span class="line">            e = next</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *HashMap)</span></span> Range(fn <span class="function"><span class="keyword">func</span><span class="params">(key <span class="type">string</span>, value <span class="keyword">interface</span>&#123;&#125;)</span></span> <span class="type">bool</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> _, head := <span class="keyword">range</span> m.buckets &#123;</span><br><span class="line">        <span class="keyword">for</span> e := head; e != <span class="literal">nil</span>; e = e.next &#123;</span><br><span class="line">            <span class="keyword">if</span> !fn(e.key, e.value) &#123;</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="复杂度分析：这些选择带来了什么？"><a href="#复杂度分析：这些选择带来了什么？" class="headerlink" title="复杂度分析：这些选择带来了什么？"></a>复杂度分析：这些选择带来了什么？</h2><p>令 n 为元素数量，m 为桶数量，α &#x3D; n &#x2F; m 为负载因子。以下平均复杂度假设哈希分布合理，并暂时忽略字符串哈希计算本身的成本；若 key 长度为 L，计算哈希值通常还需要 O(L) 时间。</p>
+<p>单次 Set 可能因为扩容而产生 O(m+n) 的成本，但在合理的翻倍扩容策略下，连续插入操作的扩容成本可以摊还到多次插入中。摊还复杂度较低，并不代表每一次操作的延迟都相同；如果系统特别关注尾延迟，就需要进一步研究分批迁移等策略。</p>
+<h2 id="测试：如何验证设计决策？"><a href="#测试：如何验证设计决策？" class="headerlink" title="测试：如何验证设计决策？"></a>测试：如何验证设计决策？</h2><p>数据结构代码不能只靠“能跑”来证明正确。至少应该验证更新是否改变 size、删除边界是否正确、扩容后元素是否仍可访问，以及 Range 是否支持提前终止。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> hashmap</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;testing&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestSetGetUpdateDelete</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">    m := New()</span><br><span class="line"></span><br><span class="line">    m.Set(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;Alice&quot;</span>)</span><br><span class="line">    got, ok := m.Get(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> !ok || got != <span class="string">&quot;Alice&quot;</span> &#123;</span><br><span class="line">        t.Fatalf(<span class="string">&quot;Get(name) = (%v, %v), want (Alice, true)&quot;</span>, got, ok)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m.Set(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;Bob&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> m.Len() != <span class="number">1</span> &#123;</span><br><span class="line">        t.Fatalf(<span class="string">&quot;Len() = %d, want 1 after update&quot;</span>, m.Len())</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    got, ok = m.Get(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> !ok || got != <span class="string">&quot;Bob&quot;</span> &#123;</span><br><span class="line">        t.Fatalf(<span class="string">&quot;Get(name) = (%v, %v), want (Bob, true)&quot;</span>, got, ok)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m.Delete(<span class="string">&quot;missing&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> m.Len() != <span class="number">1</span> &#123;</span><br><span class="line">        t.Fatalf(<span class="string">&quot;Len() = %d, want 1 after deleting missing key&quot;</span>, m.Len())</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m.Delete(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> _, ok := m.Get(<span class="string">&quot;name&quot;</span>); ok &#123;</span><br><span class="line">        t.Fatal(<span class="string">&quot;key should not exist after Delete&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> m.Len() != <span class="number">0</span> &#123;</span><br><span class="line">        t.Fatalf(<span class="string">&quot;Len() = %d, want 0 after Delete&quot;</span>, m.Len())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestResizeKeepsEntries</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">    m := New()</span><br><span class="line">    <span class="keyword">const</span> count = <span class="number">1000</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; count; i++ &#123;</span><br><span class="line">        key := fmt.Sprintf(<span class="string">&quot;key-%d&quot;</span>, i)</span><br><span class="line">        m.Set(key, i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> m.Len() != count &#123;</span><br><span class="line">        t.Fatalf(<span class="string">&quot;Len() = %d, want %d&quot;</span>, m.Len(), count)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; count; i++ &#123;</span><br><span class="line">        key := fmt.Sprintf(<span class="string">&quot;key-%d&quot;</span>, i)</span><br><span class="line">        got, ok := m.Get(key)</span><br><span class="line">        <span class="keyword">if</span> !ok || got != i &#123;</span><br><span class="line">            t.Fatalf(<span class="string">&quot;Get(%q) = (%v, %v), want (%d, true)&quot;</span>, key, got, ok, i)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestRangeCanStopEarly</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">    m := New()</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;</span><br><span class="line">        m.Set(fmt.Sprintf(<span class="string">&quot;key-%d&quot;</span>, i), i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    visited := <span class="number">0</span></span><br><span class="line">    m.Range(<span class="function"><span class="keyword">func</span><span class="params">(key <span class="type">string</span>, value <span class="keyword">interface</span>&#123;&#125;)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">        visited++</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> visited != <span class="number">1</span> &#123;</span><br><span class="line">        t.Fatalf(<span class="string">&quot;visited = %d, want 1&quot;</span>, visited)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进一步的测试可以主动构造同桶 key、分别删除链表头部和中间节点，并随机生成 Set、Get、Delete 序列，与 Go 原生 map 做差分验证。</p>
+<h2 id="与-Go-原生-map-的差距"><a href="#与-Go-原生-map-的差距" class="headerlink" title="与 Go 原生 map 的差距"></a>与 Go 原生 map 的差距</h2><p>本文实现的目标是讲清楚基本机制，不是复刻 Go 运行时。比较时还必须注意 Go 版本差异：Go 1.24 起，内置 map 已采用基于 Swiss Tables 的新实现；Go 1.23 及以前的实现采用传统桶与溢出桶结构。不要把旧版实现细节直接描述为当前版本的内部机制。</p>
+<ul>
+<li>哈希与安全性：本文使用简单的 FNV-1a，适合教学但不是抗攻击的安全哈希。生产实现需要评估哈希碰撞攻击风险与输入特征。</li>
+<li>内存布局：本文每个 entry 都是独立节点，并通过 next 指针连接。当前 Go 原生 map 基于 Swiss Tables，采用开放寻址和分组查找，借助控制字筛选候选 key，以减少不必要的完整比较。</li>
+<li>扩容：本文一次性创建新桶数组并迁移全部元素，单次扩容可能带来较高延迟。具体运行时实现会随 Go 版本变化，应该以对应版本的官方资料为准。</li>
+<li>冲突处理：本文使用链地址法；当前 Go 原生 map 使用基于 Swiss Tables 的开放寻址方案。它们在空间布局、冲突处理、删除和增长策略上存在不同取舍。</li>
+</ul>
+<p>可以阅读 Go 官方文章<a target="_blank" rel="noopener" href="https://go.dev/blog/swisstable">《Faster Go maps with Swiss Tables》</a>，了解 Go 1.24 的实现变化。</p>
+<h2 id="结语：设计决策没有免费的午餐"><a href="#结语：设计决策没有免费的午餐" class="headerlink" title="结语：设计决策没有免费的午餐"></a>结语：设计决策没有免费的午餐</h2><p>哈希表的基本思想并不复杂：通过哈希函数把 key 映射到桶，再处理冲突。但工程实现中的每项选择都会带来约束。链地址法让删除简单，却引入指针和额外内存分配；桶数量取 2 的幂让索引计算直接，却要求扩容策略与之配合；全量扩容容易实现，却可能造成单次延迟尖峰；不提供并发安全降低了实现复杂度，却把同步责任交给调用方。</p>
+<p>自己实现一次哈希表，真正要学会的不是背下某个阈值或某种结构，而是面对具体场景时，能说清楚：为什么选择它、它解决了什么问题、又把什么代价留给了后续。</p>
+<p>这也是理解标准库的一个好方法。标准库里看起来复杂的实现，往往不是为了炫技，而是在性能、内存、延迟、安全性和兼容性之间做长期权衡。</p>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><p><strong>封面图</strong></p>
+<ul>
+<li>图片：<em>加利西亚省科斯塔达莫尔特的灯塔，西班牙——死亡海岸</em>。</li>
+<li>作者与版权：Carlos Fernandez &#x2F; Getty Images，依据图片内嵌的 XMP 元数据。</li>
+<li>许可：版权作品。本站仅将原图作为本文封面使用，未取得 Getty Images 授权，也不对其主张任何权利；如需再利用，请向权利人取得许可。</li>
+</ul>
+<p><strong>解说图（图 1 ~ 图 3）</strong></p>
+<ul>
+<li>生成工具：<strong>格物 Gewu</strong> —— 一个先把技术内容抽取为可验证解释模型（VEM），再渲染成 SVG 的 Claude Code skill。</li>
+<li>说明：三张图均由该工具生成，图中桶数、链长与 key 取值都是示意值，不是某次运行实测的结果。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hash-Go-%E8%AE%BE%E8%AE%A1/" rel="tag"># hash,Go,设计</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/26/%E4%B8%80%E6%AC%A1%20map%20%E5%B9%B6%E5%8F%91%E5%86%99%E5%B4%A9%E6%BA%83%EF%BC%8C%E8%AE%A9%E6%88%91%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3%E4%BA%86%20Go%20runtime/" rel="prev" title="一次 map 并发写崩溃，让我重新理解了 Go runtime">
+                  <i class="fa fa-angle-left"></i> 一次 map 并发写崩溃，让我重新理解了 Go runtime
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">fwind</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
