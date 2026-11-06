@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"crazyf-wind.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":true,"height":240},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="封面：v2.0 的默认机位。黄浦江从画面左侧远处流入，在陆家嘴北侧绕出一个大弯，再向右前方流出；四座地标落在弯道内侧的半岛上。  模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。 这篇文章复盘的是：同一个模型，为什么第一版只搭出「像外滩的元素」，第二版才搭出「能读出外滩的城」。下文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何绘制一幅《上海外滩》v1.0">
+<meta property="og:url" content="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/index.html">
+<meta property="og:site_name" content="fwind&#39;s blog">
+<meta property="og:description" content="封面：v2.0 的默认机位。黄浦江从画面左侧远处流入，在陆家嘴北侧绕出一个大弯，再向右前方流出；四座地标落在弯道内侧的半岛上。  模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。 这篇文章复盘的是：同一个模型，为什么第一版只搭出「像外滩的元素」，第二版才搭出「能读出外滩的城」。下文">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/v2-preview.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/v1-preview.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/v2-night.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/contact-sheet.jpg">
+<meta property="article:published_time" content="2026-11-06T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-06T05:15:20.303Z">
+<meta property="article:author" content="fwind">
+<meta property="article:tag" content="Three.js,Claude Code,提示词,3D">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/v2-preview.jpg">
+
+
+<link rel="canonical" href="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/","path":"2026/11/06/如何绘制一幅《上海外滩》v1.0/","title":"如何绘制一幅《上海外滩》v1.0"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>如何绘制一幅《上海外滩》v1.0 | fwind's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">fwind's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">coder</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E8%A8%80%EF%BC%9A%E6%88%91%E8%A6%81%E7%9A%84%E6%98%AF%E4%B8%80%E5%BA%A7%E5%9F%8E%EF%BC%8C%E4%B8%8D%E6%98%AF%E4%B8%80%E5%BC%A0%E5%9B%BE"><span class="nav-number">1.</span> <span class="nav-text">引言：我要的是一座城，不是一张图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%B7%A5%E5%85%B7%E9%93%BE%EF%BC%9A13-%E4%B8%AA-skill%EF%BC%8C%E5%90%84%E7%AE%A1%E4%B8%80%E6%AE%B5"><span class="nav-number">2.</span> <span class="nav-text">一、工具链：13 个 skill，各管一段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E7%AC%AC%E4%B8%80%E7%89%88%EF%BC%9A%E4%B8%80%E4%BB%BD%E3%80%8C%E7%89%A9%E4%BB%B6%E6%B8%85%E5%8D%95%E3%80%8D"><span class="nav-number">3.</span> <span class="nav-text">二、第一版：一份「物件清单」</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%9A%E6%8A%8A%E5%9C%B0%E7%90%86%E5%86%99%E8%BF%9B%E7%AC%AC%E4%B8%80%E8%8A%82"><span class="nav-number">4.</span> <span class="nav-text">三、第二版：把地理写进第一节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E8%90%BD%E5%88%B0%E4%BB%A3%E7%A0%81%EF%BC%9A%E6%B2%B3%E9%81%93%E6%88%90%E4%B8%BA%E5%94%AF%E4%B8%80%E7%A9%BA%E9%97%B4%E5%9F%BA%E5%87%86"><span class="nav-number">5.</span> <span class="nav-text">四、落到代码：河道成为唯一空间基准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E4%B8%A4%E7%89%88%E6%94%BE%E5%9C%A8%E4%B8%80%E8%B5%B7%E7%9C%8B"><span class="nav-number">6.</span> <span class="nav-text">五、两版放在一起看</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E6%8A%8A%E8%BF%99%E6%AC%A1%E8%BF%AD%E4%BB%A3%E6%8A%BD%E6%88%90%E5%85%AD%E6%9D%A1%E5%86%99%E6%B3%95"><span class="nav-number">7.</span> <span class="nav-text">六、把这次迭代抽成六条写法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E8%BE%B9%E7%95%8C%EF%BC%9A%E6%8F%90%E7%A4%BA%E8%AF%8D%E8%83%BD%E8%B5%B0%E5%A4%9A%E8%BF%9C"><span class="nav-number">8.</span> <span class="nav-text">七、边界：提示词能走多远</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%A4%8D%E7%8E%B0"><span class="nav-number">9.</span> <span class="nav-text">八、复现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD%EF%BC%9A%E5%85%88%E6%89%BE%E5%88%B0%E9%82%A3%E6%9D%A1%E3%80%8C%E6%B2%B3%E9%81%93%E3%80%8D"><span class="nav-number">10.</span> <span class="nav-text">结语：先找到那条「河道」</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E4%B8%8E%E8%87%B4%E8%B0%A2"><span class="nav-number">11.</span> <span class="nav-text">引用与致谢</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">fwind</p>
+  <div class="site-description" itemprop="description">code</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="如何绘制一幅《上海外滩》v1.0 | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何绘制一幅《上海外滩》v1.0
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-11-06 14:00:00 / 修改时间：13:15:20" itemprop="dateCreated datePublished" datetime="2026-11-06T14:00:00+08:00">2026-11-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><img src="/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/v2-preview.jpg" alt="上海外滩 v2.0 的黄昏全景"></p>
+<p><em>封面：v2.0 的默认机位。黄浦江从画面左侧远处流入，在陆家嘴北侧绕出一个大弯，再向右前方流出；四座地标落在弯道内侧的半岛上。</em></p>
+<blockquote>
+<p>模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。</p>
+<p>这篇文章复盘的是：同一个模型，为什么第一版只搭出「像外滩的元素」，第二版才搭出「能读出外滩的城」。下文把两份提示词称为「第一版」「第二版」，把产出称为「场景 v1」「场景 v2」，避免混淆。</p>
+</blockquote>
+<h2 id="引言：我要的是一座城，不是一张图"><a href="#引言：我要的是一座城，不是一张图" class="headerlink" title="引言：我要的是一座城，不是一张图"></a>引言：我要的是一座城，不是一张图</h2><p>我想让模型替我搭一个可交互的 3D 场景，而不是生成一张图。</p>
+<p>「可交互」三个字抬高了门槛。一张图只需要在某个角度成立；一个场景要在任意角度、任意时间状态下都成立。几何、材质、光照、后处理、镜头、性能，任何一项掉链子，画面都会立刻露馅。</p>
+<p>我用了两版提示词。第一版要到了外滩的元素，第二版才要到外滩的空间。两版之间的差别，不是字数，而是<strong>先说什么</strong>。</p>
+<p>先说结论：<strong>决定这类场景成败的，不是模型会不会写 Three.js，而是提示词有没有把空间关系写成可执行、可验收的约束。</strong> skill 负责让 API 用对，提示词负责让世界成立。</p>
+<h2 id="一、工具链：13-个-skill，各管一段"><a href="#一、工具链：13-个-skill，各管一段" class="headerlink" title="一、工具链：13 个 skill，各管一段"></a>一、工具链：13 个 skill，各管一段</h2><p>我用的不是「一个 three.js 提示词」，而是一组按主题拆开的 skill。它们来自 <a target="_blank" rel="noopener" href="https://github.com/cloudai-x/threejs-skills"><code>cloudai-x/threejs-skills</code></a>，在项目里由 <code>skills-lock.json</code> 锁定版本，安装后通过 <code>.claude/skills</code> 指向 <code>.agents/skills</code> 下的实体目录。</p>
+<p>这一组 skill 都对齐 three.js r186，一共 13 个：</p>
+<table>
+<thead>
+<tr>
+<th>分组</th>
+<th>skill</th>
+<th>管什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>场景骨架</td>
+<td><code>threejs-fundamentals</code>、<code>threejs-geometry</code></td>
+<td>渲染器、相机、动画循环、内置几何、顶点缓冲、实例化</td>
+</tr>
+<tr>
+<td>表面</td>
+<td><code>threejs-materials</code>、<code>threejs-textures</code>、<code>threejs-shaders</code></td>
+<td>PBR 材质、程序化贴图、自定义 shader</td>
+</tr>
+<tr>
+<td>光与画面</td>
+<td><code>threejs-lighting</code>、<code>threejs-postprocessing</code></td>
+<td>灯光、阴影、Bloom 与合成链</td>
+</tr>
+<tr>
+<td>运动与交互</td>
+<td><code>threejs-animation</code>、<code>threejs-interaction</code></td>
+<td>关键帧、控制器、拾取</td>
+</tr>
+<tr>
+<td>资源与性能</td>
+<td><code>threejs-loaders</code>、<code>threejs-asset-pipeline</code>、<code>threejs-performance</code></td>
+<td>GLTF、资源管线、draw call、内存</td>
+</tr>
+<tr>
+<td>React 集成</td>
+<td><code>threejs-react-three-fiber</code></td>
+<td>R3F 写法</td>
+</tr>
+</tbody></table>
+<p>每个 skill 不是一段「帮我写代码」的咒语，而是一份可检索的领域知识：当前版本的 API 长什么样、哪些写法已经过时、性能上该注意什么。比如 <code>threejs-performance</code> 会先要求你读 <code>renderer.info</code>，再谈优化；<code>threejs-geometry</code> 会把 <code>InstancedMesh</code> 和合并几何放在同一个语境里讲。</p>
+<p>这带来一个很重要的分工：<strong>skill 解决「怎么写对」，提示词解决「写什么」。</strong></p>
+<p>Claude Code 在这条链路里负责把判断落到文件系统和浏览器里：读项目、跑 <code>npm run dev</code>、看控制台报错、改文件、再验证。模型负责在上下文里做决策，harness 负责让决策真的运行起来。</p>
+<h2 id="二、第一版：一份「物件清单」"><a href="#二、第一版：一份「物件清单」" class="headerlink" title="二、第一版：一份「物件清单」"></a>二、第一版：一份「物件清单」</h2><p>第一版提示词是这样的：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">使用 threejs-skills，创建一个高质量、可交互的 Three.js 3D 城市景观场景。</span><br><span class="line"></span><br><span class="line"><span class="strong">**场景主题：上海外滩（The Bund, Shanghai）**</span></span><br><span class="line"></span><br><span class="line">要求：</span><br><span class="line"><span class="bullet">1.</span> 还原上海外滩标志性天际线，包括东方明珠、上海中心大厦、环球金融中心、金茂大厦及黄浦江两岸建筑。</span><br><span class="line"><span class="bullet">2.</span> 构建具有真实空间层次的 3D 城市环境，建筑使用合理的几何结构、材质和灯光。</span><br><span class="line"><span class="bullet">3.</span> 设置黄浦江、江面反射、游船、道路及城市灯光。</span><br><span class="line"><span class="bullet">4.</span> 提供白天、黄昏、夜景三种时间状态切换。</span><br><span class="line"><span class="bullet">5.</span> 支持鼠标旋转、缩放、平移，以及自动环绕镜头动画。</span><br><span class="line"><span class="bullet">6.</span> 加入适量动态元素，例如游船移动、灯光变化、江面波纹。</span><br><span class="line"><span class="bullet">7.</span> 使用 PBR 材质、环境光、阴影和后处理，保证视觉质量及运行性能。</span><br><span class="line"><span class="bullet">8.</span> 优先使用程序化建模，不依赖付费模型资源；必要时可使用公开授权的 GLTF/GLB 模型。</span><br><span class="line"><span class="bullet">9.</span> 使用 threejs-skills 中相关 Skill，遵循当前 Three.js API 最佳实践。</span><br><span class="line"><span class="bullet">10.</span> 最终输出完整可运行的 Web 项目，包含启动说明。</span><br><span class="line"></span><br><span class="line"><span class="strong">**验收标准：**</span> 场景具有明显的上海外滩辨识度，具有真实的 3D 空间感，交互流畅，支持桌面浏览器运行。</span><br></pre></td></tr></table></figure>
+
+<p>这份提示词写得不算差。它把「一个高质量 Three.js 城市景观」拆成了可以逐条勾选的要求。模型也逐条交付了：四座地标、反射水面、游船、车流、昼夜切换、Bloom、轨道控制器，一个都不缺。</p>
+<p>问题出在<strong>条目之间没有关系</strong>。</p>
+<p>河道被实现成 <code>width = 420</code>、<code>length = 7600</code> 的一条直江，水面是一张 <code>PlaneGeometry(430, 7600, 1, 1)</code> 的长方形；两岸是两块 <code>PlaneGeometry(3800, 9000)</code> 的大地，建筑按世界坐标摆上去。默认机位高 285 米，看向 200 米高的目标，视角更接近滨江平视。</p>
+<p>于是画面里出现了三个症状：</p>
+<ol>
+<li><strong>没有骨架。</strong> 黄浦江是一条直的水带，不是一条河。外滩之所以是外滩，首先因为江水在那里拐了一个弯。</li>
+<li><strong>建筑是孤岛。</strong> 每栋楼都按坐标放对了位置，但楼与楼、楼与岸线之间没有生成关系。外滩建筑群像一排摆好的模型，而不是沿着岸线长出来的城市。</li>
+<li><strong>镜头替观众做了选择。</strong> 平视镜头能看清单栋楼和滨江步道，但看不到城市形态。读者第一眼看到的是「一排楼」，不是「一座城」。</li>
+</ol>
+<p>这不是模型偷懒。提示词只说了「设置黄浦江」，没有说这条江怎么弯、陆家嘴在弯的哪一侧、镜头从哪里看。信息缺失时，模型只能选最省力的补全方式：直线、矩形、平视。它在每个局部都做对了，却在整体上做错了。</p>
+<h2 id="三、第二版：把地理写进第一节"><a href="#三、第二版：把地理写进第一节" class="headerlink" title="三、第二版：把地理写进第一节"></a>三、第二版：把地理写进第一节</h2><p>第二版提示词换了一个开头：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">使用 threejs-skills，创建一个高品质、具有真实地理空间关系的上海外滩 3D 城市景观。</span><br><span class="line"></span><br><span class="line"><span class="strong">**核心目标：高度还原参考图中的上海黄浦江大尺度 U 形蜿蜒河道，以及陆家嘴被河流环绕的城市空间形态。**</span></span><br><span class="line"></span><br><span class="line"><span class="section">### 1. 地理与空间布局（最重要）</span></span><br><span class="line"><span class="bullet">-</span> 黄浦江必须呈现明显、连续、自然的大尺度 U 形弯曲，而不是直线河道或普通弧形滨江。</span><br><span class="line"><span class="bullet">-</span> 河道从画面左侧远处延伸，向中央区域大幅弯曲，再绕过陆家嘴区域向右侧远处延伸，形成具有包围感的马蹄形水域轮廓。</span><br><span class="line"><span class="bullet">-</span> 河流两岸自然分布城市建筑、道路、码头和滨江景观。</span><br><span class="line"><span class="bullet">-</span> 陆家嘴位于 U 形河道内侧的突出城市区域，呈现半岛般的空间视觉效果。</span><br><span class="line"><span class="bullet">-</span> 河道宽度、弯曲半径、岸线轮廓应具有真实城市地理尺度，避免规则几何弧线。</span><br><span class="line"><span class="bullet">-</span> 城市建筑沿河岸自然延伸，不能形成孤立的建筑模型集合。</span><br><span class="line"></span><br><span class="line"><span class="section">### 2. 标志性建筑</span></span><br><span class="line">重点还原陆家嘴天际线：</span><br><span class="line"><span class="bullet">-</span> 东方明珠电视塔</span><br><span class="line"><span class="bullet">-</span> 上海中心大厦</span><br><span class="line"><span class="bullet">-</span> 上海环球金融中心</span><br><span class="line"><span class="bullet">-</span> 金茂大厦</span><br><span class="line"></span><br><span class="line">建筑集中分布在河道弯曲区域内侧，保持合理的高度比例、空间距离和地标辨识度。两岸补充密集的城市建筑群。</span><br><span class="line"></span><br><span class="line"><span class="section">### 3. 场景与视觉效果</span></span><br><span class="line"><span class="bullet">-</span> 黄浦江采用具有真实反射效果的水面材质。</span><br><span class="line"><span class="bullet">-</span> 加入游船、货轮及其动态航行轨迹。</span><br><span class="line"><span class="bullet">-</span> 沿岸布置道路、桥梁、码头和城市灯光。</span><br><span class="line"><span class="bullet">-</span> 使用 PBR 材质、HDR 环境光、阴影和适当的 Bloom 后处理。</span><br><span class="line"><span class="bullet">-</span> 默认采用日落至蓝调时刻的光照氛围，天空呈现橙粉色与蓝灰色渐变，城市灯光逐渐亮起。</span><br><span class="line"></span><br><span class="line"><span class="section">### 4. 镜头与构图</span></span><br><span class="line"><span class="bullet">-</span> 使用高空斜俯视的广角摄影机位，参考真实城市航拍照片。</span><br><span class="line"><span class="bullet">-</span> 镜头高度足够高，确保完整展示黄浦江 U 形弯道及两岸城市空间。</span><br><span class="line"><span class="bullet">-</span> 河道弯曲轮廓必须成为画面的核心视觉主体。</span><br><span class="line"><span class="bullet">-</span> 陆家嘴地标建筑群位于画面中央偏后位置。</span><br><span class="line"><span class="bullet">-</span> 不采用地面平视视角，不要只展示单栋建筑或局部滨江景观。</span><br><span class="line"></span><br><span class="line"><span class="section">### 5. 交互与动画</span></span><br><span class="line"><span class="bullet">-</span> 支持鼠标旋转、缩放、平移。</span><br><span class="line"><span class="bullet">-</span> 提供自动环绕镜头展示。</span><br><span class="line"><span class="bullet">-</span> 支持白天、黄昏、夜景切换。</span><br><span class="line"><span class="bullet">-</span> 游船沿河道连续移动。</span><br><span class="line"><span class="bullet">-</span> 江面具有动态波纹和环境反射。</span><br><span class="line"></span><br><span class="line"><span class="section">### 6. 技术要求</span></span><br><span class="line"><span class="bullet">-</span> 使用 threejs-skills 中相关 Skill。</span><br><span class="line"><span class="bullet">-</span> 使用 Three.js + WebGL，优先程序化建模。</span><br><span class="line"><span class="bullet">-</span> 采用合理的几何分段和曲线控制构建自然河岸及河道。</span><br><span class="line"><span class="bullet">-</span> 使用 CatmullRomCurve3 等曲线技术构建河流中心线和岸线，再生成连续水面网格。</span><br><span class="line"><span class="bullet">-</span> 建筑、道路、河岸、水面分别建模，保持空间关系一致。</span><br><span class="line"><span class="bullet">-</span> 优化 Draw Calls、阴影和粒子数量，保证浏览器流畅运行。</span><br><span class="line"></span><br><span class="line"><span class="strong">**最终验收标准：**</span></span><br><span class="line">第一眼能够识别出上海陆家嘴和黄浦江；从整体俯视视角能够清晰看到黄浦江环绕陆家嘴的大尺度 U 形蜿蜒轮廓。河流必须具有真实自然的曲折效果，而不是一条直线或简单圆弧。</span><br><span class="line"></span><br><span class="line">输出完整可运行的 Web 项目，并提供启动说明。</span><br></pre></td></tr></table></figure>
+
+<p>相比第一版，真正的改动只有四处，但每一处都改变了模型的行为。</p>
+<p><strong>第一，把地理放到第一节，并标注「最重要」。</strong> 提示词里的顺序就是模型的注意力顺序。第一版把「地标」放在第 1 条，模型就先堆地标，再补河；第二版先定义河，地标只是河湾内侧的产物。</p>
+<p><strong>第二，把形容词换成可执行的几何。</strong> 「U 形」「从画面左侧远处延伸」「向中央区域大幅弯曲」「绕过陆家嘴区域向右侧远处延伸」「马蹄形」「真实城市地理尺度」——这些描述可以直接变成一条曲线上的控制点和一段宽度函数（实现时河宽落在 390–620 米之间），而不是一句「要有外滩的感觉」。</p>
+<p><strong>第三，给出实现路径。</strong> 「使用 CatmullRomCurve3 等曲线技术构建河流中心线和岸线，再生成连续水面网格」「建筑、道路、河岸、水面分别建模，保持空间关系一致」。这不是替模型写代码，而是告诉它：用一条曲线作为所有沿江构件的共同基准。</p>
+<p><strong>第四，写禁止项和验收标准。</strong> 「而不是直线河道或普通弧形滨江」「不采用地面平视视角」「不要只展示单栋建筑或局部滨江景观」——这三句排除错误解；「第一眼能够识别出上海陆家嘴和黄浦江」「从整体俯视视角能够清晰看到……U 形蜿蜒轮廓」——这两句给出可以被眼睛检查的通过条件。</p>
+<p>这三层合起来，才是第二版真正有效的原因：<strong>约束可执行，结果可验收，优先级明确。</strong></p>
+<h2 id="四、落到代码：河道成为唯一空间基准"><a href="#四、落到代码：河道成为唯一空间基准" class="headerlink" title="四、落到代码：河道成为唯一空间基准"></a>四、落到代码：河道成为唯一空间基准</h2><p>提示词里那句「用 CatmullRomCurve3 构建中心线」，最后落成了一个 <code>src/world/river.js</code>。它只做一件事：把整条黄浦江变成一套可以查询的空间坐标。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> curve = <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">CatmullRomCurve3</span>(</span><br><span class="line">  <span class="variable constant_">RIVER</span>.<span class="property">controlPoints</span>.<span class="title function_">map</span>(<span class="function">(<span class="params">[x, z]</span>) =&gt;</span> <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(x, <span class="number">0</span>, z)),</span><br><span class="line">  <span class="literal">false</span>,</span><br><span class="line">  <span class="string">&quot;centripetal&quot;</span>,</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> spaced = curve.<span class="title function_">getSpacedPoints</span>(<span class="number">900</span>);</span><br><span class="line"><span class="keyword">const</span> length = curve.<span class="title function_">getLength</span>();</span><br></pre></td></tr></table></figure>
+
+<p>29 个控制点定义了河道的走向，按弧长均匀采样 900 段，得到每个采样点的位置、切线、法线和半宽。这里用 <code>centripetal</code> 参数化，是为了减少急弯处的过冲——河道弯得越急，普通 Catmull-Rom 越容易在控制点之间甩出一段不自然的弧线。</p>
+<p>紧接着是一段容易被忽略、但不写就会出事的逻辑：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> radius = angle &gt; <span class="number">1e-5</span> ? arc / angle : <span class="title class_">Infinity</span>;</span><br><span class="line">samples[i].<span class="property">halfWidth</span> = <span class="title class_">Math</span>.<span class="title function_">min</span>(samples[i].<span class="property">halfWidth</span>, radius * <span class="number">0.62</span>);</span><br></pre></td></tr></table></figure>
+
+<p>岸线不是单独画的，而是中心线向两侧偏移「半宽」得到的。弯太急、河太宽，偏移后的内岸会自己穿过自己。所以急弯处必须收窄河宽，<code>0.62</code> 是给偏移留的安全余量；之后再跑两遍平滑，避免宽度在曲率突变处出现折角。</p>
+<p>有了这套采样，<code>river</code> 对外只暴露几个查询：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">river.<span class="title function_">pointAt</span>(u);              <span class="comment">// 弧长参数 u ∈ [0,1] 上的点</span></span><br><span class="line">river.<span class="title function_">tangentAt</span>(u);            <span class="comment">// 该点的切线方向</span></span><br><span class="line">river.<span class="title function_">bankPoint</span>(u, side);      <span class="comment">// 岸线取点，+1 为浦西/外滩，-1 为浦东/陆家嘴</span></span><br><span class="line">river.<span class="title function_">lanePoint</span>(u, offset);    <span class="comment">// 江面航线取点</span></span><br><span class="line">river.<span class="title function_">nearest</span>(x, z);           <span class="comment">// 陆地 / 水面判定</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，所有沿江构件都从这里取点：</p>
+<ul>
+<li><strong>水面</strong>沿着中心线生成连续 ribbon，而不是一张矩形平面；边缘带 <code>aEdge</code> 属性，用来画贴岸泡沫。</li>
+<li><strong>陆地</strong>是一整块 <code>ShapeGeometry</code>，河道作为 <code>Path</code> 孔洞挖掉，避免水面和地面互相穿插。</li>
+<li><strong>岸墙、步道、滨江道路</strong>用 <code>createRibbonGeometry</code> &#x2F; <code>createBankWallGeometry</code> 沿河生成。</li>
+<li><strong>外滩 16 栋历史建筑</strong>沿着浦西一侧的 <code>bankPoint</code> 逐栋排布，并朝向江面。</li>
+<li><strong>游船和货轮</strong>沿着中心线偏移出的航线航行，用 <code>tangentAt</code> 自动跟随弯道转向。</li>
+</ul>
+<p>这套结构的价值不在「代码更优雅」，而在<strong>改一个地方，全场景跟着变</strong>。修改一个控制点，水面、岸线、道路、步道、建筑、船只航线会同时移动；而在场景 v1 里，想挪一下河，得分别改水面、岸墙、道路和建筑。</p>
+<p>提示词把「河道是基准」说清楚之后，代码自然长成了「一个中枢 + 多个消费者」。这是我觉得这次迭代里最值得记下来的一点：<strong>好的提示词不只描述结果，还会暗示结构。</strong></p>
+<h2 id="五、两版放在一起看"><a href="#五、两版放在一起看" class="headerlink" title="五、两版放在一起看"></a>五、两版放在一起看</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>场景 v1</th>
+<th>场景 v2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>河道</td>
+<td>沿 Z 轴的直线河道</td>
+<td><code>CatmullRomCurve3</code> 中心线生成的大尺度 U 形弯道</td>
+</tr>
+<tr>
+<td>河岸</td>
+<td>两条直线岸墙</td>
+<td>沿曲线偏移生成、宽度随河道变化的连续岸线</td>
+</tr>
+<tr>
+<td>水面</td>
+<td>矩形平面</td>
+<td>沿河道的连续 ribbon 网格，岸边泡沫随岸线变化</td>
+</tr>
+<tr>
+<td>陆地</td>
+<td>两块大平面</td>
+<td>带河道孔洞的连续地块，道路、步道、建筑共享河岸坐标</td>
+</tr>
+<tr>
+<td>城市</td>
+<td>以直线路网布置</td>
+<td>建筑、道路、车辆、树木、路灯、码头都沿河岸曲线延伸</td>
+</tr>
+<tr>
+<td>船</td>
+<td>沿 Z 轴往返</td>
+<td>沿河道中心线的不同航线连续航行，自动跟随弯道转弯</td>
+</tr>
+<tr>
+<td>镜头</td>
+<td>平直滨江视角</td>
+<td>高空斜俯视，完整展示 U 形江湾与半岛</td>
+</tr>
+<tr>
+<td>新增</td>
+<td>—</td>
+<td>货轮、两座跨江桥、码头上盖、远景城市、城市底图纹理</td>
+</tr>
+</tbody></table>
+<p><img src="/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/v1-preview.jpg" alt="场景 v1 的预览：直线河道与两块大平面"></p>
+<p><em>图 1：场景 v1。元素齐全，但河道是一条直的水带，城市沿两条直线岸线铺开——第一眼看到的是「一排楼」，不是一座城。</em></p>
+<p><img src="/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/v2-night.jpg" alt="场景 v2 的夜景"></p>
+<p><em>图 2：场景 v2 的夜景。同一条江被重新定义成一条曲线，陆家嘴三面环水，建筑、道路、船只都沿着这条曲线展开；昼夜系统在 1.9 秒内统一插值天空、太阳、雾、曝光、泛光和所有窗灯，水面参数也参与过渡。</em></p>
+<p>场景 v2 做完之后，同一套场景还被用来导出了一段 28 秒的影片：四个固定镜头从 U 形江湾俯冲进入外滩立面，再环绕陆家嘴四塔，在镜头内完成黄昏到夜景的过渡。下面这张联系表是其中的六帧：</p>
+<p><img src="/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/contact-sheet.jpg" alt="场景 v2 影片模式的六帧关键画面"></p>
+<p><em>图 3：v2.0 影片模式的六帧联系表（01-opening → 06-finale）。固定时间线让相机、昼夜和字幕都由绝对时间推导，因此每次导出的帧序列一致。</em></p>
+<h2 id="六、把这次迭代抽成六条写法"><a href="#六、把这次迭代抽成六条写法" class="headerlink" title="六、把这次迭代抽成六条写法"></a>六、把这次迭代抽成六条写法</h2><p>如果下次还要让模型搭一个「有地理关系」的场景，我会按这六条写提示词。</p>
+<p><strong>1. 先空间，后物件，再氛围。</strong><br>先定义场景的骨架——哪条线决定其他一切；再列地标和物件；最后谈材质、灯光、后处理。顺序不是排版偏好，而是模型的注意力分配。</p>
+<p><strong>2. 把「像」翻译成可验证的关系。</strong><br>「要有外滩的感觉」无法执行；「河道从左侧远处流入，绕过陆家嘴，再向右远处流出，形成马蹄形」可以。能变成控制点、宽度函数、相机坐标的描述，才是有效描述。</p>
+<p><strong>3. 给实现路径，但不锁死细节。</strong><br>「用 <code>CatmullRomCurve3</code> 构建中心线和岸线」是在指定结构；「用 29 个控制点、900 段采样、三条正弦叠加河宽」就是过度干预。前者让模型少走弯路，后者会让它把注意力花在满足数字上。</p>
+<p><strong>4. 写禁止项。</strong><br>「不要直线」「不要地面平视」「不要孤立建筑」比正面描述更能排除错误解。模型在信息不足时会选最省力的默认值，禁止项就是提前堵住那些默认值。</p>
+<p><strong>5. 验收标准要能被眼睛检查。</strong><br>「第一眼能识别出陆家嘴和黄浦江」「俯视能看到 U 形轮廓」——这类标准可以在浏览器里直接判断。不要写「视觉质量高」这种说了等于没说的句子。</p>
+<p><strong>6. 一次只改一个维度。</strong><br>第二版把主要精力放在空间关系上，材质、光照和后期沿用同一套方案。这样两版之间的差异才能归因：画面变好了，是因为河变了，不是因为同时加了十盏灯。</p>
+<p>还有一条元规则：<strong>让 skill 管 API，让提示词管意图。</strong> 不要用提示词去重复 skill 里已经写好的 Three.js 用法；把提示词的篇幅留给「这个世界应该长什么样」。</p>
+<h2 id="七、边界：提示词能走多远"><a href="#七、边界：提示词能走多远" class="headerlink" title="七、边界：提示词能走多远"></a>七、边界：提示词能走多远</h2><p>场景 v2 仍然是<strong>风格化还原</strong>，不是测绘。</p>
+<p>四座地标是参数化近似：东方明珠的三根立柱和三个球体、上海中心的 120° 扭转三叶截面、环球金融中心的「开瓶器」顶部、金茂大厦的逐层收分，都是从真实形态里抽出来的几何特征，不是实测模型。河宽是正弦叠加出来的，岸线是曲线偏移出来的，不是从地理数据里读出来的。</p>
+<p>再往前一步，问题就换了。第三版提示词要的是 1:1 真实地理：真实岸线、真实建筑位置和高度、统一坐标参考系、OSM&#x2F;GIS&#x2F;Cesium&#x2F;Blender、以米为单位的世界比例，还要求「缺少真实数据时先报告缺失项，不得用虚构数据冒充真实城市模型」。这次工作暂时停在「数据源调研与坐标系统」这一步，没有继续往下做。</p>
+<p>这不是提示词写坏了，而是<strong>提示词能提高上限，但不能替代数据</strong>。当目标从「像外滩」变成「是外滩」时，主要的工程量在数据获取、坐标转换、缺失值标注和精度验收上，不在措辞上。</p>
+<p>还有一层边界是视觉终检。构建可以通过、产物可以非空、图片可以被解析，但「像不像外滩」最终仍然要人眼看。工具能保证场景跑起来，不能保证它好看。</p>
+<h2 id="八、复现"><a href="#八、复现" class="headerlink" title="八、复现"></a>八、复现</h2><p>场景 v1 和 v2 是两个相互独立的 Vite 项目，各自带 <code>package.json</code> 和构建配置。环境要求 Node.js ≥ 20.19，以及支持 WebGL 2 的桌面浏览器。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> material/上海外滩v2.0</span><br><span class="line"></span><br><span class="line">npm install</span><br><span class="line">npm run dev       <span class="comment"># 默认 http://localhost:5173</span></span><br><span class="line">npm run build     <span class="comment"># 产物在 dist/，使用相对路径，可部署到任意子目录</span></span><br><span class="line">npm run preview   <span class="comment"># 本地预览构建产物</span></span><br></pre></td></tr></table></figure>
+
+<p>交互方式：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>左键拖拽</td>
+<td>旋转视角</td>
+</tr>
+<tr>
+<td>滚轮 &#x2F; 双指</td>
+<td>缩放</td>
+</tr>
+<tr>
+<td>右键拖拽 &#x2F; 双指拖动</td>
+<td>平移</td>
+</tr>
+<tr>
+<td>右上角地标列表</td>
+<td>飞行到东方明珠、上海中心、环球金融中心、金茂大厦、外滩建筑群</td>
+</tr>
+<tr>
+<td>底部时间切换</td>
+<td>白天 &#x2F; 黄昏 &#x2F; 夜景（1.9 秒平滑过渡）</td>
+</tr>
+<tr>
+<td>自动环绕</td>
+<td>开启或关闭自动环绕镜头</td>
+</tr>
+<tr>
+<td>键盘 <code>1</code> <code>2</code> <code>3</code></td>
+<td>切换时间</td>
+</tr>
+<tr>
+<td>键盘 <code>Space</code></td>
+<td>自动环绕开关</td>
+</tr>
+<tr>
+<td>键盘 <code>R</code></td>
+<td>重置视角</td>
+</tr>
+</tbody></table>
+<p>源码在 <a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>。<code>material/上海外滩v1.0/</code> 是直线河道的存档版本，<code>material/上海外滩v2.0/</code> 是当前主版本。</p>
+<h2 id="结语：先找到那条「河道」"><a href="#结语：先找到那条「河道」" class="headerlink" title="结语：先找到那条「河道」"></a>结语：先找到那条「河道」</h2><p>「绘制」这个词有点误导。我们画的不是一张图，是一组关系：河道决定岸线，岸线决定道路和建筑，建筑决定天际线，镜头决定读者第一眼看到什么。</p>
+<p>第一版提示词列全了物件，却没有定义关系，所以模型只能把它们并排放在一起；第二版只多说了几句关于河的话，整座城就跟着河长了出来。</p>
+<p>下次让模型搭场景，先别急着列地标。先问自己：这个场景的「河道」是什么？哪一条线一旦定了，其他东西都得跟着它走？</p>
+<p>把那条线写进第一节。</p>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><ul>
+<li><strong>threejs-skills</strong>：<a target="_blank" rel="noopener" href="https://github.com/cloudai-x/threejs-skills"><code>cloudai-x/threejs-skills</code></a>，13 个按主题拆分的 Three.js skill，对齐 three.js r186。</li>
+<li><strong>Three.js</strong>：MIT 许可。</li>
+<li><strong>场景源码与截图</strong>：<a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>。文中四张图片均由该项目的场景 v1 &#x2F; v2 生成；图 3 的联系表来自 v2.0 的影片模式。</li>
+<li><strong>模型与 harness</strong>：DeepSeek-flash4.1 在 Claude Code 中运行。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Three-js-Claude-Code-%E6%8F%90%E7%A4%BA%E8%AF%8D-3D/" rel="tag"># Three.js,Claude Code,提示词,3D</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/11/03/all_you_need_is_attation%E9%98%85/" rel="prev" title="">
+                  <i class="fa fa-angle-left"></i> 
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">fwind</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
