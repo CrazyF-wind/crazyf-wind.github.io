@@ -170,6 +170,348 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/" class="post-title-link" itemprop="url">如何绘制一幅《枫桥夜泊》v1.0</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-11-12 20:30:00 / 修改时间：20:35:46" itemprop="dateCreated datePublished" datetime="2026-11-12T20:30:00+08:00">2026-11-12</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/cover.jpg" alt="月落江天：开场镜头里的枫桥、江面与压在天际线上的月亮"></p>
+<p><em>封面：1.6 秒处的开场。月亮已经压得很低，石拱桥和枫林只是江岸上的剪影，月光在江面拉出一条断续的银蓝色碎影。</em></p>
+<blockquote>
+<p>模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。</p>
+<p>这篇文章复盘的是：一份把《枫桥夜泊》拆成空间、时间与机制的提示词，如何落成一个可漫游的三维场景，并导出成 40 秒、60 fps 的短片。下文把输入的那份提示词称为「世界说明书」，把产出称为「场景 v1」。</p>
+</blockquote>
+<h2 id="引言：二十八个字，四十秒"><a href="#引言：二十八个字，四十秒" class="headerlink" title="引言：二十八个字，四十秒"></a>引言：二十八个字，四十秒</h2><p>《枫桥夜泊》只有二十八个字。它写了月、乌、霜、江、枫、渔火、姑苏城、寒山寺、钟声、客船。如果只是把这些名词做成模型，一件件摆进画面，得到的是一张会动的明信片，不是这首诗。</p>
+<p>诗里真正难画的是动词和时间：月「落」，乌「啼」，霜「满天」，渔火「对」愁眠，钟声「到」客船。落是一个过程，到是一段延迟。把诗变成场景，关键不是把名词堆齐，而是为每个动作找到一个可以被渲染的机制。</p>
+<p>这份世界说明书一共十一节，从色彩、建模、动态、镜头、字幕，一直写到导出规格。它不像一份「元素清单」，更像一份世界的说明书：先规定这个夜晚的光、色、尺度和方位，再规定什么东西在什么时候动。</p>
+<p>先说结论：<strong>这首诗最适合被拆成四条时间轴——月落的轴、风吹叶落的轴、寺院显形的轴、钟声抵达的轴。四条轴对齐在同一个 40 秒里，诗就成了镜头。</strong></p>
+<h2 id="一、诗里能动的，是动词"><a href="#一、诗里能动的，是动词" class="headerlink" title="一、诗里能动的，是动词"></a>一、诗里能动的，是动词</h2><p>把四句诗拆开，会看到两种东西：布景和机制。</p>
+<table>
+<thead>
+<tr>
+<th>诗句</th>
+<th>布景（名词）</th>
+<th>机制（动词 &#x2F; 时间）</th>
+<th>主要实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>月落乌啼霜满天</td>
+<td>月、乌、霜、天</td>
+<td>落、啼、满天</td>
+<td><code>sky.js</code>、<code>birds.js</code>、<code>mist.js</code></td>
+</tr>
+<tr>
+<td>江枫渔火对愁眠</td>
+<td>枫、渔火、客船</td>
+<td>并置、静默、摇曳</td>
+<td><code>trees.js</code>、<code>fishing.js</code>、<code>boat.js</code></td>
+</tr>
+<tr>
+<td>姑苏城外寒山寺</td>
+<td>城、寺、山</td>
+<td>城外（距离）、显现</td>
+<td><code>terrain.js</code>、<code>temple.js</code>、雾</td>
+</tr>
+<tr>
+<td>夜半钟声到客船</td>
+<td>钟、船</td>
+<td>到（传播延迟）</td>
+<td><code>temple.js</code>、<code>water.js</code>、<code>audio.js</code></td>
+</tr>
+</tbody></table>
+<p>名词决定场景的体积，动词决定动画的预算。提示词里最值钱的句子，往往不是「要有枫树」，而是「部分落叶随风飘落，偶尔落在江面」——它把一棵树从一个静态模型，变成了一个持续发生的系统。</p>
+<p>这份提示词还有一个很清楚的取舍：它反复写「不要」。不要做成暴雪，不要科幻雷达波，不要霓虹圆环，不要平面插画代替三维场景，不要让船悬空或穿模。这些禁止项不是修辞，它们是在提前排除模型在信息不足时最容易选择的默认解。</p>
+<h2 id="二、先定世界基准，再谈物件"><a href="#二、先定世界基准，再谈物件" class="headerlink" title="二、先定世界基准，再谈物件"></a>二、先定世界基准，再谈物件</h2><p>场景 v1 的所有坐标都收在一份 <code>src/config.js</code> 里。这不是为了代码整洁，而是为了让「江」成为整个世界的基准。</p>
+<p>坐标系沿用仓库约定：X 轴向东，Z 轴向南，Y 轴向上，1 个世界单位约等于 1 米。河道沿 X 轴展开，<code>z = 0</code> 是江心；南岸是近景的枫桥、枫林、码头与客船，北岸抬升为寒山寺所在的山坡。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="variable constant_">WORLD</span> = &#123;</span><br><span class="line">  <span class="attr">waterLevel</span>: <span class="number">0.35</span>,</span><br><span class="line">  <span class="attr">landLevel</span>: <span class="number">1.35</span>,</span><br><span class="line">  <span class="attr">bankTop</span>: <span class="number">1.6</span>,</span><br><span class="line">  <span class="attr">riverHalfWidth</span>: <span class="number">34</span>,</span><br><span class="line">  <span class="attr">riverLength</span>: <span class="number">520</span>,</span><br><span class="line">  <span class="attr">templeBase</span>: <span class="number">9.2</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="variable constant_">LAYOUT</span> = &#123;</span><br><span class="line">  <span class="attr">bridge</span>: &#123; <span class="attr">x</span>: -<span class="number">42</span>, <span class="attr">z</span>: <span class="number">0</span>, <span class="attr">width</span>: <span class="number">7.2</span>, <span class="attr">span</span>: <span class="number">74</span>, <span class="attr">rise</span>: <span class="number">11.5</span> &#125;,</span><br><span class="line">  <span class="attr">boat</span>:   &#123; <span class="attr">x</span>: <span class="number">14</span>, <span class="attr">z</span>: <span class="number">23.4</span>, <span class="attr">heading</span>: -<span class="number">0.16</span> &#125;,</span><br><span class="line">  <span class="attr">temple</span>: &#123; <span class="attr">x</span>: <span class="number">42</span>, <span class="attr">z</span>: -<span class="number">118</span>, <span class="attr">y</span>: <span class="variable constant_">WORLD</span>.<span class="property">templeBase</span> &#125;,</span><br><span class="line">  <span class="attr">bell</span>:   &#123; <span class="attr">x</span>: <span class="number">47</span>, <span class="attr">z</span>: -<span class="number">126</span>, <span class="attr">y</span>: <span class="number">20.5</span> &#125;,</span><br><span class="line">  <span class="attr">moonDir</span>: <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(-<span class="number">0.55</span>, <span class="number">0.08</span>, -<span class="number">0.83</span>).<span class="title function_">normalize</span>(),</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>水面高度、陆地高度、河宽、寺院台基，是四个共享的水平面。桥、船、树、寺、渔火都从这几个常量上长出来，而不是各自记一套魔法数字。客船到寺院在 Z 方向上相差 141.4 个单位；这个距离不是随手写的，它同时决定了第 16–26 秒镜头隔着多远的江面去「看」寺院，以及雾要浓到什么程度，才能让寺院「若隐若现」。</p>
+<p>月亮的方向也是常量：<code>(-0.55, 0.08, -0.83)</code>，仰角大约 4.5°。它压在西北天际线附近，所以才有「落」的余地。提示词里那句「月亮位于远山与天际线附近，呈现月落状态」，最后落成一个随时间缓慢下沉的方向函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">moonDirectionAt</span>(<span class="params">t</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> drop = <span class="variable constant_">THREE</span>.<span class="property">MathUtils</span>.<span class="title function_">clamp</span>(t / <span class="number">40</span>, <span class="number">0</span>, <span class="number">1</span>);</span><br><span class="line">  <span class="keyword">const</span> az = -<span class="number">0.55</span> - drop * <span class="number">0.01</span>;</span><br><span class="line">  <span class="keyword">const</span> elevation = <span class="number">0.078</span> - drop * <span class="number">0.03</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(az, elevation, -<span class="number">1</span>).<span class="title function_">normalize</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>40 秒里，仰角从约 4.5° 降到约 2.7°。变化很小，小到单看一帧几乎察觉不到；但把它交给时间轴，月亮就真的在落。<strong>诗里的「落」不是一个状态，是一个斜率。</strong></p>
+<h2 id="三、四句诗，四种机制"><a href="#三、四句诗，四种机制" class="headerlink" title="三、四句诗，四种机制"></a>三、四句诗，四种机制</h2><h3 id="1-月落乌啼霜满天"><a href="#1-月落乌啼霜满天" class="headerlink" title="1. 月落乌啼霜满天"></a>1. 月落乌啼霜满天</h3><p>这一句有三个动作，分别落在三个模块里。</p>
+<p>天空是一整块 shader。月盘、月海、边缘亮环、月晕、贴近地平线的薄云和稀疏星光都在同一个片元着色器里计算。星光用 <code>step(0.9981, star)</code> 筛出来——只保留约千分之二的网格，正好是「少量星光，不要过度密集」的分量。</p>
+<p>乌鸦是低多边形剪影：身体、头、喙、尾，两片可以上下扇动的翅膀。三只乌鸦各自沿一条 <code>CatmullRomCurve3</code> 飞行，用 <code>getPointAt</code> 取位置、用切线定朝向，转弯时按曲率侧倾，翅膀按正弦节奏扇动。它们只在各自的时间窗里出现，所以画面里始终只有一两只，不会变成一群。</p>
+<p>「霜满天」最容易被做错。提示词专门写了「不应把画面做成暴雪或大面积飘雪」。最终的方案是 520 个极细的霜粒，加上贴着水面缓慢流动的雾片；它们不是天气系统，只是一层几乎看不清的冷凝感。观众不会注意到霜粒，但会觉得空气是冷的。</p>
+<p>这就是「意境」在工程里的样子：<strong>不是把比喻做大，而是把它做小，小到刚好能被感觉到。</strong></p>
+<h3 id="2-江枫渔火对愁眠"><a href="#2-江枫渔火对愁眠" class="headerlink" title="2. 江枫渔火对愁眠"></a>2. 江枫渔火对愁眠</h3><p>枫树是递归生成的。主干分出枝，枝再分叉，直到末梢；叶簇和带枫叶剪影的叶片卡片全部用 <code>InstancedMesh</code>。真正让树「活」起来的是一段注入到材质里的顶点风场：每个顶点按世界坐标和时间获得一个很小的位移，整片树冠因此以不同的相位轻轻摇动。</p>
+<p>但只有整片摇动还不够。提示词还要「少量枫叶从树枝上脱落，飘落江面」。于是另有 120 片独立模拟的落叶：每片有自己的速度、旋转和相位，受重力和侧风影响；落到 <code>waterLevel + 0.015</code> 时停止下落，转为漂浮，漂 8–12 秒再重新生成。</p>
+<p>这里有一个很实用的分层：<strong>大面积的叶子交给 GPU 的顶点着色器，少量需要「叙事」的叶子交给 CPU 逐片模拟。</strong> 如果 120 片叶子也走 shader，它们会整齐得像一场雨；如果整棵树都走 CPU，2K &#x2F; 60 fps 的预算立刻不够。</p>
+<p>渔火是另一层。江面上有五艘渔船，分布在远近不同的位置，每盏灯有自己的闪烁相位。它们通过 <code>water.setLantern(index, position, color, power)</code> 注册到水面 shader，最多 10 盏。船上的灯是暖橙色 <code>#FFAD58</code>，月光是银蓝色 <code>#B7C9DE</code>；这一冷一暖的对比，就是「对愁眠」里那个「对」字的视觉支点。</p>
+<p>客船停在 <code>(14, 23.4)</code>。船体由逐站截面放样，木舱、竹篷、桅杆、收帆、缆绳和船头灯笼各自成组；船身随水流横摇、升沉、轻微偏航，舱内暖光与窗棂后的诗人剪影保持安静。提示词说人物「不需要复杂的人物动画」，这个克制是对的——诗人一动，画面就从「夜泊」变成了「夜航」。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/maple-fishing.jpg" alt="江枫渔火：枫林、渔船灯火与石桥"></p>
+<p><em>图 1：9 秒处的江岸。枫树的暗红树冠压在画面上方，渔船灯火在江面拉出暖色倒影；冷的月光和暖的渔火在同一个水面 shader 里共存。</em></p>
+<h3 id="3-姑苏城外寒山寺"><a href="#3-姑苏城外寒山寺" class="headerlink" title="3. 姑苏城外寒山寺"></a>3. 姑苏城外寒山寺</h3><p>寒山寺在 <code>z = -118</code>，客船在 <code>z = 23.4</code>，中间隔着 141 个单位的江面。提示词要求「建筑轮廓能够被观众辨认，但不应过于突出」「寺院与客船之间存在明确的空间距离」。场景没有靠把寺院做小来实现「远」，而是叠了三层：</p>
+<ol>
+<li><strong>距离</strong>：寺院真的在江对岸的山坡上，台基高度 <code>9.2</code>，从客船看过去需要仰视。</li>
+<li><strong>雾</strong>：<code>FogExp2</code>，密度 <code>0.0029</code>，越远越接近雾的颜色 <code>#27313F</code>。</li>
+<li><strong>景深</strong>：<code>BokehPass</code> 的聚焦距离随相机与注视点更新，远处的屋檐自然变软。</li>
+</ol>
+<p>寺院的建筑本身共用一套屋面生成器。山门、主殿、偏殿、钟楼、五层塔的屋顶都由同一个函数生成，用 <code>t</code> 参数控制屋脊高度、坡面曲率和四角起翘；改变尺寸与起翘量，就能得到不同等级的建筑。这样做的价值不在省代码，而在<strong>风格一致</strong>：所有屋檐的弧线来自同一个曲面族，远看才不会像拼贴。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/hanshan-temple.jpg" alt="雾中寒山寺：对岸的寺院与钟楼"></p>
+<p><em>图 2：24 秒处，寒山寺从雾里显形。寺院被距离、雾和景深三层推开，轮廓可辨，但不抢客船。</em></p>
+<h3 id="4-夜半钟声到客船"><a href="#4-夜半钟声到客船" class="headerlink" title="4. 夜半钟声到客船"></a>4. 夜半钟声到客船</h3><p>这是全诗唯一一句明确写了「传播」的诗。前三句都是视觉，第四句突然变成听觉；而且「到」字说明钟声不是同时在所有地方响，它需要时间。</p>
+<p>场景把这件事写成了绝对时间：</p>
+<ul>
+<li><code>STRIKE_TIME = 28.6</code> 秒，撞木在 25.6 秒开始向后拉开，28.2 秒开始荡向古钟，28.6 秒撞上。</li>
+<li>钟体在撞击后按指数衰减摆动：<code>sin(strike * 4.1) * 0.105 * exp(-strike * 0.85)</code>。</li>
+<li>钟体本身还有极细的震动：<code>sin(strike * 38) * 0.012 * pulse</code>，同时暖光按 <code>exp(-strike * 1.7)</code> 脉冲一次。</li>
+<li>31.1 秒和 32.4 秒，江面在客船附近出现两组同心涟漪——这是钟声「到」的时刻，距离撞钟晚了 2.5 秒和 3.8 秒。</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> strike = time - <span class="variable constant_">STRIKE_TIME</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 钟摆：先自由微摆，撞后叠加一段指数衰减</span></span><br><span class="line"><span class="keyword">let</span> bellAngle = <span class="title class_">Math</span>.<span class="title function_">sin</span>(time * <span class="number">0.55</span>) * <span class="number">0.008</span>;</span><br><span class="line"><span class="keyword">if</span> (strike &gt; <span class="number">0</span>) &#123;</span><br><span class="line">  bellAngle += <span class="title class_">Math</span>.<span class="title function_">sin</span>(strike * <span class="number">4.1</span>) * <span class="number">0.105</span> * <span class="title class_">Math</span>.<span class="title function_">exp</span>(-strike * <span class="number">0.85</span>);</span><br><span class="line">&#125;</span><br><span class="line">tower.<span class="property">bellGroup</span>.<span class="property">rotation</span>.<span class="property">z</span> = bellAngle;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 钟体被撞后的细微震动</span></span><br><span class="line"><span class="keyword">const</span> pulse = strike &gt; <span class="number">0</span> ? <span class="title class_">Math</span>.<span class="title function_">exp</span>(-strike * <span class="number">1.7</span>) * <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="number">1</span>, strike * <span class="number">8</span>) : <span class="number">0</span>;</span><br><span class="line">tower.<span class="property">bellMesh</span>.<span class="property">position</span>.<span class="property">x</span> = <span class="title class_">Math</span>.<span class="title function_">sin</span>(strike * <span class="number">38</span>) * <span class="number">0.012</span> * pulse;</span><br></pre></td></tr></table></figure>
+
+<p>声波的视觉化是最容易过火的地方。提示词写得很明确：「使用透明环形波纹、空气扰动等视觉方式」「不要使用科幻雷达波或夸张的霓虹圆环」。最终的实现是四道 220×220 的平面，加法混合，半径在 7 秒内从 0.06 扩到 0.76；透明度只有 <code>0.045 - i * 0.006</code>，波前还被噪声打散成不连续的弧。换句话说，它几乎看不见——只在寺院前的雾里留下一圈很淡的扰动。</p>
+<p>江面的涟漪则通过 uniform 写进水面 shader：最多 6 组 <code>(x, z, 起始时间, 强度)</code>，每组的径向斜率叠加到基础波场上。钟声抵达时，涟漪从客船附近向外扩散，和月光、渔火共用同一套法线。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/bell-tower.jpg" alt="钟楼与古钟：撞钟前的瞬间"></p>
+<p><em>图 3：34 秒处的钟楼。古钟悬在二层，撞木已经荡开；钟体的青铜色和寺院的暖光只在局部出现。</em></p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/bell-sound.jpg" alt="声波越过江面：四道极淡的环形波前"></p>
+<p><em>图 4：30.4 秒，钟声正在越过江面。波前被噪声打散，透明度极低，只够让雾和江面轻轻动一下。</em></p>
+<p>声音本身由 Web Audio 实时合成：钟声是几组带轻微拍频的正弦分音，乌鸦是滤波后的噪声脉冲，水声和风声是噪声加低频振荡；混响发送量 <code>0.36</code>，让钟声在江面上留一条尾巴。成片音轨则用 Python 离线渲染，和画面在同一张时间表上对齐。</p>
+<h2 id="四、水面：四句诗叠在同一个-shader-里"><a href="#四、水面：四句诗叠在同一个-shader-里" class="headerlink" title="四、水面：四句诗叠在同一个 shader 里"></a>四、水面：四句诗叠在同一个 shader 里</h2><p>江面是整篇文章里技术密度最高的部分。它用 <code>Reflector</code> 做真实的平面镜像——天空、寺院、枫树、灯火都会被反射——再在镜像之上叠一层自定义 GLSL。</p>
+<p>这一层 shader 同时负责五件事：</p>
+<ol>
+<li><strong>波纹</strong>：四组不同频率、不同速度的行波叠加成斜率，再用两层低频噪声打破规则感。</li>
+<li><strong>反射扰动</strong>：用波斜率偏移反射纹理的 UV，让倒影随水波扭动；再取一次偏移更大的采样做混合，避免倒影太干净。</li>
+<li><strong>月光碎影</strong>：沿「相机 → 月亮」的方位拉出一条细长的银色路径，路径内部再用高光项和噪声切成断续的碎片。</li>
+<li><strong>渔火倒影</strong>：把每盏灯沿水面镜像，取「相机 → 镜像点」的线段，在江面上形成一条被噪声打断的暖色光带。</li>
+<li><strong>钟声涟漪与贴岸泡沫</strong>：涟漪作为径向斜率叠加；靠近岸线 <code>|z| &gt; 31</code> 时压暗水面，形成一条暗色水线。</li>
+</ol>
+<p>月光那一段值得单独看：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">vec2</span> toPoint = <span class="built_in">normalize</span>(p - cameraPosition.xz + <span class="type">vec2</span>(<span class="number">0.0001</span>));</span><br><span class="line"><span class="type">vec2</span> moonH = <span class="built_in">normalize</span>(uMoonDir.xz);</span><br><span class="line"><span class="type">float</span> angleDiff = <span class="built_in">acos</span>(<span class="built_in">clamp</span>(<span class="built_in">dot</span>(toPoint, moonH), <span class="number">-1.0</span>, <span class="number">1.0</span>));</span><br><span class="line"><span class="type">float</span> path = <span class="built_in">exp</span>(-angleDiff * angleDiff * <span class="number">170.0</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">vec3</span> halfDir = <span class="built_in">normalize</span>(<span class="built_in">normalize</span>(uMoonDir) + viewDir);</span><br><span class="line"><span class="type">float</span> sparkle = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(normal, halfDir), <span class="number">0.0</span>), <span class="number">58.0</span>);</span><br><span class="line">col += uMoonColor * path * (<span class="number">0.008</span> + sparkle * <span class="number">0.5</span>) * shimmer * micro;</span><br></pre></td></tr></table></figure>
+
+<p>它没有一张「月光贴图」。月光之所以在江面上，是因为相机、月亮方位和水面法线在每一帧重新算了一次。镜头一动，碎影跟着动；月亮下沉，路径跟着偏。渔火倒影同理。<strong>倒影不是画上去的，是算出来的。</strong></p>
+<p>这也是提示词里那句「通过 Shader 实现水面反射和扰动」真正的价值：它要求的不是某个 API，而是一种建模方式——把水面当成一个光学系统，而不是一张会动的背景。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/poet-boat.jpg" alt="客船与诗人：舱窗后的剪影"></p>
+<p><em>图 5：16 秒处的客船。船体、木舱、竹篷和缆绳都是程序化生成；舱内暖光只够照亮窗棂和诗人的轮廓。</em></p>
+<h2 id="五、40-秒是一条函数"><a href="#五、40-秒是一条函数" class="headerlink" title="五、40 秒是一条函数"></a>五、40 秒是一条函数</h2><p>影片时间线在 <code>src/film.js</code>。它只做一件事：把任意时刻 <code>t</code> 映射成相机位置、注视点、字幕透明度和世界状态。</p>
+<p>相机不是用关键帧动画软件做的，而是两组关键点加 Catmull-Rom 插值：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">KEYS</span> = [</span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">0.0</span>,  <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">106</span>, <span class="number">68</span>, <span class="number">138</span>), <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">8</span>, <span class="number">26</span>, -<span class="number">42</span>) &#125;,</span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">4.0</span>,  <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">78</span>, <span class="number">45</span>, <span class="number">110</span>),  <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">9</span>, <span class="number">20</span>, -<span class="number">34</span>) &#125;,</span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">7.0</span>,  <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">44</span>, <span class="number">22</span>, <span class="number">78</span>),   <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">16</span>, <span class="number">12</span>, -<span class="number">18</span>) &#125;,</span><br><span class="line">  <span class="comment">// ……</span></span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">34.6</span>, <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">46</span>, <span class="number">17.0</span>, -<span class="number">64</span>), <span class="attr">target</span>: <span class="title function_">V</span>(<span class="number">54</span>, <span class="number">17</span>, -<span class="number">126</span>) &#125;,</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+
+<p>每个关键点同时给出位置和注视点，两个都做 Catmull-Rom 插值。这样相机既经过每个机位，又保持速度连续，不会在关键点之间突然拐弯。35 秒之后换用另一组 <code>FINALE_KEYS</code>：镜头回到客船，再拉远到全景。</p>
+<p>35 秒处有一次刻意的黑场。钟楼在江对岸，客船在南岸；如果让相机直接横跨 141 个单位的江面，观众会看到一段没有叙事的长距离平移。黑场遮住这次切镜，比硬切更自然，也比强行飞过去更诚实。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>镜头</th>
+<th>字幕</th>
+<th>主要机制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–7 s</td>
+<td>高空俯视，月落江天</td>
+<td>月落乌啼霜满天</td>
+<td>月亮下沉、乌鸦飞行、霜粒与雾</td>
+</tr>
+<tr>
+<td>7–16 s</td>
+<td>下降掠过枫林与渔火，靠近客船</td>
+<td>江枫渔火对愁眠</td>
+<td>风场、落叶、渔火倒影、船体横摇</td>
+</tr>
+<tr>
+<td>16–26 s</td>
+<td>从客船望向对岸，寺院显形</td>
+<td>姑苏城外寒山寺</td>
+<td>距离、雾、景深、屋面生成器</td>
+</tr>
+<tr>
+<td>26–35 s</td>
+<td>推进钟楼，撞钟，声波越江</td>
+<td>夜半钟声到客船</td>
+<td>撞木、钟摆、声波环、江面涟漪</td>
+</tr>
+<tr>
+<td>35–40 s</td>
+<td>黑场切回客船，拉远，全诗淡出</td>
+<td>全诗</td>
+<td>第二组相机曲线、字幕淡出</td>
+</tr>
+</tbody></table>
+<p>字幕不单独做动画状态机，而是几个 <code>fade(t, inStart, inEnd, outStart, outEnd)</code> 窗口。<code>applyOverlay(t)</code> 每帧根据绝对时间设置透明度和位移；拖动时间轴时，字幕会直接落到正确的位置，不会「补动画」。</p>
+<p>这套结构还有一个直接好处：<strong>可重复导出。</strong> 在 <code>?film=1&amp;capture=1</code> 下，页面关闭实时循环，由 <code>window.__capture.renderAt(t)</code> 以固定 <code>1/60</code> 秒步长推进；<code>deterministic.js</code> 用固定种子覆盖 <code>Math.random</code>，树叶、乌鸦、雾和渔火的随机相位每次导出都一致。2400 帧捕获了 349 秒，平均约 6.9 fps；中断后可以加 <code>--resume</code> 从已有帧继续。</p>
+<p>如果所有状态都从 <code>t</code> 推导，那么播放、暂停、拖动时间轴、重导出就是同一个函数的不同调用方式。反过来，只要有一处动画依赖「上一帧的状态」，时间轴一拖就会漂移，导出也无法复现。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/finale.jpg" alt="诗意收尾：客船、月影与完整诗篇"></p>
+<p><em>图 6：38 秒处的收尾。镜头回到客船，远处寒山寺隐入夜雾，诗名、作者与四句诗依次浮出。</em></p>
+<h2 id="六、三个看得见的坑"><a href="#六、三个看得见的坑" class="headerlink" title="六、三个看得见的坑"></a>六、三个看得见的坑</h2><p><strong>第一，阴影贴图不能在首帧之前关掉。</strong></p>
+<p>项目一度把 <code>renderer.shadowMap.autoUpdate</code> 设为 <code>false</code>，想省掉每帧更新阴影的开销。结果是首帧没有生成阴影贴图，所有 <code>MeshStandardMaterial</code> 在采样 <code>sampler2DShadow</code> 时失败，整批网格直接不绘制。画面不是「阴影不对」，而是「东西不见了」。现在保持 <code>autoUpdate = true</code>。这条教训很具体：性能优化必须在首帧就验证，不能只看后面的帧率数字。</p>
+<p><strong>第二，可重复导出不是默认能力。</strong></p>
+<p>树叶、乌鸦、雾和渔火都用了随机数。如果不固定种子，每次导出的帧序列都不一样：第 1200 帧的某片叶子可能在这里，也可能在那里。<code>deterministic.js</code> 在捕获模式下覆盖随机源，导出脚本从 0 秒重放，才让「同一份代码导出同一段视频」成立。</p>
+<p><strong>第三，2K &#x2F; 60 fps 的预算决定了雾的做法。</strong></p>
+<p>提示词要求「避免过度使用高成本实时体积渲染」。场景里的雾因此是贴水的横向雾片、寺院前的雾团和极细的霜粒，而不是体积雾；阴影是单主方向光的 2048² PCF；叶簇、叶片、栏杆柱、芦苇、山树全部实例化；像素比上限 1.6。这些选择不显眼，但它们决定了 2400 帧能不能在 349 秒内跑完。</p>
+<h2 id="七、导出：2400-帧与两版配乐"><a href="#七、导出：2400-帧与两版配乐" class="headerlink" title="七、导出：2400 帧与两版配乐"></a>七、导出：2400 帧与两版配乐</h2><p>成片规格是 <code>ffprobe</code> 实测出来的，不是估计：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>实测值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分辨率 &#x2F; 帧率</td>
+<td>2560 × 1440 &#x2F; 60 fps</td>
+</tr>
+<tr>
+<td>时长 &#x2F; 总帧数</td>
+<td>40.000 s &#x2F; 2400</td>
+</tr>
+<tr>
+<td>视频编码</td>
+<td>H.264 High Profile Level 5.1，BT.709</td>
+</tr>
+<tr>
+<td>视频码率 &#x2F; 文件大小</td>
+<td>39.2 Mbps &#x2F; 约 188 MiB</td>
+</tr>
+<tr>
+<td>音频</td>
+<td>AAC LC 192 kbps，48 kHz 立体声</td>
+</tr>
+<tr>
+<td>响度</td>
+<td>-18.0 LUFS，True Peak -8.9 dBFS</td>
+</tr>
+<tr>
+<td>捕获耗时</td>
+<td>349 s（约 6.9 fps）</td>
+</tr>
+</tbody></table>
+<p>配乐有两个版本。主版本由 <code>scripts/compose-score.py</code> 用 numpy &#x2F; scipy 程序化合成：水声、风声、鸦鸣、两次寺钟都按时间线写入，不依赖任何外部采样。另一版用 HeyGen 曲库里的古琴 &#x2F; 箫曲替换音乐层，同时保留画内的水风、鸦鸣和寺钟，画面流直接复制，不做二次编码。</p>
+<p>这里的分工也很清楚：<strong>画面负责「看见」，声音负责「到达」。</strong> 16.5 秒的远钟和 28.6 秒的撞钟不是背景音乐，它们是第四句诗的主语。</p>
+<h2 id="八、这份提示词为什么有效"><a href="#八、这份提示词为什么有效" class="headerlink" title="八、这份提示词为什么有效"></a>八、这份提示词为什么有效</h2><p>回看这份世界说明书，真正起作用的不是篇幅，而是六种写法。</p>
+<p><strong>1. 先写世界基准，再写物件。</strong><br>提示词第一节不是「要有哪些建筑」，而是天空、山、江、雾、月光的关系。场景因此先有了一条江和两岸的高程，再往上长桥、树、船、寺。</p>
+<p><strong>2. 用 hex 和数值代替形容词。</strong><br>「深蓝黑 <code>#101A2C</code>」「月光银蓝 <code>#B7C9DE</code>」「渔火暖橙 <code>#FFAD58</code>」——这些值直接变成 <code>COLORS</code> 常量，也直接约束了后处理、灯光和水面 shader。形容词只能表达偏好，数值可以验收。</p>
+<p><strong>3. 每句诗绑定一个镜头、一个字幕窗口、一个机制。</strong><br>0–7 秒对应月落与乌啼，7–16 秒对应枫与渔火，16–26 秒对应寺院显形，26–35 秒对应钟声抵达。时间轴不是后期配的，它在提示词里就已经和诗句对齐。</p>
+<p><strong>4. 写禁止项。</strong><br>「不要做成暴雪」「不要科幻雷达波」「不要平面插画代替三维场景」「不允许悬空或穿模」。模型在信息不足时会选最省力的默认值；禁止项就是提前堵住那些默认值。</p>
+<p><strong>5. 给可验收的标准。</strong><br>40 秒、60 fps、2560×1440 或 3840×2160、四句诗对应四个镜头、声波与钟声同步。这些标准可以在浏览器、<code>ffprobe</code> 和截图里逐条检查，而不是「感觉对不对」。</p>
+<p><strong>6. 让所有状态由绝对时间推导。</strong><br>这条提示词没有直接写出「绝对时间」四个字，但它要求时间轴拖动、自动演示、重播和逐帧导出。满足这些要求的唯一稳妥方式，就是让相机、字幕、钟摆、涟漪都成为 <code>t</code> 的函数。</p>
+<p>还有一条元规则：<strong>让 skill 管 API，让提示词管世界。</strong> 提示词不去复述 Three.js 的用法，而是把篇幅留给「这个夜晚应该长什么样、什么时候发生什么」。</p>
+<h2 id="九、边界：场景能画到哪里"><a href="#九、边界：场景能画到哪里" class="headerlink" title="九、边界：场景能画到哪里"></a>九、边界：场景能画到哪里</h2><p>场景 v1 是<strong>风格化还原</strong>，不是唐代建筑与船型的考据。石拱桥的拱圈、客船的船体、寺院的屋面，都是从真实形制里抽出来的几何特征，不是实测模型。木材、石材、瓦片、树皮、枫叶的纹理全部由 Canvas 程序化生成；它们可控、可复现，但细节有上限。</p>
+<p>比建模更远的边界是「意境」。构建可以通过，脚本可以全绿，<code>ffprobe</code> 可以逐项对上，截图可以非空；但「清冷、孤寂、悠远」最终仍然要人眼看。本文用到的七张配图只做了尺寸与非空校验，没有做人眼审美判断——那一步得留给读者。</p>
+<p>还有一层：诗的意义不在几何里。场景能提供的是一个可以走进去的舞台，它不能替代诗，也不应该替代诗。</p>
+<h2 id="十、复现"><a href="#十、复现" class="headerlink" title="十、复现"></a>十、复现</h2><p>场景是一个独立的 Vite + Three.js 项目，位于 <code>material/枫桥夜泊/</code>。环境要求 Node.js ≥ 20.19，以及支持 WebGL 2 的桌面浏览器。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> material/枫桥夜泊</span><br><span class="line"></span><br><span class="line">npm install</span><br><span class="line">npm run dev        <span class="comment"># http://localhost:5173</span></span><br><span class="line">npm run build      <span class="comment"># 产物在 dist/，base 为 &quot;./&quot;</span></span><br><span class="line">npm run preview</span><br></pre></td></tr></table></figure>
+
+<p>交互方式：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>拖拽 &#x2F; 滚轮 &#x2F; 右键拖拽</td>
+<td>旋转、缩放、平移；首次操作会暂停影片并进入自由探索</td>
+</tr>
+<tr>
+<td>空格</td>
+<td>播放 &#x2F; 暂停</td>
+</tr>
+<tr>
+<td><code>1</code> – <code>6</code></td>
+<td>全景、枫桥、江枫、客船、寒山寺、江面</td>
+</tr>
+<tr>
+<td><code>R</code></td>
+<td>重置视角</td>
+</tr>
+<tr>
+<td>底部时间轴</td>
+<td>拖到任意镜头；松开后保持暂停</td>
+</tr>
+<tr>
+<td>雾气 &#x2F; 字幕 &#x2F; 声音</td>
+<td>独立开关；声音默认关闭，需点击开启</td>
+</tr>
+<tr>
+<td>“观看影片”</td>
+<td>进入 <code>?film=1</code> 的纯净 40 秒影片页</td>
+</tr>
+</tbody></table>
+<p>导出流程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">npm run dev -- --port 5188 --strictPort</span><br><span class="line"></span><br><span class="line"><span class="comment"># 另开终端</span></span><br><span class="line">npm run <span class="built_in">export</span>:film -- --url http://127.0.0.1:5188/ --frames deliverables/frames</span><br><span class="line">npm run encode:film -- --frames deliverables/frames \</span><br><span class="line">  --out deliverables/fengqiao-yebo-2k60-silent.mp4</span><br><span class="line">npm run score</span><br><span class="line">npm run stills:film -- --url http://127.0.0.1:5188/ --out deliverables/previews</span><br></pre></td></tr></table></figure>
+
+<p>源码与完整交付记录在 <a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>。<code>material/枫桥夜泊/deliverables/REPORT.md</code> 记录了成片规格、资源许可、验收清单与两版配乐的混音参数。</p>
+<h2 id="结语：先找到那句诗的「机制」"><a href="#结语：先找到那句诗的「机制」" class="headerlink" title="结语：先找到那句诗的「机制」"></a>结语：先找到那句诗的「机制」</h2><p>「绘制」这个词有点误导。我们画的不是一张图，也不是四张配图，而是一组会随时间发生的关系：月亮下沉，树冠摇动，落叶落水，寺院从雾里显形，钟声越过江面，最后抵达客船。</p>
+<p>二十八个字里，真正需要工程化的不是名词，而是时间。月落是 40 秒的下沉，钟声是 2.5 秒的抵达，枫叶是 120 个实例的循环。诗不在模型里，在这些时间里。</p>
+<p>下次让模型画一首诗，先别急着列名词。先问自己：哪一句里有时间？哪个动作需要一个系统？把那个系统写进第一节。</p>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><ul>
+<li><strong>提示词原文</strong>：<code>prompt/枫桥夜泊.md</code>，与场景源码同在 <a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>。</li>
+<li><strong>threejs-skills</strong>：<a target="_blank" rel="noopener" href="https://github.com/cloudai-x/threejs-skills"><code>cloudai-x/threejs-skills</code></a>，13 个按主题拆分的 Three.js skill，对齐 three.js r186。</li>
+<li><strong>Three.js</strong>：MIT 许可。</li>
+<li><strong>场景源码、截图与成片</strong>：<a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a> 的 <code>material/枫桥夜泊/</code>。文中七张图片取自该项目的 <code>deliverables/previews/</code>。</li>
+<li><strong>模型与 harness</strong>：DeepSeek-flash4.1 在 Claude Code 中运行。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -200,7 +542,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-11-06 14:00:00 / 修改时间：13:15:20" itemprop="dateCreated datePublished" datetime="2026-11-06T14:00:00+08:00">2026-11-06</time>
+      <time title="创建时间：2026-11-06 14:00:00 / 修改时间：13:20:23" itemprop="dateCreated datePublished" datetime="2026-11-06T14:00:00+08:00">2026-11-06</time>
     </span>
 
   
@@ -440,1338 +782,6 @@
 </ul>
 <hr>
 <p>感谢阅读。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/11/03/all_you_need_is_attation%E9%98%85/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="fwind">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fwind's blog">
-      <meta itemprop="description" content="code">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | fwind's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/11/03/all_you_need_is_attation%E9%98%85/" class="post-title-link" itemprop="url">未命名</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2026-11-03 18:11:42 / 修改时间：18:11:43" itemprop="dateCreated datePublished" datetime="2026-11-03T18:11:42+08:00">2026-11-03</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="《Attention-Is-All-You-Need》论文深度拆解：从数学原理到-Transformer-工程实现"><a href="#《Attention-Is-All-You-Need》论文深度拆解：从数学原理到-Transformer-工程实现" class="headerlink" title="《Attention Is All You Need》论文深度拆解：从数学原理到 Transformer 工程实现"></a>《Attention Is All You Need》论文深度拆解：从数学原理到 Transformer 工程实现</h1><p>这篇论文是现代大语言模型技术体系中最值得深入研究的基础论文之一。它提出的 <strong>Transformer 架构，改变了自然语言处理的发展方向，并成为后来 GPT、BERT 以及众多大语言模型架构的重要基础。</strong></p>
-<p>如果只是了解 Attention、Multi-Head Attention、Positional Encoding 等概念，很容易出现一种情况：每个模块都知道是什么，却不清楚为什么需要它们、它们之间如何协作，以及这些设计究竟解决了什么问题。</p>
-<p>因此，我会以你上传的论文原文为主要依据，按照以下思路展开：</p>
-<ol>
-<li><strong>研究背景与核心问题</strong>：Transformer 为什么会出现？它究竟解决了什么问题？</li>
-<li><strong>整体架构</strong>：Encoder、Decoder 分别承担什么职责？</li>
-<li><strong>核心数学原理</strong>：从 Q、K、V 开始，逐步推导 Scaled Dot-Product Attention。</li>
-<li><strong>Multi-Head Attention</strong>：为什么需要多个注意力头？它们如何协作？</li>
-<li><strong>位置编码</strong>：没有 RNN 和 CNN，模型如何理解词语顺序？</li>
-<li><strong>完整网络结构</strong>：残差连接、Layer Normalization、FFN、Mask 分别发挥什么作用？</li>
-<li><strong>训练机制与实验结果</strong>：论文如何证明 Transformer 的有效性？</li>
-<li><strong>局限性与后续演进</strong>：从原始 Transformer 到现代 GPT，哪些设计被保留、修改或舍弃？</li>
-<li><strong>动手实现</strong>：通过代码和张量维度变化，真正理解模型如何运行。</li>
-</ol>
-<p>分析时，我会区分三类内容：<strong>论文明确提出的结论、根据数学原理展开的解释，以及结合现代大模型发展的延伸分析</strong>，避免把今天的技术倒推成论文当年的结论。</p>
-<hr>
-<h1 id="一、论文究竟讲了什么？"><a href="#一、论文究竟讲了什么？" class="headerlink" title="一、论文究竟讲了什么？"></a>一、论文究竟讲了什么？</h1><h2 id="1-1-论文基本信息"><a href="#1-1-论文基本信息" class="headerlink" title="1.1 论文基本信息"></a>1.1 论文基本信息</h2><p>论文名称：Attention Is All You Need</p>
-<ul>
-<li>作者：Ashish Vaswani 等人</li>
-<li>发表会议：NIPS 2017，即今天的 NeurIPS</li>
-<li>论文编号：arXiv:1706.03762</li>
-<li>核心贡献：提出完全基于 Attention、摆脱循环网络和卷积网络的序列转换架构 Transformer。</li>
-</ul>
-<p>你上传的论文第 1 页明确提出：Transformer 完全依赖 Attention 机制，不再使用传统的循环结构和卷积结构；实验表明，它在机器翻译任务中取得了更好的效果，同时具有更强的并行训练能力和更短的训练时间。Attention Is All You Need(2)</p>
-<p>论文原文：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.03762?utm_source=chatgpt.com">arXiv: Attention Is All You Need</a></p>
-<h2 id="1-2-这篇论文真正解决的是什么问题？"><a href="#1-2-这篇论文真正解决的是什么问题？" class="headerlink" title="1.2 这篇论文真正解决的是什么问题？"></a>1.2 这篇论文真正解决的是什么问题？</h2><p>先暂时忘掉 Transformer 的所有术语。</p>
-<p>假设我们要让计算机翻译下面这句话：</p>
-<blockquote>
-<p>The animal didn’t cross the street because it was too tired.</p>
-</blockquote>
-<p>要正确理解这句话，模型必须知道：</p>
-<ul>
-<li><code>animal</code> 是什么？</li>
-<li><code>street</code> 是什么？</li>
-<li><code>it</code> 指代什么？</li>
-<li><code>tired</code> 描述的是谁？</li>
-<li>前面出现的词语，如何影响后面词语的含义？</li>
-</ul>
-<p>这不是简单的单词替换问题，而是一个<strong>需要建模序列内部依赖关系的问题</strong>。</p>
-<p>在 Transformer 出现之前，循环神经网络（RNN）、长短期记忆网络（LSTM）等模型，是解决这类问题的主流技术路线之一。</p>
-<p>但它们存在一个重要的工程问题：<strong>处理一个序列时，后一个位置的计算通常依赖前一个位置的计算结果。</strong></p>
-<p>例如，模型按顺序处理：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The → animal → didn&#x27;t → cross → the → street → ...</span><br></pre></td></tr></table></figure>
-
-<p>要处理下一个位置，通常需要先获得前一个位置的隐藏状态。</p>
-<p>这导致训练时难以同时计算序列中所有位置的表示。</p>
-<p>论文第 2 页明确指出，循环模型沿序列位置展开计算，其固有的顺序依赖限制了单个训练样本内部的并行化能力。Attention Is All You Need(2)</p>
-<h3 id="传统-RNN-的问题"><a href="#传统-RNN-的问题" class="headerlink" title="传统 RNN 的问题"></a>传统 RNN 的问题</h3><p>假设输入有 100 个 Token。</p>
-<p>传统 RNN 的计算大致如下：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Token 1</span><br><span class="line">   ↓</span><br><span class="line">计算 h1</span><br><span class="line">   ↓</span><br><span class="line">Token 2 + h1</span><br><span class="line">   ↓</span><br><span class="line">计算 h2</span><br><span class="line">   ↓</span><br><span class="line">Token 3 + h2</span><br><span class="line">   ↓</span><br><span class="line">计算 h3</span><br><span class="line">   ↓</span><br><span class="line">    ...</span><br><span class="line">   ↓</span><br><span class="line">Token 100 + h99</span><br><span class="line">   ↓</span><br><span class="line">计算 h100</span><br></pre></td></tr></table></figure>
-
-<p>即使 GPU 可以同时执行大量矩阵运算，这种依赖关系仍然限制了计算顺序。</p>
-<p>当然，RNN 并不是完全无法并行：不同样本可以并行，部分计算也可以优化。但同一个样本内部的时间步存在依赖链。</p>
-<p>问题在于，序列越长，这种依赖关系就越明显。</p>
-<h3 id="Transformer-的解决思路"><a href="#Transformer-的解决思路" class="headerlink" title="Transformer 的解决思路"></a>Transformer 的解决思路</h3><p>Transformer 换了一种方式：</p>
-<p><strong>不再要求模型必须按顺序处理输入中的每一个 Token，而是让每个 Token 直接与其他 Token 建立信息交互。</strong></p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">The       ─────────┐</span><br><span class="line">animal    ──────┐  │</span><br><span class="line">didn&#x27;t    ───┐  │  │</span><br><span class="line">cross     ─┐ │  │  │</span><br><span class="line">the       ─┤ │  │  │</span><br><span class="line">street    ─┤ │  │  │</span><br><span class="line">because   ─┤ │  │  │</span><br><span class="line">it        ──┼─┼──┼──┼──→ Attention</span><br><span class="line">was       ──┤ │  │  │</span><br><span class="line">too       ──┤ │  │  │</span><br><span class="line">tired     ──┘ │  │  │</span><br><span class="line">              ↓  ↓  ↓</span><br><span class="line">          综合上下文信息</span><br></pre></td></tr></table></figure>
-
-<p>上图表达的是信息交互的概念，而不是实际的 Attention 权重。</p>
-<p>在 Self-Attention 中，每个位置都可以根据当前任务需要，从其他位置获取信息。</p>
-<p>于是，模型可以直接建立两个相距很远的 Token 之间的联系，而不必像传统 RNN 那样，通过逐步传递隐藏状态来传播信息。</p>
-<p>这就是 Transformer 的第一个关键思想：</p>
-<p><strong>用 Attention 建立全局依赖，用矩阵运算实现高效并行。</strong></p>
-<p>不过，这里有一个重要细节：</p>
-<p>Transformer 并不是完全消除了所有顺序计算。原始论文中的 Decoder 在生成目标序列时仍然采用自回归方式，需要逐 Token 生成；主要的并行化优势体现在训练阶段，以及 Encoder 内部对整个输入序列的处理上。</p>
-<p>理解这一点，才能正确认识 Transformer 的优势和边界。</p>
-<hr>
-<h1 id="二、Transformer-的整体架构"><a href="#二、Transformer-的整体架构" class="headerlink" title="二、Transformer 的整体架构"></a>二、Transformer 的整体架构</h1><p>理解 Transformer，最重要的是先建立整体结构，再深入每个模块。</p>
-<p>论文第 3 节给出了原始 Transformer 的完整架构。它采用经典的 Encoder-Decoder 结构：Encoder 将输入序列编码为一组上下文表示，Decoder 根据这些表示逐步生成输出序列。Attention Is All You Need(2)</p>
-<h2 id="2-1-原始-Transformer-的结构图"><a href="#2-1-原始-Transformer-的结构图" class="headerlink" title="2.1 原始 Transformer 的结构图"></a>2.1 原始 Transformer 的结构图</h2><p>原始 Transformer 可以简化为：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">      输入文本</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">    Tokenization</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">   Token Embedding</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">  Positional Encoding</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌────────────────────┐</span><br><span class="line">│      Encoder       │</span><br><span class="line">│                    │</span><br><span class="line">│  Multi-Head        │</span><br><span class="line">│  Self-Attention    │</span><br><span class="line">│         ↓          │</span><br><span class="line">│  Feed-Forward      │</span><br><span class="line">│  Network           │</span><br><span class="line">└────────────────────┘</span><br><span class="line">         │</span><br><span class="line">         │ Encoder 输出</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌────────────────────┐</span><br><span class="line">│      Decoder       │◄──── 已生成的 Token</span><br><span class="line">│                    │</span><br><span class="line">│  Masked Self-      │</span><br><span class="line">│  Attention         │</span><br><span class="line">│         ↓          │</span><br><span class="line">│  Cross-Attention   │◄──── Encoder 输出</span><br><span class="line">│         ↓          │</span><br><span class="line">│  Feed-Forward      │</span><br><span class="line">└────────────────────┘</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">    Linear + Softmax</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">   下一个 Token</span><br></pre></td></tr></table></figure>
-
-<p>这里需要注意：图中的 Decoder 是原始机器翻译 Transformer 的 Decoder，而不是所有现代大语言模型都采用的结构。</p>
-<h2 id="2-2-Encoder-和-Decoder-分别做什么？"><a href="#2-2-Encoder-和-Decoder-分别做什么？" class="headerlink" title="2.2 Encoder 和 Decoder 分别做什么？"></a>2.2 Encoder 和 Decoder 分别做什么？</h2><h3 id="Encoder：理解输入序列"><a href="#Encoder：理解输入序列" class="headerlink" title="Encoder：理解输入序列"></a>Encoder：理解输入序列</h3><p>假设输入：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The cat sat on the mat.</span><br></pre></td></tr></table></figure>
-
-<p>经过 Embedding 后，每个 Token 被转换为一个向量。</p>
-<p>Encoder 通过多层 Self-Attention 和 Feed-Forward Network，让每个 Token 的表示逐渐融入上下文信息。</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">输入 Token：cat</span><br><span class="line"></span><br><span class="line">初始表示：</span><br><span class="line">cat 的词向量</span><br><span class="line"></span><br><span class="line">经过第一层：</span><br><span class="line">cat + 与它相关的上下文信息</span><br><span class="line"></span><br><span class="line">经过第二层：</span><br><span class="line">进一步整合句法和语义信息</span><br><span class="line"></span><br><span class="line">经过多层：</span><br><span class="line">形成用于下游任务的上下文表示</span><br></pre></td></tr></table></figure>
-
-<p>这只是帮助理解的示意，并不意味着每一层都严格对应某种固定的语义功能。</p>
-<p>最终，Encoder 输出一组向量：</p>
-<p>[<br>Z&#x3D;(z_1,z_2,\ldots,z_n)<br>]</p>
-<p>每个 (z_i) 都对应输入序列中的一个位置。</p>
-<h3 id="Decoder：根据已有信息生成输出"><a href="#Decoder：根据已有信息生成输出" class="headerlink" title="Decoder：根据已有信息生成输出"></a>Decoder：根据已有信息生成输出</h3><p>假设目标是将英文翻译成中文。</p>
-<p>Encoder 负责处理英文输入，Decoder 则负责逐步生成中文译文。</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">第 1 步：生成「猫」</span><br><span class="line"></span><br><span class="line">第 2 步：根据「猫」，生成「坐」</span><br><span class="line"></span><br><span class="line">第 3 步：根据「猫坐」，生成「在」</span><br><span class="line"></span><br><span class="line">第 4 步：根据「猫坐在」，生成「垫子」</span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>实际翻译当然会根据完整的输入语境决定每一步输出什么。</p>
-<p>在生成每个 Token 时，Decoder 会利用两类信息：</p>
-<ol>
-<li>已经生成的目标序列。</li>
-<li>Encoder 对源语言输入的编码结果。</li>
-</ol>
-<p>因此，原始 Decoder 中存在两种不同的 Attention：</p>
-<ul>
-<li><strong>Masked Self-Attention</strong>：关注当前已经允许访问的目标序列位置。</li>
-<li><strong>Cross-Attention</strong>：关注 Encoder 输出的源序列表示。</li>
-</ul>
-<h2 id="2-3-为什么要区分这两种-Attention？"><a href="#2-3-为什么要区分这两种-Attention？" class="headerlink" title="2.3 为什么要区分这两种 Attention？"></a>2.3 为什么要区分这两种 Attention？</h2><p>假设 Decoder 正在生成第三个 Token。</p>
-<p>此时，假设已经生成：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">猫 坐</span><br></pre></td></tr></table></figure>
-
-<p>Decoder 可以利用：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">猫</span><br><span class="line">坐</span><br></pre></td></tr></table></figure>
-
-<p>但不能利用第四、第五个 Token 的真实答案，因为它们尚未生成。</p>
-<p>这就是 Masked Self-Attention 的作用。</p>
-<p>与此同时，Decoder 可以查看完整的 Encoder 输出，因为源语言输入在生成开始前就已经存在。</p>
-<p>因此：</p>
-<table>
-<thead>
-<tr>
-<th>模块</th>
-<th>Query 来源</th>
-<th>Key、Value 来源</th>
-<th>主要作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Encoder Self-Attention</td>
-<td>Encoder 当前层输入</td>
-<td>同一组 Encoder 输入</td>
-<td>建模输入序列内部的关系</td>
-</tr>
-<tr>
-<td>Decoder Masked Self-Attention</td>
-<td>Decoder 当前层输入</td>
-<td>同一组 Decoder 输入</td>
-<td>建模已生成目标序列的关系</td>
-</tr>
-<tr>
-<td>Cross-Attention</td>
-<td>Decoder 当前层输入</td>
-<td>Encoder 最终输出</td>
-<td>将源序列信息引入生成过程</td>
-</tr>
-</tbody></table>
-<p>这个表非常重要，因为它直接决定了后面 Q、K、V 的具体来源。</p>
-<h2 id="2-4-原始模型的关键配置"><a href="#2-4-原始模型的关键配置" class="headerlink" title="2.4 原始模型的关键配置"></a>2.4 原始模型的关键配置</h2><p>论文第 3 节采用了以下基础配置：Encoder 和 Decoder 各包含 6 层，每层模型维度为 512，Multi-Head Attention 使用 8 个注意力头。每个头的 Key 和 Value 维度均为 64。Attention Is All You Need(2) Attention Is All You Need(2)</p>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th align="right">原始 Transformer Base</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Encoder 层数</td>
-<td align="right">6</td>
-</tr>
-<tr>
-<td>Decoder 层数</td>
-<td align="right">6</td>
-</tr>
-<tr>
-<td>模型维度 (d_{\text{model}})</td>
-<td align="right">512</td>
-</tr>
-<tr>
-<td>Attention Head 数量</td>
-<td align="right">8</td>
-</tr>
-<tr>
-<td>每个 Head 的 Key 维度 (d_k)</td>
-<td align="right">64</td>
-</tr>
-<tr>
-<td>每个 Head 的 Value 维度 (d_v)</td>
-<td align="right">64</td>
-</tr>
-<tr>
-<td>FFN 中间层维度 (d_{ff})</td>
-<td align="right">2048</td>
-</tr>
-</tbody></table>
-<p>需要明确：这些数字是原始论文中的配置，并不是 Transformer 架构的固定限制。</p>
-<p>现代大语言模型可以使用不同的层数、隐藏维度、注意力头数和 FFN 结构。</p>
-<hr>
-<h1 id="三、深入理解-Attention：Q、K、V-到底是什么？"><a href="#三、深入理解-Attention：Q、K、V-到底是什么？" class="headerlink" title="三、深入理解 Attention：Q、K、V 到底是什么？"></a>三、深入理解 Attention：Q、K、V 到底是什么？</h1><p>这是整篇论文最核心的部分。</p>
-<p>如果只能选择一个模块深入研究，应该选择 Attention。</p>
-<p>因为只有理解 Attention 的计算过程，才能真正理解 Transformer 如何让一个 Token 利用其他 Token 的信息。</p>
-<h2 id="3-1-先从一个直观例子开始"><a href="#3-1-先从一个直观例子开始" class="headerlink" title="3.1 先从一个直观例子开始"></a>3.1 先从一个直观例子开始</h2><p>考虑下面这句话：</p>
-<blockquote>
-<p>The animal didn’t cross the street because it was tired.</p>
-</blockquote>
-<p>假设模型正在处理 <code>it</code>。</p>
-<p>模型需要判断：为了更好地表示 <code>it</code>，应该从上下文中的哪些 Token 获取信息？</p>
-<p>可能与以下词语建立较强的联系：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">animal</span><br><span class="line">street</span><br><span class="line">tired</span><br></pre></td></tr></table></figure>
-
-<p>注意，这只是用于说明的假设，不代表原论文在这句话上测得了这些具体权重。</p>
-<p>模型需要一种机制，完成三个步骤：</p>
-<ol>
-<li>判断哪些位置值得关注。</li>
-<li>计算每个位置的重要程度。</li>
-<li>按照这些权重整合其他位置的信息。</li>
-</ol>
-<p>Attention 就是为此设计的。</p>
-<h2 id="3-2-Query、Key、Value-的直觉解释"><a href="#3-2-Query、Key、Value-的直觉解释" class="headerlink" title="3.2 Query、Key、Value 的直觉解释"></a>3.2 Query、Key、Value 的直觉解释</h2><p>可以用信息检索系统来理解。</p>
-<p>假设有一个数据库：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Key                Value</span><br><span class="line">----------------------------------</span><br><span class="line">动物相关信息         动物的描述</span><br><span class="line">地点相关信息         地点的描述</span><br><span class="line">状态相关信息         状态的描述</span><br></pre></td></tr></table></figure>
-
-<p>当你提出一个查询时：</p>
-<ul>
-<li><strong>Query（Q）</strong>：当前需要什么信息。</li>
-<li><strong>Key（K）</strong>：每条信息用于匹配查询的特征。</li>
-<li><strong>Value（V）</strong>：真正需要提取的信息内容。</li>
-</ul>
-<p>模型比较 Query 和各个 Key，计算相关程度，然后对 Value 进行加权组合。</p>
-<p>这里的类比只是帮助建立直觉。神经网络中的 Q、K、V 并不是人工定义的标签，而是通过可训练的线性变换得到的向量。</p>
-<h3 id="一个简单例子"><a href="#一个简单例子" class="headerlink" title="一个简单例子"></a>一个简单例子</h3><p>假设有三个 Token：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">animal</span><br><span class="line">street</span><br><span class="line">tired</span><br></pre></td></tr></table></figure>
-
-<p>当前要计算 <code>it</code> 的上下文表示。</p>
-<p>我们可以想象它生成一个 Query：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Q_it = [表示当前需要的信息的特征]</span><br></pre></td></tr></table></figure>
-
-<p>其他 Token 则有各自的 Key：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">K_animal</span><br><span class="line">K_street</span><br><span class="line">K_tired</span><br></pre></td></tr></table></figure>
-
-<p>模型计算：</p>
-<p>[<br>s_{\text{it},j}&#x3D;Q_{\text{it}}K_j^\top<br>]</p>
-<p>得到每个位置的相关性分数。</p>
-<p>随后，通过 Softmax 将分数转换为权重：</p>
-<h1 id="alpha-text-it-j"><a href="#alpha-text-it-j" class="headerlink" title="[\alpha_{\text{it},j}"></a>[<br>\alpha_{\text{it},j}</h1><p>\frac{\exp(s_{\text{it},j})}<br>{\sum_k \exp(s_{\text{it},k})}<br>]</p>
-<p>最后，利用这些权重对 Value 加权求和：</p>
-<p>[<br>z_{\text{it}}&#x3D;\sum_j \alpha_{\text{it},j}V_j<br>]</p>
-<p>于是，<code>it</code> 的新表示就融入了其他 Token 的信息。</p>
-<p><strong>核心理解：Attention 并不是简单地给每个词打分，而是根据当前 Query 动态地选择和整合其他位置的信息。</strong></p>
-<hr>
-<h2 id="3-3-从数学角度推导-Attention"><a href="#3-3-从数学角度推导-Attention" class="headerlink" title="3.3 从数学角度推导 Attention"></a>3.3 从数学角度推导 Attention</h2><p>论文提出的 Scaled Dot-Product Attention，其公式是：</p>
-<h1 id="boxed-operatorname-Attention-Q-K-V"><a href="#boxed-operatorname-Attention-Q-K-V" class="headerlink" title="[\boxed{\operatorname{Attention}(Q,K,V)"></a>[<br>\boxed{<br>\operatorname{Attention}(Q,K,V)</h1><p>\operatorname{softmax}<br>\left(<br>\frac{QK^\top}{\sqrt{d_k}}<br>\right)V<br>}<br>]</p>
-<p>这是理解 Transformer 必须掌握的公式。论文第 4 页正式给出了这一表达式。Attention Is All You Need(2)</p>
-<p>我们逐步拆解。</p>
-<h3 id="第一步：计算-Query-和-Key-的点积"><a href="#第一步：计算-Query-和-Key-的点积" class="headerlink" title="第一步：计算 Query 和 Key 的点积"></a>第一步：计算 Query 和 Key 的点积</h3><p>[<br>S&#x3D;QK^\top<br>]</p>
-<p>假设输入序列有 3 个 Token，每个向量维度为 2。</p>
-<p>为了方便理解，先假设：</p>
-<p>[<br>Q&#x3D;<br>\begin{bmatrix}<br>1&amp;0\<br>0&amp;1\<br>1&amp;1<br>\end{bmatrix}<br>]</p>
-<p>[<br>K&#x3D;<br>\begin{bmatrix}<br>1&amp;0\<br>0&amp;1\<br>1&amp;1<br>\end{bmatrix}<br>]</p>
-<p>那么：</p>
-<p>[<br>K^\top&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;1\<br>0&amp;1&amp;1<br>\end{bmatrix}<br>]</p>
-<p>因此：</p>
-<h1 id="S-QK-top"><a href="#S-QK-top" class="headerlink" title="[S&#x3D;QK^\top"></a>[<br>S&#x3D;QK^\top</h1><p>\begin{bmatrix}<br>1&amp;0&amp;1\<br>0&amp;1&amp;1\<br>1&amp;1&amp;2<br>\end{bmatrix}<br>]</p>
-<p>矩阵中每个元素表示一个 Query 与一个 Key 的点积。</p>
-<p>例如：</p>
-<p>[<br>S_{1,3}&#x3D;1\times1+0\times1&#x3D;1<br>]</p>
-<p>表示第一个 Query 与第三个 Key 的点积为 1。</p>
-<p>这一步相当于为每一对 Token 计算一个匹配分数。</p>
-<p>如果输入序列有 (n) 个 Token，就会得到一个 (n\times n) 的分数矩阵。</p>
-<h3 id="第二步：为什么要除以-sqrt-d-k-？"><a href="#第二步：为什么要除以-sqrt-d-k-？" class="headerlink" title="第二步：为什么要除以 (\sqrt{d_k})？"></a>第二步：为什么要除以 (\sqrt{d_k})？</h3><p>这是公式中最容易被忽略、但非常重要的设计。</p>
-<p>原始点积为：</p>
-<p>[<br>q\cdot k&#x3D;\sum_{i&#x3D;1}^{d_k}q_i k_i<br>]</p>
-<p>假设 (q) 和 (k) 的各个分量相互独立、均值为 0、方差为 1。</p>
-<p>那么：</p>
-<p>[<br>\operatorname{Var}(q\cdot k)&#x3D;d_k<br>]</p>
-<p>也就是说，随着向量维度增加，点积的方差也会增加。</p>
-<p>当点积的绝对值很大时，Softmax 的输出容易变得极端。</p>
-<p>例如：</p>
-<p>[<br>\operatorname{softmax}([1,2,3])<br>\approx [0.09,0.24,0.67]<br>]</p>
-<p>而：</p>
-<p>[<br>\operatorname{softmax}([10,20,30])<br>\approx [0,0,1]<br>]</p>
-<p>第二种情况下，Softmax 几乎将全部权重集中在一个位置上。</p>
-<p>这种过度集中的分布可能导致梯度变小，不利于训练。</p>
-<p>因此，论文引入缩放因子：</p>
-<p>[<br>\boxed{\frac{1}{\sqrt{d_k}}}<br>]</p>
-<p>将点积除以 (\sqrt{d_k})，以控制分数的尺度。</p>
-<p>例如，原始模型中：</p>
-<p>[<br>d_k&#x3D;64<br>]</p>
-<p>因此：</p>
-<p>[<br>\sqrt{d_k}&#x3D;8<br>]</p>
-<p>Attention 分数会先除以 8，再进入 Softmax。</p>
-<p>这里有个值得深入理解的细节：</p>
-<p><strong>缩放并不是为了让每个分数都变小，而是为了让分数的尺度在不同向量维度下更适合 Softmax 和梯度优化。</strong></p>
-<p>实际训练中的分布未必满足上述独立、单位方差的理想假设，因此这是一种设计动机，而不是对任意网络状态都严格成立的保证。</p>
-<h3 id="第三步：Softmax-将分数转换成权重"><a href="#第三步：Softmax-将分数转换成权重" class="headerlink" title="第三步：Softmax 将分数转换成权重"></a>第三步：Softmax 将分数转换成权重</h3><p>计算：</p>
-<p>[<br>A&#x3D;<br>\operatorname{softmax}<br>\left(<br>\frac{QK^\top}{\sqrt{d_k}}<br>\right)<br>]</p>
-<p>Softmax 默认沿每个 Query 对应的 Key 维度计算。</p>
-<p>也就是说，对矩阵的每一行分别归一化。</p>
-<p>得到：</p>
-<p>[<br>A_{ij}\geq 0<br>]</p>
-<p>并且：</p>
-<p>[<br>\sum_j A_{ij}&#x3D;1<br>]</p>
-<p>在没有 Mask 的情况下，每一行的权重和为 1。</p>
-<p>因此，每个 Query 都会得到一组针对所有 Key 的注意力权重。</p>
-<p>例如：</p>
-<p>[<br>A_1&#x3D;[0.2,0.3,0.5]<br>]</p>
-<p>意味着第一个 Query 对应的三个位置，其权重分别为 0.2、0.3 和 0.5。</p>
-<p>但需要注意：权重只能直接表示模型在这一步计算中分配的信息混合比例，不能简单等同于人类意义上的重要性或因果解释。</p>
-<h3 id="第四步：利用权重整合-Value"><a href="#第四步：利用权重整合-Value" class="headerlink" title="第四步：利用权重整合 Value"></a>第四步：利用权重整合 Value</h3><p>最终计算：</p>
-<p>[<br>O&#x3D;AV<br>]</p>
-<p>假设：</p>
-<p>[<br>A_1&#x3D;[0.2,0.3,0.5]<br>]</p>
-<p>对应三个 Value：</p>
-<p>[<br>V_1&#x3D;[1,0]<br>]</p>
-<p>[<br>V_2&#x3D;[0,1]<br>]</p>
-<p>[<br>V_3&#x3D;[1,1]<br>]</p>
-<p>那么第一个输出向量就是：</p>
-<p>[<br>O_1&#x3D;0.2V_1+0.3V_2+0.5V_3<br>]</p>
-<p>展开：</p>
-<h1 id="O-1"><a href="#O-1" class="headerlink" title="[O_1"></a>[<br>O_1</h1><p>0.2[1,0]+0.3[0,1]+0.5[1,1]<br>]</p>
-<p>因此：</p>
-<p>[<br>\boxed{O_1&#x3D;[0.7,0.8]}<br>]</p>
-<p>这个结果就是三个 Value 按照注意力权重混合之后的向量。</p>
-<p>在实际 Transformer 中，Value 是通过可学习的线性变换获得的，而不是人工定义的语义标签。</p>
-<h3 id="将整个过程串起来"><a href="#将整个过程串起来" class="headerlink" title="将整个过程串起来"></a>将整个过程串起来</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">输入向量</span><br><span class="line">   │</span><br><span class="line">   ├── 线性变换 → Query</span><br><span class="line">   │</span><br><span class="line">   ├── 线性变换 → Key</span><br><span class="line">   │</span><br><span class="line">   └── 线性变换 → Value</span><br><span class="line">                     │</span><br><span class="line">Query × Key 转置     │</span><br><span class="line">        │            │</span><br><span class="line">        ▼            │</span><br><span class="line">    匹配分数         │</span><br><span class="line">        │            │</span><br><span class="line">   除以 √dₖ          │</span><br><span class="line">        │            │</span><br><span class="line">        ▼            │</span><br><span class="line">     Softmax         │</span><br><span class="line">        │            │</span><br><span class="line">        ▼            │</span><br><span class="line">    注意力权重 ──────┘</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">    加权求和</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">   输出上下文表示</span><br></pre></td></tr></table></figure>
-
-<p><strong>到这里，Attention 的数学核心就已经完整了：匹配、归一化、加权聚合。</strong></p>
-<p>接下来需要回答一个更关键的问题：为什么要有三个不同的向量 Q、K、V，而不是直接对输入向量做点积？</p>
-<h2 id="3-4-为什么-Q、K、V-需要分别学习？"><a href="#3-4-为什么-Q、K、V-需要分别学习？" class="headerlink" title="3.4 为什么 Q、K、V 需要分别学习？"></a>3.4 为什么 Q、K、V 需要分别学习？</h2><p>假设输入矩阵为：</p>
-<p>[<br>X\in\mathbb{R}^{n\times d_{\text{model}}}<br>]</p>
-<p>Transformer 使用三个可学习的投影矩阵：</p>
-<p>[<br>W_Q,\quad W_K,\quad W_V<br>]</p>
-<p>分别得到：</p>
-<p>[<br>Q&#x3D;XW_Q<br>]</p>
-<p>[<br>K&#x3D;XW_K<br>]</p>
-<p>[<br>V&#x3D;XW_V<br>]</p>
-<p>对于单头 Attention，可以将三个矩阵的形状理解为：</p>
-<p>[<br>W_Q\in\mathbb{R}^{d_{\text{model}}\times d_k}<br>]</p>
-<p>[<br>W_K\in\mathbb{R}^{d_{\text{model}}\times d_k}<br>]</p>
-<p>[<br>W_V\in\mathbb{R}^{d_{\text{model}}\times d_v}<br>]</p>
-<p>那么：</p>
-<p>[<br>Q\in\mathbb{R}^{n\times d_k}<br>]</p>
-<p>[<br>K\in\mathbb{R}^{n\times d_k}<br>]</p>
-<p>[<br>V\in\mathbb{R}^{n\times d_v}<br>]</p>
-<p>为什么要分别投影？</p>
-<p>因为模型需要学习两类不同的能力：</p>
-<ol>
-<li><strong>匹配能力</strong>：哪些 Token 之间应该建立联系。</li>
-<li><strong>信息表达能力</strong>：建立联系之后，应该从其他 Token 中提取什么信息。</li>
-</ol>
-<p>Q 和 K 决定注意力权重，而 V 决定加权聚合的内容。</p>
-<p>如果只使用原始输入向量计算相似度，模型在如何匹配以及传递什么信息方面就会受到更多限制。</p>
-<p>通过学习不同的投影矩阵，模型能够在训练过程中调整这两个方面。</p>
-<p>需要注意，这并不意味着 Q 只负责一种语义、K 只负责另一种语义、V 只负责第三种语义。它们是功能上的区分，不是人为规定的语义分类。</p>
-<hr>
-<h1 id="四、Multi-Head-Attention：为什么不能只用一个注意力头？"><a href="#四、Multi-Head-Attention：为什么不能只用一个注意力头？" class="headerlink" title="四、Multi-Head Attention：为什么不能只用一个注意力头？"></a>四、Multi-Head Attention：为什么不能只用一个注意力头？</h1><p>理解单头 Attention 后，第二个问题就出现了：</p>
-<p>既然一个 Attention 已经可以计算任意两个 Token 之间的关联，为什么论文还要设计 Multi-Head Attention？</p>
-<p>原论文第 4～5 页指出，多个注意力头可以让模型同时关注不同表示子空间中的信息，而单头 Attention 的信息聚合可能限制模型同时表达多种关系的能力。Attention Is All You Need(2)</p>
-<h2 id="4-1-单头-Attention-的局限"><a href="#4-1-单头-Attention-的局限" class="headerlink" title="4.1 单头 Attention 的局限"></a>4.1 单头 Attention 的局限</h2><p>假设有一句话：</p>
-<blockquote>
-<p>The cat chased the mouse because it was hungry.</p>
-</blockquote>
-<p>模型需要同时处理不同类型的信息，例如：</p>
-<ul>
-<li><code>it</code> 与前面名词之间的关系。</li>
-<li>动词与主语之间的关系。</li>
-<li>动词与宾语之间的关系。</li>
-<li>其他与语义理解有关的关系。</li>
-</ul>
-<p>如果只有一个注意力头，所有这些信息都要通过同一组注意力权重进行聚合。</p>
-<p>当然，单头 Attention 并非只能学习一种关系；它也可以学到复杂的关联。</p>
-<p>但多个头能够提供更丰富的并行表示方式。</p>
-<h2 id="4-2-多头机制的核心思路"><a href="#4-2-多头机制的核心思路" class="headerlink" title="4.2 多头机制的核心思路"></a>4.2 多头机制的核心思路</h2><p>假设输入向量维度为 512。</p>
-<p>Transformer Base 使用 8 个注意力头，每个头的 Key 和 Value 维度都是 64。</p>
-<p>因此，每个头可以独立执行 Attention：</p>
-<p>[<br>head_i&#x3D;<br>\operatorname{Attention}<br>\left(<br>XW_i^Q,<br>XW_i^K,<br>XW_i^V<br>\right)<br>]</p>
-<p>其中：</p>
-<p>[<br>i&#x3D;1,2,\ldots,8<br>]</p>
-<p>每个头都有自己的参数矩阵。</p>
-<p>最终，将所有头的输出拼接：</p>
-<p>[<br>H&#x3D;\operatorname{Concat}<br>(head_1,head_2,\ldots,head_8)<br>]</p>
-<p>因为每个头的输出维度为 64，所以：</p>
-<p>[<br>H\in\mathbb{R}^{n\times512}<br>]</p>
-<p>然后进行一次输出投影：</p>
-<h1 id="boxed-operatorname-MultiHead-Q-K-V"><a href="#boxed-operatorname-MultiHead-Q-K-V" class="headerlink" title="[\boxed{\operatorname{MultiHead}(Q,K,V)"></a>[<br>\boxed{<br>\operatorname{MultiHead}(Q,K,V)</h1><p>\operatorname{Concat}(head_1,\ldots,head_h)W^O<br>}<br>]</p>
-<p>其中：</p>
-<p>[<br>W^O\in\mathbb{R}^{512\times512}<br>]</p>
-<p>在原始 Transformer Base 中，8 个头各有 64 维输出，拼接后仍为 512 维，因此能够与残差连接所需的模型维度保持一致。</p>
-<h2 id="4-3-多头-Attention-的计算过程"><a href="#4-3-多头-Attention-的计算过程" class="headerlink" title="4.3 多头 Attention 的计算过程"></a>4.3 多头 Attention 的计算过程</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">              输入 X</span><br><span class="line">                │</span><br><span class="line">   ┌────────────┼────────────┐</span><br><span class="line">   │            │            │</span><br><span class="line">   ▼            ▼            ▼</span><br><span class="line"> Head 1       Head 2       Head 8</span><br><span class="line">   │            │            │</span><br><span class="line">   ▼            ▼            ▼</span><br><span class="line">Attention    Attention    Attention</span><br><span class="line">   │            │            │</span><br><span class="line">   ▼            ▼            ▼</span><br><span class="line"> 64 维        64 维        64 维</span><br><span class="line">   │            │            │</span><br><span class="line">   └────────────┼────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">            Concat</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">             512 维</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">          输出线性投影</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">             512 维</span><br></pre></td></tr></table></figure>
-
-<p>需要特别注意：这并不是把 512 维向量机械切成 8 份，然后每份独立处理。</p>
-<p>实际计算中，每个头都有自己学习得到的 Q、K、V 投影矩阵，因此每个头可以学习不同的表示子空间。</p>
-<h2 id="4-4-多头机制的真正价值"><a href="#4-4-多头机制的真正价值" class="headerlink" title="4.4 多头机制的真正价值"></a>4.4 多头机制的真正价值</h2><p>可以从三个角度理解。</p>
-<p><strong>第一，多个头可以学习不同的注意力分布。</strong></p>
-<p>不同头可能对不同位置分配不同权重。</p>
-<p><strong>第二，多个头可以在不同表示子空间中处理信息。</strong></p>
-<p>不同头的 Q、K、V 投影参数各不相同，因此它们处理的特征不必相同。</p>
-<p><strong>第三，多个头的结果可以组合。</strong></p>
-<p>Concat 和输出投影允许模型综合不同头提取的信息。</p>
-<p>不过，不能简单地认为每个 Head 都对应一个清晰、独立的人类语义任务。</p>
-<p>论文附录中的可视化确实观察到，一些注意力头呈现出与句法结构、远距离依赖或指代消解有关的行为；但这不意味着所有注意力头都具备固定、可解释的分工。</p>
-<h2 id="4-5-为什么每个-Head-的维度要缩小？"><a href="#4-5-为什么每个-Head-的维度要缩小？" class="headerlink" title="4.5 为什么每个 Head 的维度要缩小？"></a>4.5 为什么每个 Head 的维度要缩小？</h2><p>论文选择：</p>
-<p>[<br>h&#x3D;8<br>]</p>
-<p>[<br>d_k&#x3D;d_v&#x3D;\frac{d_{\text{model}}}{h}&#x3D;64<br>]</p>
-<p>如果每个头都使用完整的 512 维，那么 8 个头会带来更高的投影计算成本。</p>
-<p>缩小每个头的维度，使得多个头的总体计算量与相近规模的单头 Attention 保持在相似量级。</p>
-<p>这并不意味着所有现代架构都必须采用这种配置，但它体现了 Transformer 的一个重要设计思想：</p>
-<p><strong>通过多个低维表示子空间并行计算，而不是让单个注意力操作承担全部表示任务。</strong></p>
-<hr>
-<h1 id="五、Self-Attention、Cross-Attention-与-Mask"><a href="#五、Self-Attention、Cross-Attention-与-Mask" class="headerlink" title="五、Self-Attention、Cross-Attention 与 Mask"></a>五、Self-Attention、Cross-Attention 与 Mask</h1><p>理解 Q、K、V 之后，就可以进一步理解原始 Transformer 中三种关键的注意力计算。</p>
-<h2 id="5-1-Self-Attention：自己与自己序列中的所有位置交互"><a href="#5-1-Self-Attention：自己与自己序列中的所有位置交互" class="headerlink" title="5.1 Self-Attention：自己与自己序列中的所有位置交互"></a>5.1 Self-Attention：自己与自己序列中的所有位置交互</h2><p>在 Encoder 中：</p>
-<p>[<br>Q&#x3D;XW_Q,\qquad K&#x3D;XW_K,\qquad V&#x3D;XW_V<br>]</p>
-<p>三者都来自同一组输入表示 (X)。</p>
-<p>这里的“Self”不是指 Token 只关注自己，而是指 Query、Key、Value 来源于同一个序列表示。</p>
-<p>一个 Token 可以关注自身，也可以关注其他 Token。</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">输入：</span><br><span class="line">The cat sat on the mat.</span><br><span class="line"></span><br><span class="line">cat 的 Query</span><br><span class="line">   │</span><br><span class="line">   ├── 匹配 The 的 Key</span><br><span class="line">   ├── 匹配 cat 的 Key</span><br><span class="line">   ├── 匹配 sat 的 Key</span><br><span class="line">   ├── 匹配 on 的 Key</span><br><span class="line">   ├── 匹配 the 的 Key</span><br><span class="line">   └── 匹配 mat 的 Key</span><br></pre></td></tr></table></figure>
-
-<p>通过这样的计算，<code>cat</code> 对应的表示能够融入其他位置的信息。</p>
-<p>Encoder 中的 Self-Attention 不需要阻止一个位置访问后面的输入 Token，因为输入句子整体已经可用。</p>
-<h2 id="5-2-Cross-Attention：让-Decoder-查询-Encoder"><a href="#5-2-Cross-Attention：让-Decoder-查询-Encoder" class="headerlink" title="5.2 Cross-Attention：让 Decoder 查询 Encoder"></a>5.2 Cross-Attention：让 Decoder 查询 Encoder</h2><p>Cross-Attention 的计算不同。</p>
-<p>设：</p>
-<ul>
-<li>(H) 是 Decoder 当前层的输入。</li>
-<li>(Z) 是 Encoder 的输出。</li>
-</ul>
-<p>那么：</p>
-<p>[<br>Q&#x3D;HW_Q<br>]</p>
-<p>[<br>K&#x3D;ZW_K<br>]</p>
-<p>[<br>V&#x3D;ZW_V<br>]</p>
-<p>可以看到：</p>
-<ul>
-<li>Query 来自 Decoder。</li>
-<li>Key 和 Value 来自 Encoder。</li>
-</ul>
-<p>因此，Cross-Attention 可以理解为：</p>
-<p><strong>Decoder 根据当前的生成状态，向 Encoder 的输出表示中查询相关信息。</strong></p>
-<p>这和 Self-Attention 的区别不在于公式，而在于 Q、K、V 的来源。</p>
-<p>它们都可以使用同样的 Scaled Dot-Product Attention 计算。</p>
-<h2 id="5-3-Masked-Self-Attention：为什么需要掩码？"><a href="#5-3-Masked-Self-Attention：为什么需要掩码？" class="headerlink" title="5.3 Masked Self-Attention：为什么需要掩码？"></a>5.3 Masked Self-Attention：为什么需要掩码？</h2><p>考虑目标序列：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我 喜欢 学习 AI</span><br></pre></td></tr></table></figure>
-
-<p>在自回归生成时：</p>
-<ul>
-<li>生成第一个 Token 时，不能查看未来 Token。</li>
-<li>生成第二个 Token 时，可以利用第一个 Token。</li>
-<li>生成第三个 Token 时，可以利用前两个 Token。</li>
-</ul>
-<p>因此，Decoder 的 Self-Attention 必须限制未来信息的流入。</p>
-<p>常用方法是构造一个因果 Mask。</p>
-<p>对于长度为 4 的序列，可以用矩阵表示允许访问的位置：</p>
-<p>[<br>M&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>1&amp;1&amp;0&amp;0\<br>1&amp;1&amp;1&amp;0\<br>1&amp;1&amp;1&amp;1<br>\end{bmatrix}<br>]</p>
-<p>其中：</p>
-<ul>
-<li>1 表示允许关注。</li>
-<li>0 表示禁止关注。</li>
-</ul>
-<p>实际计算中，不是直接把这个 0&#x2F;1 矩阵乘到注意力分数上，而是把禁止访问的位置设置为负无穷，再执行 Softmax。</p>
-<p>可以写成：</p>
-<p>[<br>A&#x3D;<br>\operatorname{softmax}<br>\left(<br>\frac{QK^\top}{\sqrt{d_k}}+B<br>\right)<br>]</p>
-<p>其中：</p>
-<p>[<br>B_{ij}&#x3D;<br>\begin{cases}<br>0,&amp;j\leq i\<br>-\infty,&amp;j&gt;i<br>\end{cases}<br>]</p>
-<p>因此：</p>
-<p>[<br>\operatorname{softmax}(-\infty)&#x3D;0<br>]</p>
-<p>未来位置的注意力权重就变为零。</p>
-<p>这就是 Causal Attention 的数学基础。</p>
-<h3 id="一个容易混淆的细节"><a href="#一个容易混淆的细节" class="headerlink" title="一个容易混淆的细节"></a>一个容易混淆的细节</h3><p>训练时，原始 Transformer 的 Decoder 可以将完整的目标序列一次性输入网络，并行计算各个位置的预测。</p>
-<p>这是因为因果 Mask 阻止了每个位置读取未来的目标 Token。</p>
-<p>因此：</p>
-<ul>
-<li><strong>训练时</strong>，可以并行计算不同目标位置的输出。</li>
-<li><strong>推理时</strong>，如果使用自回归生成，下一步 Token 仍然依赖前一步已经生成的结果。</li>
-</ul>
-<p>这正是 Transformer 能够同时兼顾自回归生成与高效训练的关键设计之一。</p>
-<p>论文第 5 页明确说明，Decoder 使用 Mask 阻止当前位置的信息流向之前的位置所不允许访问的未来位置，从而维持自回归生成性质。Attention Is All You Need(2)</p>
-<hr>
-<h1 id="六、位置编码：没有-RNN，模型如何知道词语顺序？"><a href="#六、位置编码：没有-RNN，模型如何知道词语顺序？" class="headerlink" title="六、位置编码：没有 RNN，模型如何知道词语顺序？"></a>六、位置编码：没有 RNN，模型如何知道词语顺序？</h1><p>这是 Transformer 架构中另一个必须理解的问题。</p>
-<p>前面提到，Self-Attention 能够让任意两个 Token 直接交互。</p>
-<p>但是，如果模型只看 Token 的向量，不提供位置相关信息，那么它如何区分：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">猫追老鼠</span><br></pre></td></tr></table></figure>
-
-<p>与：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">老鼠追猫</span><br></pre></td></tr></table></figure>
-
-<p>两者包含相同的 Token，但顺序不同，含义也不同。</p>
-<h2 id="6-1-为什么-Self-Attention-本身不理解顺序？"><a href="#6-1-为什么-Self-Attention-本身不理解顺序？" class="headerlink" title="6.1 为什么 Self-Attention 本身不理解顺序？"></a>6.1 为什么 Self-Attention 本身不理解顺序？</h2><p>假设有三个输入向量：</p>
-<p>[<br>X&#x3D;<br>\begin{bmatrix}<br>x_1\<br>x_2\<br>x_3<br>\end{bmatrix}<br>]</p>
-<p>将它们的顺序打乱后：</p>
-<p>[<br>X’&#x3D;<br>\begin{bmatrix}<br>x_3\<br>x_1\<br>x_2<br>\end{bmatrix}<br>]</p>
-<p>如果模型没有其他位置信息，那么 Self-Attention 的运算本身不会自动知道哪个 Token 原本位于句首、句中或句尾。</p>
-<p>更严格地说，在不引入位置编码、位置相关 Mask 或其他顺序信号时，Self-Attention 对输入位置的置换具有等变性：输入位置被重新排列，输出也会以相同方式重新排列。</p>
-<p>因此，Transformer 需要额外的位置机制。</p>
-<h2 id="6-2-原始论文采用什么方法？"><a href="#6-2-原始论文采用什么方法？" class="headerlink" title="6.2 原始论文采用什么方法？"></a>6.2 原始论文采用什么方法？</h2><p>论文使用正弦和余弦函数构造 Positional Encoding。</p>
-<p>对于位置 (pos) 和维度索引 (i)：</p>
-<h1 id="PE-pos-2i"><a href="#PE-pos-2i" class="headerlink" title="[PE(pos,2i)"></a>[<br>PE(pos,2i)</h1><p>\sin<br>\left(<br>\frac{pos}{10000^{2i&#x2F;d_{\text{model}}}}<br>\right)<br>]</p>
-<h1 id="PE-pos-2i-1"><a href="#PE-pos-2i-1" class="headerlink" title="[PE(pos,2i+1)"></a>[<br>PE(pos,2i+1)</h1><p>\cos<br>\left(<br>\frac{pos}{10000^{2i&#x2F;d_{\text{model}}}}<br>\right)<br>]</p>
-<p>其中：</p>
-<ul>
-<li>(pos)：Token 在序列中的位置。</li>
-<li>(i)：向量维度的索引。</li>
-<li>(d_{\text{model}})：模型的隐藏维度。</li>
-</ul>
-<p>这些公式来自论文第 6 页。Attention Is All You Need(2)</p>
-<p>原始 Transformer Base 中：</p>
-<p>[<br>d_{\text{model}}&#x3D;512<br>]</p>
-<p>因此，每个位置都会获得一个 512 维的位置向量。</p>
-<p>这个向量不是随机噪声，而是根据位置通过确定性公式计算出来的。</p>
-<h2 id="6-3-为什么同时使用-Sin-和-Cos？"><a href="#6-3-为什么同时使用-Sin-和-Cos？" class="headerlink" title="6.3 为什么同时使用 Sin 和 Cos？"></a>6.3 为什么同时使用 Sin 和 Cos？</h2><p>因为不同维度使用不同频率的正弦或余弦函数。</p>
-<p>低频维度随位置变化较慢，高频维度随位置变化较快。</p>
-<p>组合起来，不同位置就会获得不同的向量模式。</p>
-<p>可以想象：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">位置 0 → [0, 1, 0, 1, ...]</span><br><span class="line">位置 1 → [不同的正弦余弦组合]</span><br><span class="line">位置 2 → [另一组正弦余弦组合]</span><br><span class="line">位置 3 → [另一组正弦余弦组合]</span><br></pre></td></tr></table></figure>
-
-<p>这里的向量仅作示意，实际维度为 512。</p>
-<p>论文选择这种方法的一个原因是：不同位置之间的关系能够通过正弦、余弦函数的性质表达，并且作者认为，这可能有助于模型学习相对位置关系。</p>
-<p>论文还比较了固定位置编码与学习式位置 Embedding，实验中两者表现几乎相同。Attention Is All You Need(2)</p>
-<h2 id="6-4-位置编码如何进入模型？"><a href="#6-4-位置编码如何进入模型？" class="headerlink" title="6.4 位置编码如何进入模型？"></a>6.4 位置编码如何进入模型？</h2><p>原始 Transformer 不是将位置向量直接拼接到 Token Embedding 后面，而是将它们相加：</p>
-<p>[<br>\boxed{<br>X&#x3D;E+PE<br>}<br>]</p>
-<p>其中：</p>
-<ul>
-<li>(E)：Token Embedding。</li>
-<li>(PE)：Positional Encoding。</li>
-</ul>
-<p>二者维度相同，因此可以直接相加。</p>
-<p>例如：</p>
-<p>[<br>E\in\mathbb{R}^{n\times512}<br>]</p>
-<p>[<br>PE\in\mathbb{R}^{n\times512}<br>]</p>
-<p>于是：</p>
-<p>[<br>X\in\mathbb{R}^{n\times512}<br>]</p>
-<p>这样，模型在后续层中处理的向量既包含 Token 的表示，也融入了位置信息。</p>
-<h2 id="6-5-必须区分：位置编码不等于位置-Embedding"><a href="#6-5-必须区分：位置编码不等于位置-Embedding" class="headerlink" title="6.5 必须区分：位置编码不等于位置 Embedding"></a>6.5 必须区分：位置编码不等于位置 Embedding</h2><p>这两个术语经常被混用，但它们不完全相同。</p>
-<table>
-<thead>
-<tr>
-<th>机制</th>
-<th>原始 Transformer 的正弦位置编码</th>
-<th>学习式绝对位置 Embedding</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>位置向量如何获得</td>
-<td>根据固定公式计算</td>
-<td>通过训练学习</td>
-</tr>
-<tr>
-<td>是否包含可训练的位置参数</td>
-<td>否</td>
-<td>是</td>
-</tr>
-<tr>
-<td>是否直接提供位置信息</td>
-<td>是</td>
-<td>是</td>
-</tr>
-<tr>
-<td>超出训练位置范围时的行为</td>
-<td>公式可以继续计算</td>
-<td>原始位置表通常没有直接覆盖新位置的参数</td>
-</tr>
-</tbody></table>
-<p>需要强调：固定公式可以计算更远的位置，并不意味着模型就一定能可靠地处理任意长的上下文。</p>
-<p>现代大语言模型还发展出了 RoPE、ALiBi 等其他位置处理方案；它们属于后续技术演进，而不是原论文使用的方法。</p>
-<hr>
-<h1 id="七、Feed-Forward-Network：为什么-Attention-后面还要接一个网络？"><a href="#七、Feed-Forward-Network：为什么-Attention-后面还要接一个网络？" class="headerlink" title="七、Feed-Forward Network：为什么 Attention 后面还要接一个网络？"></a>七、Feed-Forward Network：为什么 Attention 后面还要接一个网络？</h1><p>到目前为止，我们已经理解了 Attention 的作用：</p>
-<blockquote>
-<p>每个 Token 根据相关性，从其他 Token 中提取信息。</p>
-</blockquote>
-<p>但 Attention 本身主要通过加权聚合 Value 来整合信息。</p>
-<p>Transformer 还需要一个模块，进一步对每个位置的表示进行非线性变换。</p>
-<p>这就是 Feed-Forward Network，简称 FFN。</p>
-<h2 id="7-1-原始-FFN-的数学表达式"><a href="#7-1-原始-FFN-的数学表达式" class="headerlink" title="7.1 原始 FFN 的数学表达式"></a>7.1 原始 FFN 的数学表达式</h2><p>论文第 5 页给出的公式是：</p>
-<p>[<br>\boxed{<br>FFN(x)&#x3D;<br>\max(0,xW_1+b_1)W_2+b_2<br>}<br>]</p>
-<p>其中：</p>
-<p>[<br>d_{\text{model}}&#x3D;512<br>]</p>
-<p>[<br>d_{ff}&#x3D;2048<br>]</p>
-<p>因此：</p>
-<p>[<br>W_1\in\mathbb{R}^{512\times2048}<br>]</p>
-<p>[<br>W_2\in\mathbb{R}^{2048\times512}<br>]</p>
-<p>第一层将向量从 512 维扩展到 2048 维，经过 ReLU 激活后，再投影回 512 维。Attention Is All You Need(2)</p>
-<h2 id="7-2-FFN-与-Attention-的区别"><a href="#7-2-FFN-与-Attention-的区别" class="headerlink" title="7.2 FFN 与 Attention 的区别"></a>7.2 FFN 与 Attention 的区别</h2><p>可以把 Transformer 的每一层理解成两个阶段：</p>
-<h3 id="阶段一：信息交互"><a href="#阶段一：信息交互" class="headerlink" title="阶段一：信息交互"></a>阶段一：信息交互</h3><p>Attention 让不同 Token 之间交换信息。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Token 1 ──┐</span><br><span class="line">Token 2 ──┼── Attention ──→ 融合上下文信息</span><br><span class="line">Token 3 ──┘</span><br></pre></td></tr></table></figure>
-
-<h3 id="阶段二：位置内部的非线性变换"><a href="#阶段二：位置内部的非线性变换" class="headerlink" title="阶段二：位置内部的非线性变换"></a>阶段二：位置内部的非线性变换</h3><p>FFN 对每个位置分别进行处理。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Token 1 的表示 ──→ FFN ──→ 新表示</span><br><span class="line">Token 2 的表示 ──→ FFN ──→ 新表示</span><br><span class="line">Token 3 的表示 ──→ FFN ──→ 新表示</span><br></pre></td></tr></table></figure>
-
-<p>原始论文明确指出，FFN 在每个位置分别、独立地应用，并且同一层中的不同位置共享相同的 FFN 参数。不同 Transformer 层之间则拥有不同的参数。Attention Is All You Need(2)</p>
-<h2 id="7-3-为什么需要先扩展维度？"><a href="#7-3-为什么需要先扩展维度？" class="headerlink" title="7.3 为什么需要先扩展维度？"></a>7.3 为什么需要先扩展维度？</h2><p>以 512 → 2048 → 512 为例。</p>
-<p>第一层执行：</p>
-<p>[<br>h&#x3D;\operatorname{ReLU}(xW_1+b_1)<br>]</p>
-<p>得到：</p>
-<p>[<br>h\in\mathbb{R}^{2048}<br>]</p>
-<p>第二层执行：</p>
-<p>[<br>y&#x3D;hW_2+b_2<br>]</p>
-<p>重新映射为：</p>
-<p>[<br>y\in\mathbb{R}^{512}<br>]</p>
-<p>通过这种扩展、非线性变换和压缩，网络可以学习比单一线性映射更丰富的特征变换。</p>
-<p>从工程角度看，FFN 也是 Transformer 中重要的参数和计算来源。</p>
-<p>现代大语言模型中的 FFN 往往进一步发展为 SwiGLU 等结构，维度配置也可能不同。</p>
-<p>但其核心思想仍然可以追溯到原始 Transformer：</p>
-<p><strong>Attention 负责 Token 之间的信息交互，FFN 负责在每个位置上进一步变换表示。</strong></p>
-<hr>
-<h1 id="八、残差连接与-Layer-Normalization"><a href="#八、残差连接与-Layer-Normalization" class="headerlink" title="八、残差连接与 Layer Normalization"></a>八、残差连接与 Layer Normalization</h1><p>原始 Transformer 每个子层都使用残差连接和 Layer Normalization。</p>
-<p>论文采用的形式为：</p>
-<p>[<br>\boxed{<br>LayerNorm(x+Sublayer(x))<br>}<br>]</p>
-<p>也就是先将子层输入与子层输出相加，再进行 Layer Normalization。Attention Is All You Need(2)</p>
-<h2 id="8-1-为什么需要残差连接？"><a href="#8-1-为什么需要残差连接？" class="headerlink" title="8.1 为什么需要残差连接？"></a>8.1 为什么需要残差连接？</h2><p>假设某一层的输入是：</p>
-<p>[<br>x<br>]</p>
-<p>经过 Attention 或 FFN 后，得到：</p>
-<p>[<br>F(x)<br>]</p>
-<p>如果直接使用：</p>
-<p>[<br>y&#x3D;F(x)<br>]</p>
-<p>那么原始输入信息只能通过网络学习的变换继续传递。</p>
-<p>残差连接则使用：</p>
-<p>[<br>\boxed{y&#x3D;x+F(x)}<br>]</p>
-<p>它为输入信息提供了一条直接传递的路径。</p>
-<p>这能够帮助深层网络优化，也让子层可以学习对输入表示的增量调整。</p>
-<p>从直觉上说：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">原始信息 x ──────────────────┐</span><br><span class="line">                             ▼</span><br><span class="line">                         相加 → 输出</span><br><span class="line">                             ▲</span><br><span class="line">输入 x → Attention / FFN ────┘</span><br></pre></td></tr></table></figure>
-
-<p>模型不必每一层都从头重新构造完整表示，而是可以在已有表示的基础上进行修正。</p>
-<h2 id="8-2-Layer-Normalization-的作用"><a href="#8-2-Layer-Normalization-的作用" class="headerlink" title="8.2 Layer Normalization 的作用"></a>8.2 Layer Normalization 的作用</h2><p>Layer Normalization 对单个样本的特征维度进行归一化。</p>
-<p>给定一个向量 (x)，可以先计算均值：</p>
-<p>[<br>\mu&#x3D;\frac{1}{d}\sum_{i&#x3D;1}^{d}x_i<br>]</p>
-<p>再计算方差：</p>
-<p>[<br>\sigma^2&#x3D;<br>\frac{1}{d}<br>\sum_{i&#x3D;1}^{d}(x_i-\mu)^2<br>]</p>
-<p>然后：</p>
-<p>[<br>\hat{x}_i&#x3D;<br>\frac{x_i-\mu}{\sqrt{\sigma^2+\epsilon}}<br>]</p>
-<p>最后使用可学习的缩放和偏移参数：</p>
-<p>[<br>y_i&#x3D;\gamma_i\hat{x}_i+\beta_i<br>]</p>
-<p>其中 (\epsilon) 用于提高数值稳定性。</p>
-<p>在原始 Transformer 的配置中，LayerNorm 位于残差相加之后。</p>
-<p>需要区分两个概念：</p>
-<ul>
-<li>残差连接提供信息和梯度的直接通路。</li>
-<li>LayerNorm 对特征进行归一化，以帮助稳定训练。</li>
-</ul>
-<p>二者作用不同，因此不能简单地互相替代。</p>
-<h2 id="8-3-一个重要的现代架构差异"><a href="#8-3-一个重要的现代架构差异" class="headerlink" title="8.3 一个重要的现代架构差异"></a>8.3 一个重要的现代架构差异</h2><p>原始论文使用的是：</p>
-<p>[<br>LayerNorm(x+F(x))<br>]</p>
-<p>这通常称为 Post-LN。</p>
-<p>许多现代大语言模型采用 Pre-LN 或其他归一化变体，例如先归一化，再进入子层：</p>
-<p>[<br>y&#x3D;x+F(LayerNorm(x))<br>]</p>
-<p>这不是原始论文的公式，而是后续架构演进中的重要变化。</p>
-<p>如果你准备自己实现 Transformer，需要特别注意这两种结构并不等价，不能只因为它们都包含残差连接和 LayerNorm，就认为可以随意互换。</p>
-<hr>
-<h1 id="九、把所有模块组合起来：一层-Transformer-究竟如何运行？"><a href="#九、把所有模块组合起来：一层-Transformer-究竟如何运行？" class="headerlink" title="九、把所有模块组合起来：一层 Transformer 究竟如何运行？"></a>九、把所有模块组合起来：一层 Transformer 究竟如何运行？</h1><p>前面分别讲解了 Attention、FFN、位置编码、残差连接和 LayerNorm。现在把它们组合起来，观察数据在网络中的完整流动。</p>
-<p>这是从理解理论走向阅读源码、实现模型的关键一步。</p>
-<h2 id="9-1-Encoder-单层的完整计算过程"><a href="#9-1-Encoder-单层的完整计算过程" class="headerlink" title="9.1 Encoder 单层的完整计算过程"></a>9.1 Encoder 单层的完整计算过程</h2><p>假设输入矩阵：</p>
-<p>[<br>X\in\mathbb{R}^{n\times512}<br>]</p>
-<p>其中 (n) 是 Token 数量。</p>
-<p>原始 Transformer Encoder 的一层可以写成：</p>
-<p><strong>第一步：Multi-Head Self-Attention</strong></p>
-<p>[<br>A&#x3D;\operatorname{MHA}(X,X,X)<br>]</p>
-<p>三个输入都来自同一个矩阵 (X)。</p>
-<p>然后进行残差连接和 LayerNorm：</p>
-<p>[<br>H&#x3D;\operatorname{LayerNorm}(X+A)<br>]</p>
-<p>如果考虑论文中的 Dropout，则更准确地写为：</p>
-<p>[<br>H&#x3D;\operatorname{LayerNorm}<br>\left(X+\operatorname{Dropout}(A)\right)<br>]</p>
-<p><strong>第二步：Feed-Forward Network</strong></p>
-<p>[<br>F&#x3D;\operatorname{FFN}(H)<br>]</p>
-<p>然后：</p>
-<p>[<br>Y&#x3D;\operatorname{LayerNorm}<br>\left(H+\operatorname{Dropout}(F)\right)<br>]</p>
-<p>因此，Encoder 单层可以概括为：</p>
-<p>[<br>\boxed{<br>H&#x3D;\operatorname{LN}(X+\operatorname{Dropout}(\operatorname{MHA}(X,X,X)))<br>}<br>]</p>
-<p>[<br>\boxed{<br>Y&#x3D;\operatorname{LN}(H+\operatorname{Dropout}(\operatorname{FFN}(H)))<br>}<br>]</p>
-<p>这里的 LN 是 LayerNorm。</p>
-<p>注意，以上公式对应原始论文的 Post-LN 结构。实际训练时，Dropout 只在启用训练模式时生效。</p>
-<h2 id="9-2-Decoder-单层的完整计算过程"><a href="#9-2-Decoder-单层的完整计算过程" class="headerlink" title="9.2 Decoder 单层的完整计算过程"></a>9.2 Decoder 单层的完整计算过程</h2><p>Decoder 比 Encoder 多一个 Cross-Attention 子层。</p>
-<p>假设：</p>
-<ul>
-<li>(X)：Decoder 当前层的输入。</li>
-<li>(Z)：Encoder 的输出。</li>
-</ul>
-<p>计算过程如下。</p>
-<p>第一步：Masked Self-Attention。</p>
-<p>[<br>H_1&#x3D;<br>\operatorname{LN}<br>\left(<br>X+\operatorname{Dropout}<br>\left(<br>\operatorname{MHA}_{masked}(X,X,X)<br>\right)<br>\right)<br>]</p>
-<p>第二步：Cross-Attention。</p>
-<p>[<br>H_2&#x3D;<br>\operatorname{LN}<br>\left(<br>H_1+\operatorname{Dropout}<br>\left(<br>\operatorname{MHA}(H_1,Z,Z)<br>\right)<br>\right)<br>]</p>
-<p>第三步：FFN。</p>
-<p>[<br>Y&#x3D;<br>\operatorname{LN}<br>\left(<br>H_2+\operatorname{Dropout}<br>\left(<br>\operatorname{FFN}(H_2)<br>\right)<br>\right)<br>]</p>
-<p>可以看到，Decoder 的三种子层各司其职：</p>
-<table>
-<thead>
-<tr>
-<th>子层</th>
-<th>解决的问题</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Masked Self-Attention</td>
-<td>已生成的目标 Token 之间如何交互</td>
-</tr>
-<tr>
-<td>Cross-Attention</td>
-<td>当前生成状态需要从源序列中获取什么信息</td>
-</tr>
-<tr>
-<td>FFN</td>
-<td>如何进一步变换融合后的表示</td>
-</tr>
-</tbody></table>
-<h2 id="9-3-为什么-Transformer-要堆叠多层？"><a href="#9-3-为什么-Transformer-要堆叠多层？" class="headerlink" title="9.3 为什么 Transformer 要堆叠多层？"></a>9.3 为什么 Transformer 要堆叠多层？</h2><p>原始论文将 Encoder 和 Decoder 各堆叠 6 层。</p>
-<p>每一层都可以重新计算注意力权重，并进一步变换 Token 表示。</p>
-<p>可以将其抽象为：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">输入 Embedding</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">  Transformer Layer 1</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">  Transformer Layer 2</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">  Transformer Layer 3</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">       ...</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">  Transformer Layer 6</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">  输出上下文表示</span><br></pre></td></tr></table></figure>
-
-<p>这并不意味着每一层都对应某个固定的认知阶段。</p>
-<p>更准确地说，随着层数增加，模型可以反复进行信息交互和非线性变换，从而学习更复杂的表示。</p>
-<p><strong>理解 Transformer 的关键，不是孤立记住每个模块，而是理解这些模块如何反复作用于同一组 Token 表示。</strong></p>
-<hr>
-<h1 id="十、从计算复杂度理解-Transformer-为什么更高效"><a href="#十、从计算复杂度理解-Transformer-为什么更高效" class="headerlink" title="十、从计算复杂度理解 Transformer 为什么更高效"></a>十、从计算复杂度理解 Transformer 为什么更高效</h1><p>原论文不仅提出了新架构，还系统比较了 Self-Attention、RNN 和 CNN 的计算复杂度。</p>
-<p>这部分是理解 Transformer 工程优势的重要内容。</p>
-<p>论文第 6 页的表格从三个角度进行比较：</p>
-<ol>
-<li>每层的计算复杂度。</li>
-<li>最少需要执行多少个顺序计算步骤。</li>
-<li>任意两个位置之间的最长信息传递路径。Attention Is All You Need(2)</li>
-</ol>
-<h2 id="10-1-Self-Attention-的复杂度"><a href="#10-1-Self-Attention-的复杂度" class="headerlink" title="10.1 Self-Attention 的复杂度"></a>10.1 Self-Attention 的复杂度</h2><p>假设：</p>
-<ul>
-<li>序列长度为 (n)。</li>
-<li>表示维度为 (d)。</li>
-</ul>
-<p>Attention 的主要计算是：</p>
-<p>[<br>QK^\top<br>]</p>
-<p>其中：</p>
-<p>[<br>Q\in\mathbb{R}^{n\times d}<br>]</p>
-<p>[<br>K^\top\in\mathbb{R}^{d\times n}<br>]</p>
-<p>矩阵乘法的计算复杂度为：</p>
-<p>[<br>O(n^2d)<br>]</p>
-<p>接着计算：</p>
-<p>[<br>AV<br>]</p>
-<p>其复杂度也是：</p>
-<p>[<br>O(n^2d)<br>]</p>
-<p>因此，单层全局 Self-Attention 的主要复杂度为：</p>
-<p>[<br>\boxed{O(n^2d)}<br>]</p>
-<p>另外，Q、K、V 的投影还需要约 (O(nd^2)) 的计算。</p>
-<p>所以，更完整地考虑投影后，单层 Multi-Head Attention 的计算复杂度通常可以概括为：</p>
-<p>[<br>O(nd^2+n^2d)<br>]</p>
-<p>这里忽略了常数因子。</p>
-<h2 id="10-2-为什么长上下文会成为问题？"><a href="#10-2-为什么长上下文会成为问题？" class="headerlink" title="10.2 为什么长上下文会成为问题？"></a>10.2 为什么长上下文会成为问题？</h2><p>因为 Attention 分数矩阵的大小为：</p>
-<p>[<br>n\times n<br>]</p>
-<p>当序列长度增加时，矩阵元素数量以平方级增长。</p>
-<p>例如：</p>
-<table>
-<thead>
-<tr>
-<th align="right">序列长度 (n)</th>
-<th align="right">Attention 分数矩阵元素数</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="right">128</td>
-<td align="right">16,384</td>
-</tr>
-<tr>
-<td align="right">512</td>
-<td align="right">262,144</td>
-</tr>
-<tr>
-<td align="right">1,024</td>
-<td align="right">1,048,576</td>
-</tr>
-<tr>
-<td align="right">2,048</td>
-<td align="right">4,194,304</td>
-</tr>
-<tr>
-<td align="right">4,096</td>
-<td align="right">16,777,216</td>
-</tr>
-<tr>
-<td align="right">8,192</td>
-<td align="right">67,108,864</td>
-</tr>
-</tbody></table>
-<p>序列长度从 1,024 增加到 8,192，是原来的 8 倍，但分数矩阵的元素数量增加到 64 倍。</p>
-<p>这就是全局 Attention 的重要代价。</p>
-<p>实际显存消耗还与 Batch Size、注意力头数、数据精度、反向传播和具体实现有关，不能仅凭矩阵元素数量直接得出整个模型的显存需求。</p>
-<h2 id="10-3-与-RNN-相比，Transformer-的优势是什么？"><a href="#10-3-与-RNN-相比，Transformer-的优势是什么？" class="headerlink" title="10.3 与 RNN 相比，Transformer 的优势是什么？"></a>10.3 与 RNN 相比，Transformer 的优势是什么？</h2><p>原论文给出的复杂度比较如下。</p>
-<table>
-<thead>
-<tr>
-<th>指标</th>
-<th>Self-Attention</th>
-<th>Recurrent</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>每层主要复杂度</td>
-<td>(O(n^2d))</td>
-<td>(O(nd^2))</td>
-</tr>
-<tr>
-<td>最少顺序计算步骤</td>
-<td>(O(1))</td>
-<td>(O(n))</td>
-</tr>
-<tr>
-<td>任意两位置的最大路径长度</td>
-<td>(O(1))</td>
-<td>(O(n))</td>
-</tr>
-</tbody></table>
-<p>这些复杂度描述的是特定计算模型下的理论特征，并不意味着 Self-Attention 在所有序列长度和硬件环境下都比 RNN 更快。</p>
-<p>论文还指出，当序列长度 (n) 小于表示维度 (d) 时，Self-Attention 的主要计算在相应假设下可能比循环层更有利。Attention Is All You Need(2)</p>
-<h3 id="什么叫最大路径长度？"><a href="#什么叫最大路径长度？" class="headerlink" title="什么叫最大路径长度？"></a>什么叫最大路径长度？</h3><p>这是一个容易忽略、但非常有价值的概念。</p>
-<p>假设句子开头的 Token 要影响句尾的 Token。</p>
-<p>在 RNN 中，信息可能需要经过多个循环步骤：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Token 1 → Token 2 → Token 3 → ... → Token n</span><br></pre></td></tr></table></figure>
-
-<p>在 Self-Attention 中，两个位置可以在一层 Attention 内直接建立信息交互：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Token 1 ─────────→ Token n</span><br></pre></td></tr></table></figure>
-
-<p>因此，单层全局 Self-Attention 中，两个位置之间的最大路径长度是常数级。</p>
-<p>这为模型学习长距离依赖提供了更直接的信息通路。</p>
-<p>不过，路径更短不意味着模型必然能正确理解长距离关系。模型仍然需要通过训练学习适当的注意力分布和表示。</p>
-<h2 id="10-4-为什么现代模型仍然需要优化-Attention？"><a href="#10-4-为什么现代模型仍然需要优化-Attention？" class="headerlink" title="10.4 为什么现代模型仍然需要优化 Attention？"></a>10.4 为什么现代模型仍然需要优化 Attention？</h2><p>因为原始 Transformer 的全局 Attention 虽然提高了并行能力，但它的计算和内存成本仍然会随着序列长度快速增长。</p>
-<p>后来出现的优化包括：</p>
-<ul>
-<li>FlashAttention：通过更高效的分块计算和内存访问方式，减少 Attention 的中间数据读写。</li>
-<li>Sliding Window Attention：限制每个 Token 能直接关注的局部范围。</li>
-<li>Sparse Attention：只计算部分位置之间的注意力。</li>
-<li>KV Cache：在自回归推理中缓存历史 Key 和 Value，避免重复计算。</li>
-<li>Grouped-Query Attention：在多个 Query 头之间共享 Key、Value 头，降低 KV Cache 的内存开销。</li>
-</ul>
-<p>这些都是后续发展，不能与原论文的原始设计混为一谈。</p>
-<p>尤其需要注意：<strong>FlashAttention 主要优化计算实现和内存访问，并没有把标准全局 Attention 的理论计算复杂度从平方级改成线性级。</strong></p>
-<hr>
-<h1 id="十一、论文的训练方法与实验结果"><a href="#十一、论文的训练方法与实验结果" class="headerlink" title="十一、论文的训练方法与实验结果"></a>十一、论文的训练方法与实验结果</h1><p>理解架构之后，还需要回答一个问题：</p>
-<p>Transformer 为什么被认为是有效的？</p>
-<p>论文给出的证据不仅是提出了一套新的结构，还包括与已有模型的实验对比，以及对不同组件的消融实验。</p>
-<h2 id="11-1-训练数据"><a href="#11-1-训练数据" class="headerlink" title="11.1 训练数据"></a>11.1 训练数据</h2><p>论文使用了 WMT 2014 机器翻译任务。</p>
-<p>英文到德文：</p>
-<ul>
-<li>约 450 万对句子。</li>
-<li>使用 Byte-Pair Encoding。</li>
-<li>共享词表约 37,000 个 Token。</li>
-</ul>
-<p>英文到法文：</p>
-<ul>
-<li>约 3,600 万个句子。</li>
-<li>使用约 32,000 个 WordPiece Token 的词表。</li>
-</ul>
-<p>训练批次按照近似序列长度组织，每批大约包含 25,000 个源语言 Token 和 25,000 个目标语言 Token。Attention Is All You Need(2)</p>
-<p>这里有一个值得注意的工程思想：</p>
-<p><strong>按序列长度分组，可以减少 Batch 内 Padding 带来的无效计算。</strong></p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Batch A:</span><br><span class="line">短句、短句、短句、短句</span><br><span class="line"></span><br><span class="line">Batch B:</span><br><span class="line">长句、长句、长句、长句</span><br></pre></td></tr></table></figure>
-
-<p>相较于将极短句子与极长句子混在同一批次中，这种方式通常更容易控制 Padding 开销。</p>
-<h2 id="11-2-优化器与学习率调度"><a href="#11-2-优化器与学习率调度" class="headerlink" title="11.2 优化器与学习率调度"></a>11.2 优化器与学习率调度</h2><p>论文使用 Adam 优化器，参数为：</p>
-<p>[<br>\beta_1&#x3D;0.9<br>]</p>
-<p>[<br>\beta_2&#x3D;0.98<br>]</p>
-<p>[<br>\epsilon&#x3D;10^{-9}<br>]</p>
-<p>同时采用了特定的学习率调度：</p>
-<p>[<br>\boxed{<br>lrate&#x3D;<br>d_{\text{model}}^{-0.5}<br>\cdot<br>\min<br>\left(<br>step^{-0.5},<br>step\cdot warmup^{-1.5}<br>\right)<br>}<br>]</p>
-<p>其中：</p>
-<p>[<br>warmup_steps&#x3D;4000<br>]</p>
-<p>公式来自论文第 7 页。Attention Is All You Need(2)</p>
-<p>这个调度分为两个阶段。</p>
-<h3 id="阶段一：Warmup"><a href="#阶段一：Warmup" class="headerlink" title="阶段一：Warmup"></a>阶段一：Warmup</h3><p>在训练初期：</p>
-<p>[<br>lrate\propto step<br>]</p>
-<p>学习率逐渐增大。</p>
-<h3 id="阶段二：衰减"><a href="#阶段二：衰减" class="headerlink" title="阶段二：衰减"></a>阶段二：衰减</h3><p>Warmup 结束后：</p>
-<p>[<br>lrate\propto step^{-0.5}<br>]</p>
-<p>学习率按照训练步数的平方根倒数逐渐衰减。</p>
-<p>为什么要这么设计？</p>
-<p>深层网络在训练初期的参数状态可能尚不稳定。先逐步增加学习率，再逐渐降低学习率，是一种兼顾训练稳定性与后期优化的策略。</p>
-<p>需要注意，这个具体公式是原论文的训练方案，不是所有现代 Transformer 都必须使用的学习率调度。</p>
-<h2 id="11-3-训练时间"><a href="#11-3-训练时间" class="headerlink" title="11.3 训练时间"></a>11.3 训练时间</h2><p>论文报告：</p>
-<table>
-<thead>
-<tr>
-<th>配置</th>
-<th>GPU</th>
-<th align="right">训练步数</th>
-<th>训练时间</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Transformer Base</td>
-<td>8 张 NVIDIA P100</td>
-<td align="right">100,000</td>
-<td>约 12 小时</td>
-</tr>
-<tr>
-<td>Transformer Big</td>
-<td>8 张 NVIDIA P100</td>
-<td align="right">300,000</td>
-<td>约 3.5 天</td>
-</tr>
-</tbody></table>
-<p>原论文在第 7 页给出了这些训练设置。Attention Is All You Need(2)</p>
-<p>这些结果反映的是 2017 年特定硬件、数据集、模型配置和训练方案下的表现，不应该直接与今天的大模型训练成本进行比较。</p>
-<h2 id="11-4-机器翻译结果"><a href="#11-4-机器翻译结果" class="headerlink" title="11.4 机器翻译结果"></a>11.4 机器翻译结果</h2><p>论文在 WMT 2014 英德翻译任务中报告：</p>
-<ul>
-<li>Transformer Base：BLEU 27.3。</li>
-<li>Transformer Big：BLEU 28.4。</li>
-</ul>
-<p>在英法翻译任务中：</p>
-<ul>
-<li>Transformer Big：BLEU 41.8。</li>
-</ul>
-<p>论文认为，这些结果优于当时已有的相关模型，且具有显著的训练效率优势。Attention Is All You Need(2)</p>
-<p>BLEU 是一种常用的机器翻译评价指标，通过比较机器译文与参考译文之间的 n-gram 匹配情况来评估翻译质量。</p>
-<p>但 BLEU 并不是对翻译质量的完美衡量标准。</p>
-<p>这组实验的重要意义，在于它证明了：<strong>完全基于 Attention 的序列转换架构，不仅在理论上具有并行化优势，而且能够在真实的机器翻译任务中取得有竞争力的效果。</strong></p>
-<h2 id="11-5-消融实验告诉我们什么？"><a href="#11-5-消融实验告诉我们什么？" class="headerlink" title="11.5 消融实验告诉我们什么？"></a>11.5 消融实验告诉我们什么？</h2><p>论文还改变了模型的一些配置，观察性能变化。</p>
-<p>例如：</p>
-<ul>
-<li>将注意力头数量从多个减少为单个，模型效果有所下降。</li>
-<li>将 Key 的维度降低，模型效果也有所下降。</li>
-<li>增大模型规模，通常可以提升性能。</li>
-<li>Dropout 对减少过拟合有帮助。</li>
-<li>使用学习式位置 Embedding 替代正弦位置编码，效果接近。</li>
-</ul>
-<p>这些结论来自论文第 9 页的模型变体实验。Attention Is All You Need(2)</p>
-<p>这里需要掌握一个重要的科研阅读方法：</p>
-<p><strong>不要只看最终模型的分数，还要看论文通过什么实验，证明哪些设计可能是有效的。</strong></p>
-<p>消融实验可以帮助判断模型的哪些部分对结果有贡献，但其结论仍受实验配置、数据集和参数选择的限制。</p>
-<hr>
-<h1 id="十二、原始-Transformer-与现代-GPT-有什么区别？"><a href="#十二、原始-Transformer-与现代-GPT-有什么区别？" class="headerlink" title="十二、原始 Transformer 与现代 GPT 有什么区别？"></a>十二、原始 Transformer 与现代 GPT 有什么区别？</h1><p>这是理解这篇论文最重要的延伸问题之一。</p>
-<p>很多人学习 Transformer 时，会把原始 Transformer、GPT、BERT 以及现代大语言模型都看成同一种架构。</p>
-<p>实际上，它们存在重要差异。</p>
-<h2 id="12-1-三种典型架构"><a href="#12-1-三种典型架构" class="headerlink" title="12.1 三种典型架构"></a>12.1 三种典型架构</h2><table>
-<thead>
-<tr>
-<th>特征</th>
-<th>原始 Transformer</th>
-<th>BERT 类模型</th>
-<th>GPT 类模型</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>基本结构</td>
-<td>Encoder + Decoder</td>
-<td>Encoder-only</td>
-<td>Decoder-only</td>
-</tr>
-<tr>
-<td>主要注意力形式</td>
-<td>Encoder 双向 Self-Attention；Decoder 因果 Mask + Cross-Attention</td>
-<td>通常使用双向 Self-Attention</td>
-<td>通常使用因果 Self-Attention</td>
-</tr>
-<tr>
-<td>典型训练目标</td>
-<td>条件序列生成，例如机器翻译</td>
-<td>掩码语言建模等</td>
-<td>自回归下一 Token 预测</td>
-</tr>
-<tr>
-<td>典型用途</td>
-<td>机器翻译、序列转换</td>
-<td>文本理解、分类、抽取等</td>
-<td>文本生成、对话、代码生成等</td>
-</tr>
-</tbody></table>
-<p>这里的“通常”很重要：不同模型可能使用不同的训练目标或结构变体。</p>
-<h2 id="12-2-GPT-为什么不需要原始-Transformer-的-Encoder？"><a href="#12-2-GPT-为什么不需要原始-Transformer-的-Encoder？" class="headerlink" title="12.2 GPT 为什么不需要原始 Transformer 的 Encoder？"></a>12.2 GPT 为什么不需要原始 Transformer 的 Encoder？</h2><p>原始 Transformer 的任务是：</p>
-<p>[<br>\text{源语言}\rightarrow\text{目标语言}<br>]</p>
-<p>因此，它需要：</p>
-<ul>
-<li>Encoder 处理源语言。</li>
-<li>Decoder 生成目标语言。</li>
-<li>Cross-Attention 将源语言信息传递给 Decoder。</li>
-</ul>
-<p>GPT 类模型的核心任务则是根据已有上下文预测下一个 Token：</p>
-<p>[<br>P(x_t\mid x_1,x_2,\ldots,x_{t-1})<br>]</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">输入：</span><br><span class="line">人工智能的发展正在</span><br><span class="line"></span><br><span class="line">预测：</span><br><span class="line">改变</span><br></pre></td></tr></table></figure>
-
-<p>生成下一个 Token 后，再把它加入上下文：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">人工智能的发展正在改变</span><br></pre></td></tr></table></figure>
-
-<p>然后继续预测。</p>
-<p>这种任务本身不需要一个独立的源序列 Encoder，因此可以采用 Decoder-only 架构。</p>
-<p>在典型 GPT 模型中，输入 Token 经过 Embedding 和位置处理后，进入多层 Transformer Block。每个 Block 通过因果 Self-Attention 和 FFN 等组件更新表示，最终预测下一个 Token 的概率分布。</p>
-<p>这里要注意：现代 GPT Block 往往采用 Pre-LN、不同的位置机制、不同的 FFN 结构和高效 Attention 实现，并不等同于原论文的原始 Block。</p>
-<h2 id="12-3-为什么现代-LLM-通常采用-Decoder-only？"><a href="#12-3-为什么现代-LLM-通常采用-Decoder-only？" class="headerlink" title="12.3 为什么现代 LLM 通常采用 Decoder-only？"></a>12.3 为什么现代 LLM 通常采用 Decoder-only？</h2><p>一个重要原因是，自回归语言建模可以统一成一个简单目标：</p>
-<h1 id="boxed-mathcal-L"><a href="#boxed-mathcal-L" class="headerlink" title="[\boxed{\mathcal{L}"></a>[<br>\boxed{<br>\mathcal{L}</h1><p>-\sum_{t&#x3D;1}^{T}<br>\log P(x_t\mid x_{&lt;t})<br>}<br>]</p>
-<p>其中：</p>
-<ul>
-<li>(x_t)：当前位置的目标 Token。</li>
-<li>(x_{&lt;t})：之前的 Token。</li>
-<li>(P(x_t\mid x_{&lt;t}))：模型预测当前位置 Token 的概率。</li>
-</ul>
-<p>训练时，模型可以输入完整的文本序列，通过 Causal Mask 并行计算不同位置的预测。</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">输入序列：</span><br><span class="line">The cat sat on the mat</span><br><span class="line"></span><br><span class="line">训练目标：</span><br><span class="line">The → cat</span><br><span class="line">The cat → sat</span><br><span class="line">The cat sat → on</span><br><span class="line">The cat sat on → the</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>实际实现中，通常会将输入序列整体右移形成预测目标，并使用一次前向传播计算多个位置的损失。</p>
-<p>这使得训练过程能够高效利用 GPU。</p>
-<p>但推理时，如果采用逐 Token 自回归生成，仍然需要依赖前一步的生成结果。</p>
-<h2 id="12-4-原论文中哪些思想被现代-LLM-保留了？"><a href="#12-4-原论文中哪些思想被现代-LLM-保留了？" class="headerlink" title="12.4 原论文中哪些思想被现代 LLM 保留了？"></a>12.4 原论文中哪些思想被现代 LLM 保留了？</h2><p>很多现代大语言模型虽然已经不再使用原始 Encoder-Decoder 结构，但仍然保留了 Transformer 的核心思想：</p>
-<ol>
-<li>通过 Attention 实现 Token 之间的信息交互。</li>
-<li>使用多头机制进行并行表示学习。</li>
-<li>通过残差连接支持深层网络训练。</li>
-<li>使用 FFN 等模块进行非线性特征变换。</li>
-<li>通过位置机制引入序列顺序信息。</li>
-<li>利用大规模数据训练模型参数。</li>
-</ol>
-<p>而以下内容在后续发展中出现了很多变化：</p>
-<ul>
-<li>Encoder-Decoder、Encoder-only、Decoder-only 的结构选择。</li>
-<li>Post-LN 与 Pre-LN 等归一化方式。</li>
-<li>正弦位置编码与 RoPE 等位置机制。</li>
-<li>ReLU FFN 与 SwiGLU 等前馈结构。</li>
-<li>标准 Multi-Head Attention 与 Grouped-Query Attention。</li>
-<li>原始 Attention 的直接计算与 FlashAttention 等优化实现。</li>
-</ul>
-<p>因此，学习原始论文时，需要区分两个层面：</p>
-<p><strong>第一层：理解原始 Transformer 的完整设计。</strong></p>
-<p><strong>第二层：理解现代大语言模型为什么在此基础上做出了各种改进。</strong></p>
-<p>如果直接从现代 GPT 源码入手，很容易把大量不同年代、不同目的的设计混在一起，反而难以理解最初的原理。</p>
-<hr>
-<h1 id="十三、这篇论文有哪些局限？"><a href="#十三、这篇论文有哪些局限？" class="headerlink" title="十三、这篇论文有哪些局限？"></a>十三、这篇论文有哪些局限？</h1><p>经典论文并不意味着其方案在所有场景下都是最优的。</p>
-<p>如果想真正理解 Transformer，就需要同时理解它的优势与代价。</p>
-<h2 id="13-1-全局-Attention-的二次复杂度"><a href="#13-1-全局-Attention-的二次复杂度" class="headerlink" title="13.1 全局 Attention 的二次复杂度"></a>13.1 全局 Attention 的二次复杂度</h2><p>对于长度为 (n) 的序列，全局 Attention 的主要计算复杂度为：</p>
-<p>[<br>O(n^2d)<br>]</p>
-<p>当上下文长度非常大时，计算与内存成本会快速增长。</p>
-<p>这是后续大量高效 Attention 研究的重要动机。</p>
-<h2 id="13-2-自回归生成仍然具有顺序依赖"><a href="#13-2-自回归生成仍然具有顺序依赖" class="headerlink" title="13.2 自回归生成仍然具有顺序依赖"></a>13.2 自回归生成仍然具有顺序依赖</h2><p>虽然训练阶段可以并行处理多个位置，但 GPT 类模型在推理时通常仍然逐 Token 生成。</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">生成 Token 1</span><br><span class="line">      ↓</span><br><span class="line">生成 Token 2</span><br><span class="line">      ↓</span><br><span class="line">生成 Token 3</span><br><span class="line">      ↓</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
-
-<p>因此，Transformer 并没有彻底消除生成过程中的顺序依赖。</p>
-<p>KV Cache 等技术能够减少重复计算，但不能消除下一 Token 对前面生成结果的依赖。</p>
-<h2 id="13-3-位置编码不能自动保证长上下文泛化"><a href="#13-3-位置编码不能自动保证长上下文泛化" class="headerlink" title="13.3 位置编码不能自动保证长上下文泛化"></a>13.3 位置编码不能自动保证长上下文泛化</h2><p>原论文选择正弦位置编码，一个原因是它可以在训练位置范围之外继续计算。</p>
-<p>但这并不代表模型必然能够可靠地利用任意长度的上下文。</p>
-<p>长上下文能力还受到训练数据、模型规模、位置机制、注意力实现和训练目标等多方面因素影响。</p>
-<h2 id="13-4-Attention-权重不等于完整的解释"><a href="#13-4-Attention-权重不等于完整的解释" class="headerlink" title="13.4 Attention 权重不等于完整的解释"></a>13.4 Attention 权重不等于完整的解释</h2><p>原论文观察到，一些注意力头呈现出与句法关系、长距离依赖和指代消解有关的模式。</p>
-<p>这为理解模型行为提供了有价值的线索。</p>
-<p>但是，不能据此认为：</p>
-<blockquote>
-<p>只要观察 Attention 权重，就可以完全解释模型为什么得出某个结论。</p>
-</blockquote>
-<p>模型的最终输出还受到多层表示变换、残差连接、FFN 和输出投影等多种因素影响。</p>
-<h2 id="13-5-论文并没有解决今天所有的大模型问题"><a href="#13-5-论文并没有解决今天所有的大模型问题" class="headerlink" title="13.5 论文并没有解决今天所有的大模型问题"></a>13.5 论文并没有解决今天所有的大模型问题</h2><p>这篇论文提出的是一种序列建模架构，而不是一个完整的大语言模型训练与应用方案。</p>
-<p>它并未直接解决今天大模型工程中的全部问题，例如：</p>
-<ul>
-<li>超大规模分布式训练。</li>
-<li>指令微调与偏好对齐。</li>
-<li>检索增强生成。</li>
-<li>工具调用与 Agent 编排。</li>
-<li>长上下文高效推理。</li>
-<li>多模态模型训练。</li>
-<li>模型安全与可靠性。</li>
-</ul>
-<p>这些方向需要在 Transformer 基础上继续学习其他论文与技术。</p>
-<hr>
-<h1 id="十四、如何真正掌握这篇论文：推荐的学习与实验路线"><a href="#十四、如何真正掌握这篇论文：推荐的学习与实验路线" class="headerlink" title="十四、如何真正掌握这篇论文：推荐的学习与实验路线"></a>十四、如何真正掌握这篇论文：推荐的学习与实验路线</h1><p>如果你的目标不只是看懂论文，而是希望能够深入研究大模型、实现 Transformer，并将其应用到 AI 工程中，我建议采用以下学习路线。</p>
-<p>重点不是背诵公式，而是能够从输入开始，独立解释每个模块的作用，推导关键张量的形状，并通过实验验证理解。</p>
-<h2 id="阶段一：数学基础与张量运算"><a href="#阶段一：数学基础与张量运算" class="headerlink" title="阶段一：数学基础与张量运算"></a>阶段一：数学基础与张量运算</h2><p><strong>目标：真正理解 Attention 公式，而不是只会抄写。</strong></p>
-<p>需要掌握：</p>
-<ul>
-<li>向量、矩阵与矩阵乘法。</li>
-<li>转置、广播与张量维度。</li>
-<li>点积与向量相似性。</li>
-<li>Softmax 的计算方式。</li>
-<li>导数、梯度与链式法则的基本概念。</li>
-<li>神经网络中的线性层与反向传播。</li>
-</ul>
-<p>建议动手完成：</p>
-<ol>
-<li>使用 NumPy 实现 Softmax。</li>
-<li>手动计算 (QK^\top)。</li>
-<li>手动计算缩放后的 Attention 分数。</li>
-<li>实现 (AV) 的加权聚合。</li>
-<li>对比不同 (d_k) 下缩放前后的分数分布。</li>
-</ol>
-<p>验收标准：</p>
-<p>给定任意小型 Q、K、V 矩阵，能够手算并通过代码验证 Attention 的完整输出。</p>
-<h2 id="阶段二：从零实现-Scaled-Dot-Product-Attention"><a href="#阶段二：从零实现-Scaled-Dot-Product-Attention" class="headerlink" title="阶段二：从零实现 Scaled Dot-Product Attention"></a>阶段二：从零实现 Scaled Dot-Product Attention</h2><p>使用 PyTorch 实现：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> math</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">scaled_dot_product_attention</span>(<span class="params">q, k, v, mask=<span class="literal">None</span></span>):</span><br><span class="line">    scores = q @ k.transpose(-<span class="number">2</span>, -<span class="number">1</span>)</span><br><span class="line">    scores = scores / math.sqrt(q.size(-<span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> mask <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        scores = scores.masked_fill(</span><br><span class="line">            ~mask.<span class="built_in">bool</span>(),</span><br><span class="line">            <span class="built_in">float</span>(<span class="string">&quot;-inf&quot;</span>),</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    weights = F.softmax(scores, dim=-<span class="number">1</span>)</span><br><span class="line">    output = weights @ v</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> output, weights</span><br></pre></td></tr></table></figure>
-
-<p>这个实现展示了最基本的计算过程。</p>
-<p>其中：</p>
-<ul>
-<li><code>q @ k.transpose(-2, -1)</code> 计算匹配分数。</li>
-<li>除以 (\sqrt{d_k}) 进行缩放。</li>
-<li>Mask 将禁止访问的位置设置为负无穷。</li>
-<li>Softmax 得到注意力权重。</li>
-<li>与 V 相乘，得到加权聚合结果。</li>
-</ul>
-<p>注意：这个示例假设每一行至少存在一个允许访问的位置。实际工程中还需要正确处理 Padding Mask、全屏蔽行以及不同形状的 Mask。</p>
-<p>验收标准：</p>
-<ul>
-<li>能解释每一步的数学意义。</li>
-<li>能解释 <code>transpose(-2, -1)</code> 为什么必要。</li>
-<li>能解释为什么 Softmax 通常沿最后一个维度计算。</li>
-<li>能验证因果 Mask 下，未来位置的权重为零。</li>
-</ul>
-<h2 id="阶段三：实现-Multi-Head-Attention"><a href="#阶段三：实现-Multi-Head-Attention" class="headerlink" title="阶段三：实现 Multi-Head Attention"></a>阶段三：实现 Multi-Head Attention</h2><p>在阶段二的基础上，增加：</p>
-<ol>
-<li>Q、K、V 的可学习线性投影。</li>
-<li>Head 维度拆分。</li>
-<li>每个 Head 的独立 Attention。</li>
-<li>多头结果的拼接。</li>
-<li>输出线性投影。</li>
-</ol>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">输入：</span><br><span class="line">[B, T, 512]</span><br><span class="line"></span><br><span class="line">Q、K、V 投影：</span><br><span class="line">[B, T, 512]</span><br><span class="line"></span><br><span class="line">拆分 8 个 Head：</span><br><span class="line">[B, 8, T, 64]</span><br><span class="line"></span><br><span class="line">Attention 输出：</span><br><span class="line">[B, 8, T, 64]</span><br><span class="line"></span><br><span class="line">拼接：</span><br><span class="line">[B, T, 512]</span><br><span class="line"></span><br><span class="line">输出投影：</span><br><span class="line">[B, T, 512]</span><br></pre></td></tr></table></figure>
-
-<p>其中：</p>
-<ul>
-<li>(B)：Batch Size。</li>
-<li>(T)：序列长度。</li>
-<li>512：模型维度。</li>
-<li>8：注意力头数。</li>
-<li>64：每个 Head 的维度。</li>
-</ul>
-<p>验收标准：</p>
-<p>能够独立实现 Multi-Head Attention，并解释每一次 <code>reshape</code>、<code>transpose</code> 和 <code>contiguous</code> 的作用。</p>
-<h2 id="阶段四：实现完整-Encoder-Block"><a href="#阶段四：实现完整-Encoder-Block" class="headerlink" title="阶段四：实现完整 Encoder Block"></a>阶段四：实现完整 Encoder Block</h2><p>逐步加入：</p>
-<ul>
-<li>Multi-Head Self-Attention。</li>
-<li>残差连接。</li>
-<li>LayerNorm。</li>
-<li>Feed-Forward Network。</li>
-<li>Dropout。</li>
-</ul>
-<p>重点观察：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">输入形状：</span><br><span class="line">[B, T, 512]</span><br><span class="line"></span><br><span class="line">Attention 输出：</span><br><span class="line">[B, T, 512]</span><br><span class="line"></span><br><span class="line">残差 + LayerNorm：</span><br><span class="line">[B, T, 512]</span><br><span class="line"></span><br><span class="line">FFN 中间层：</span><br><span class="line">[B, T, 2048]</span><br><span class="line"></span><br><span class="line">FFN 输出：</span><br><span class="line">[B, T, 512]</span><br><span class="line"></span><br><span class="line">最终输出：</span><br><span class="line">[B, T, 512]</span><br></pre></td></tr></table></figure>
-
-<p>验收标准：</p>
-<p>不依赖现成 Transformer Block，能够自己实现一个与原论文结构一致的 Encoder Layer。</p>
-<h2 id="阶段五：实现-Decoder-与因果-Mask"><a href="#阶段五：实现-Decoder-与因果-Mask" class="headerlink" title="阶段五：实现 Decoder 与因果 Mask"></a>阶段五：实现 Decoder 与因果 Mask</h2><p>继续实现：</p>
-<ul>
-<li>Masked Self-Attention。</li>
-<li>Cross-Attention。</li>
-<li>FFN。</li>
-<li>残差连接与 LayerNorm。</li>
-<li>输出投影和 Softmax。</li>
-</ul>
-<p>重点验证两个性质：</p>
-<p><strong>性质一：因果性</strong></p>
-<p>改变未来位置的输入，不应该影响前面位置的预测结果。</p>
-<p><strong>性质二：Cross-Attention 的数据来源</strong></p>
-<p>Query 来自 Decoder，Key 和 Value 来自 Encoder。</p>
-<p>验收标准：</p>
-<p>给定源序列和目标序列，能够解释 Decoder 中三种子层的计算路径，并验证因果 Mask 正确。</p>
-<h2 id="阶段六：训练一个小型-Transformer"><a href="#阶段六：训练一个小型-Transformer" class="headerlink" title="阶段六：训练一个小型 Transformer"></a>阶段六：训练一个小型 Transformer</h2><p>不建议一开始就尝试复现原论文的完整训练规模。</p>
-<p>可以先选择一个小型机器翻译数据集，或者构造简单的序列转换任务。</p>
-<p>建议按以下顺序推进：</p>
-<ol>
-<li>训练一个小型 Encoder-Decoder Transformer。</li>
-<li>观察训练损失和验证损失。</li>
-<li>对比有无位置编码的差异。</li>
-<li>对比单头与多头 Attention。</li>
-<li>对比不同模型深度。</li>
-<li>检查因果 Mask 是否正确。</li>
-<li>尝试在小型语料上训练一个 Decoder-only 模型。</li>
-</ol>
-<p>验收标准：</p>
-<p>模型能够完成一个可验证的序列任务，并且你能够解释训练目标、Attention Mask、输出概率分布和推理过程。</p>
-<hr>
-<h1 id="十五、进一步阅读：从-Transformer-基础走向现代大模型"><a href="#十五、进一步阅读：从-Transformer-基础走向现代大模型" class="headerlink" title="十五、进一步阅读：从 Transformer 基础走向现代大模型"></a>十五、进一步阅读：从 Transformer 基础走向现代大模型</h1><p>掌握原始 Transformer 后，可以沿着以下路线继续学习。</p>
-<table>
-<thead>
-<tr>
-<th>学习方向</th>
-<th>需要解决的问题</th>
-<th>推荐学习内容</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>自回归语言模型</td>
-<td>如何通过预测下一个 Token 学习语言</td>
-<td>GPT 系列的早期论文</td>
-</tr>
-<tr>
-<td>预训练语言模型</td>
-<td>如何通过大规模预训练学习通用表示</td>
-<td>BERT</td>
-</tr>
-<tr>
-<td>计算与内存优化</td>
-<td>如何更高效地执行 Attention</td>
-<td>FlashAttention</td>
-</tr>
-<tr>
-<td>位置编码演进</td>
-<td>如何表示相对位置与扩展上下文</td>
-<td>RoPE 相关论文</td>
-</tr>
-<tr>
-<td>参数效率</td>
-<td>如何减少推理时的 KV Cache 开销</td>
-<td>Multi-Query Attention、Grouped-Query Attention</td>
-</tr>
-<tr>
-<td>模型训练</td>
-<td>如何训练更大规模的神经网络</td>
-<td>Scaling Laws、分布式训练</td>
-</tr>
-<tr>
-<td>大模型应用</td>
-<td>如何让模型使用外部知识和工具</td>
-<td>RAG、Function Calling、AI Agent</td>
-</tr>
-</tbody></table>
-<p>其中，建议优先学习 GPT、BERT 和 FlashAttention。</p>
-<p>原因是这三个方向分别对应：</p>
-<ul>
-<li>模型架构如何适配不同任务。</li>
-<li>预训练目标如何影响模型行为。</li>
-<li>Transformer 如何在现代硬件上高效运行。</li>
-</ul>
-<p>学习它们时，应当始终回到原始 Transformer 的三个核心问题：</p>
-<ol>
-<li>信息如何在 Token 之间传递？</li>
-<li>模型如何表示序列位置？</li>
-<li>网络如何通过多层变换学习复杂表示？</li>
-</ol>
-<p>只要能够持续用这三个问题分析后续技术，就不容易陷入只记住各种架构名称、却不理解设计动机的状态。</p>
-<hr>
-<h1 id="十六、最终总结：这篇论文最值得掌握的-8-个知识点"><a href="#十六、最终总结：这篇论文最值得掌握的-8-个知识点" class="headerlink" title="十六、最终总结：这篇论文最值得掌握的 8 个知识点"></a>十六、最终总结：这篇论文最值得掌握的 8 个知识点</h1><p>如果需要将整篇论文压缩为一份知识清单，我建议重点掌握以下内容。</p>
-<table>
-<thead>
-<tr>
-<th>序号</th>
-<th>核心知识点</th>
-<th>必须达到的理解程度</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>Transformer 的研究动机</td>
-<td>理解 RNN 顺序计算的限制，以及 Attention 的并行化优势</td>
-</tr>
-<tr>
-<td>2</td>
-<td>Scaled Dot-Product Attention</td>
-<td>能够推导公式，并解释缩放因子的作用</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Q、K、V</td>
-<td>理解匹配、权重与信息聚合的关系</td>
-</tr>
-<tr>
-<td>4</td>
-<td>Multi-Head Attention</td>
-<td>能够解释多头机制，并独立实现张量维度变换</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Positional Encoding</td>
-<td>理解 Self-Attention 为什么需要额外的顺序信息</td>
-</tr>
-<tr>
-<td>6</td>
-<td>Masked Self-Attention</td>
-<td>理解因果 Mask，以及训练和推理的区别</td>
-</tr>
-<tr>
-<td>7</td>
-<td>FFN、残差连接、LayerNorm</td>
-<td>理解单层 Transformer 的完整计算过程</td>
-</tr>
-<tr>
-<td>8</td>
-<td>Encoder-Decoder 与 Decoder-only</td>
-<td>理解原始 Transformer 和现代 GPT 类模型的结构差异</td>
-</tr>
-</tbody></table>
-<p>其中，最值得反复推导的是：</p>
-<h1 id="boxed-operatorname-Attention-Q-K-V-1"><a href="#boxed-operatorname-Attention-Q-K-V-1" class="headerlink" title="[\boxed{\operatorname{Attention}(Q,K,V)"></a>[<br>\boxed{<br>\operatorname{Attention}(Q,K,V)</h1><p>\operatorname{softmax}<br>\left(<br>\frac{QK^\top}{\sqrt{d_k}}<br>\right)V<br>}<br>]</p>
-<p>以及：</p>
-<h1 id="boxed-operatorname-MultiHead-Q-K-V-1"><a href="#boxed-operatorname-MultiHead-Q-K-V-1" class="headerlink" title="[\boxed{\operatorname{MultiHead}(Q,K,V)"></a>[<br>\boxed{<br>\operatorname{MultiHead}(Q,K,V)</h1><p>\operatorname{Concat}(head_1,\ldots,head_h)W^O<br>}<br>]</p>
-<p>第一条公式解释了 Token 如何根据上下文动态聚合信息。</p>
-<p>第二条公式解释了模型如何通过多个注意力头，在不同表示子空间中并行处理信息。</p>
-<p>再结合位置编码、FFN、残差连接和 LayerNorm，就可以建立起原始 Transformer 的完整计算图。</p>
-<p><strong>我最建议的下一步，不是继续阅读更多论文，而是亲手实现一个最小 Transformer。</strong> 从矩阵乘法开始，逐步实现 Attention、Multi-Head Attention、Encoder、Decoder，再对照原论文检查每个张量的形状和计算结果。</p>
-<p>当你能够独立实现这些模块，并解释每个设计的动机和代价时，你才真正掌握了这篇论文的核心，而不仅仅是记住了 Transformer 的术语。</p>
 
       
     </div>

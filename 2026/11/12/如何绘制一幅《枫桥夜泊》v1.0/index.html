@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"crazyf-wind.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":true,"height":240},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="封面：1.6 秒处的开场。月亮已经压得很低，石拱桥和枫林只是江岸上的剪影，月光在江面拉出一条断续的银蓝色碎影。  模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。 这篇文章复盘的是：一份把《枫桥夜泊》拆成空间、时间与机制的提示词，如何落成一个可漫游的三维场景，并导出成 40 秒、6">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何绘制一幅《枫桥夜泊》v1.0">
+<meta property="og:url" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/index.html">
+<meta property="og:site_name" content="fwind&#39;s blog">
+<meta property="og:description" content="封面：1.6 秒处的开场。月亮已经压得很低，石拱桥和枫林只是江岸上的剪影，月光在江面拉出一条断续的银蓝色碎影。  模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。 这篇文章复盘的是：一份把《枫桥夜泊》拆成空间、时间与机制的提示词，如何落成一个可漫游的三维场景，并导出成 40 秒、6">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/cover.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/maple-fishing.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/hanshan-temple.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/bell-tower.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/bell-sound.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/poet-boat.jpg">
+<meta property="og:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/finale.jpg">
+<meta property="article:published_time" content="2026-11-12T12:30:00.000Z">
+<meta property="article:modified_time" content="2026-11-12T12:35:46.099Z">
+<meta property="article:author" content="fwind">
+<meta property="article:tag" content="Three.js,Claude Code,提示词,3D">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/cover.jpg">
+
+
+<link rel="canonical" href="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/","path":"2026/11/12/如何绘制一幅《枫桥夜泊》v1.0/","title":"如何绘制一幅《枫桥夜泊》v1.0"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>如何绘制一幅《枫桥夜泊》v1.0 | fwind's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">fwind's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">coder</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E8%A8%80%EF%BC%9A%E4%BA%8C%E5%8D%81%E5%85%AB%E4%B8%AA%E5%AD%97%EF%BC%8C%E5%9B%9B%E5%8D%81%E7%A7%92"><span class="nav-number">1.</span> <span class="nav-text">引言：二十八个字，四十秒</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E8%AF%97%E9%87%8C%E8%83%BD%E5%8A%A8%E7%9A%84%EF%BC%8C%E6%98%AF%E5%8A%A8%E8%AF%8D"><span class="nav-number">2.</span> <span class="nav-text">一、诗里能动的，是动词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%85%88%E5%AE%9A%E4%B8%96%E7%95%8C%E5%9F%BA%E5%87%86%EF%BC%8C%E5%86%8D%E8%B0%88%E7%89%A9%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">二、先定世界基准，再谈物件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%9B%9B%E5%8F%A5%E8%AF%97%EF%BC%8C%E5%9B%9B%E7%A7%8D%E6%9C%BA%E5%88%B6"><span class="nav-number">4.</span> <span class="nav-text">三、四句诗，四种机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9C%88%E8%90%BD%E4%B9%8C%E5%95%BC%E9%9C%9C%E6%BB%A1%E5%A4%A9"><span class="nav-number">4.1.</span> <span class="nav-text">1. 月落乌啼霜满天</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%B1%9F%E6%9E%AB%E6%B8%94%E7%81%AB%E5%AF%B9%E6%84%81%E7%9C%A0"><span class="nav-number">4.2.</span> <span class="nav-text">2. 江枫渔火对愁眠</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%A7%91%E8%8B%8F%E5%9F%8E%E5%A4%96%E5%AF%92%E5%B1%B1%E5%AF%BA"><span class="nav-number">4.3.</span> <span class="nav-text">3. 姑苏城外寒山寺</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%A4%9C%E5%8D%8A%E9%92%9F%E5%A3%B0%E5%88%B0%E5%AE%A2%E8%88%B9"><span class="nav-number">4.4.</span> <span class="nav-text">4. 夜半钟声到客船</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%B0%B4%E9%9D%A2%EF%BC%9A%E5%9B%9B%E5%8F%A5%E8%AF%97%E5%8F%A0%E5%9C%A8%E5%90%8C%E4%B8%80%E4%B8%AA-shader-%E9%87%8C"><span class="nav-number">5.</span> <span class="nav-text">四、水面：四句诗叠在同一个 shader 里</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%8140-%E7%A7%92%E6%98%AF%E4%B8%80%E6%9D%A1%E5%87%BD%E6%95%B0"><span class="nav-number">6.</span> <span class="nav-text">五、40 秒是一条函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E4%B8%89%E4%B8%AA%E7%9C%8B%E5%BE%97%E8%A7%81%E7%9A%84%E5%9D%91"><span class="nav-number">7.</span> <span class="nav-text">六、三个看得见的坑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E5%AF%BC%E5%87%BA%EF%BC%9A2400-%E5%B8%A7%E4%B8%8E%E4%B8%A4%E7%89%88%E9%85%8D%E4%B9%90"><span class="nav-number">8.</span> <span class="nav-text">七、导出：2400 帧与两版配乐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E8%BF%99%E4%BB%BD%E6%8F%90%E7%A4%BA%E8%AF%8D%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E6%95%88"><span class="nav-number">9.</span> <span class="nav-text">八、这份提示词为什么有效</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E8%BE%B9%E7%95%8C%EF%BC%9A%E5%9C%BA%E6%99%AF%E8%83%BD%E7%94%BB%E5%88%B0%E5%93%AA%E9%87%8C"><span class="nav-number">10.</span> <span class="nav-text">九、边界：场景能画到哪里</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E5%A4%8D%E7%8E%B0"><span class="nav-number">11.</span> <span class="nav-text">十、复现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD%EF%BC%9A%E5%85%88%E6%89%BE%E5%88%B0%E9%82%A3%E5%8F%A5%E8%AF%97%E7%9A%84%E3%80%8C%E6%9C%BA%E5%88%B6%E3%80%8D"><span class="nav-number">12.</span> <span class="nav-text">结语：先找到那句诗的「机制」</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E4%B8%8E%E8%87%B4%E8%B0%A2"><span class="nav-number">13.</span> <span class="nav-text">引用与致谢</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">fwind</p>
+  <div class="site-description" itemprop="description">code</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="如何绘制一幅《枫桥夜泊》v1.0 | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何绘制一幅《枫桥夜泊》v1.0
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-11-12 20:30:00 / 修改时间：20:35:46" itemprop="dateCreated datePublished" datetime="2026-11-12T20:30:00+08:00">2026-11-12</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/cover.jpg" alt="月落江天：开场镜头里的枫桥、江面与压在天际线上的月亮"></p>
+<p><em>封面：1.6 秒处的开场。月亮已经压得很低，石拱桥和枫林只是江岸上的剪影，月光在江面拉出一条断续的银蓝色碎影。</em></p>
+<blockquote>
+<p>模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。</p>
+<p>这篇文章复盘的是：一份把《枫桥夜泊》拆成空间、时间与机制的提示词，如何落成一个可漫游的三维场景，并导出成 40 秒、60 fps 的短片。下文把输入的那份提示词称为「世界说明书」，把产出称为「场景 v1」。</p>
+</blockquote>
+<h2 id="引言：二十八个字，四十秒"><a href="#引言：二十八个字，四十秒" class="headerlink" title="引言：二十八个字，四十秒"></a>引言：二十八个字，四十秒</h2><p>《枫桥夜泊》只有二十八个字。它写了月、乌、霜、江、枫、渔火、姑苏城、寒山寺、钟声、客船。如果只是把这些名词做成模型，一件件摆进画面，得到的是一张会动的明信片，不是这首诗。</p>
+<p>诗里真正难画的是动词和时间：月「落」，乌「啼」，霜「满天」，渔火「对」愁眠，钟声「到」客船。落是一个过程，到是一段延迟。把诗变成场景，关键不是把名词堆齐，而是为每个动作找到一个可以被渲染的机制。</p>
+<p>这份世界说明书一共十一节，从色彩、建模、动态、镜头、字幕，一直写到导出规格。它不像一份「元素清单」，更像一份世界的说明书：先规定这个夜晚的光、色、尺度和方位，再规定什么东西在什么时候动。</p>
+<p>先说结论：<strong>这首诗最适合被拆成四条时间轴——月落的轴、风吹叶落的轴、寺院显形的轴、钟声抵达的轴。四条轴对齐在同一个 40 秒里，诗就成了镜头。</strong></p>
+<h2 id="一、诗里能动的，是动词"><a href="#一、诗里能动的，是动词" class="headerlink" title="一、诗里能动的，是动词"></a>一、诗里能动的，是动词</h2><p>把四句诗拆开，会看到两种东西：布景和机制。</p>
+<table>
+<thead>
+<tr>
+<th>诗句</th>
+<th>布景（名词）</th>
+<th>机制（动词 &#x2F; 时间）</th>
+<th>主要实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>月落乌啼霜满天</td>
+<td>月、乌、霜、天</td>
+<td>落、啼、满天</td>
+<td><code>sky.js</code>、<code>birds.js</code>、<code>mist.js</code></td>
+</tr>
+<tr>
+<td>江枫渔火对愁眠</td>
+<td>枫、渔火、客船</td>
+<td>并置、静默、摇曳</td>
+<td><code>trees.js</code>、<code>fishing.js</code>、<code>boat.js</code></td>
+</tr>
+<tr>
+<td>姑苏城外寒山寺</td>
+<td>城、寺、山</td>
+<td>城外（距离）、显现</td>
+<td><code>terrain.js</code>、<code>temple.js</code>、雾</td>
+</tr>
+<tr>
+<td>夜半钟声到客船</td>
+<td>钟、船</td>
+<td>到（传播延迟）</td>
+<td><code>temple.js</code>、<code>water.js</code>、<code>audio.js</code></td>
+</tr>
+</tbody></table>
+<p>名词决定场景的体积，动词决定动画的预算。提示词里最值钱的句子，往往不是「要有枫树」，而是「部分落叶随风飘落，偶尔落在江面」——它把一棵树从一个静态模型，变成了一个持续发生的系统。</p>
+<p>这份提示词还有一个很清楚的取舍：它反复写「不要」。不要做成暴雪，不要科幻雷达波，不要霓虹圆环，不要平面插画代替三维场景，不要让船悬空或穿模。这些禁止项不是修辞，它们是在提前排除模型在信息不足时最容易选择的默认解。</p>
+<h2 id="二、先定世界基准，再谈物件"><a href="#二、先定世界基准，再谈物件" class="headerlink" title="二、先定世界基准，再谈物件"></a>二、先定世界基准，再谈物件</h2><p>场景 v1 的所有坐标都收在一份 <code>src/config.js</code> 里。这不是为了代码整洁，而是为了让「江」成为整个世界的基准。</p>
+<p>坐标系沿用仓库约定：X 轴向东，Z 轴向南，Y 轴向上，1 个世界单位约等于 1 米。河道沿 X 轴展开，<code>z = 0</code> 是江心；南岸是近景的枫桥、枫林、码头与客船，北岸抬升为寒山寺所在的山坡。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="variable constant_">WORLD</span> = &#123;</span><br><span class="line">  <span class="attr">waterLevel</span>: <span class="number">0.35</span>,</span><br><span class="line">  <span class="attr">landLevel</span>: <span class="number">1.35</span>,</span><br><span class="line">  <span class="attr">bankTop</span>: <span class="number">1.6</span>,</span><br><span class="line">  <span class="attr">riverHalfWidth</span>: <span class="number">34</span>,</span><br><span class="line">  <span class="attr">riverLength</span>: <span class="number">520</span>,</span><br><span class="line">  <span class="attr">templeBase</span>: <span class="number">9.2</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="variable constant_">LAYOUT</span> = &#123;</span><br><span class="line">  <span class="attr">bridge</span>: &#123; <span class="attr">x</span>: -<span class="number">42</span>, <span class="attr">z</span>: <span class="number">0</span>, <span class="attr">width</span>: <span class="number">7.2</span>, <span class="attr">span</span>: <span class="number">74</span>, <span class="attr">rise</span>: <span class="number">11.5</span> &#125;,</span><br><span class="line">  <span class="attr">boat</span>:   &#123; <span class="attr">x</span>: <span class="number">14</span>, <span class="attr">z</span>: <span class="number">23.4</span>, <span class="attr">heading</span>: -<span class="number">0.16</span> &#125;,</span><br><span class="line">  <span class="attr">temple</span>: &#123; <span class="attr">x</span>: <span class="number">42</span>, <span class="attr">z</span>: -<span class="number">118</span>, <span class="attr">y</span>: <span class="variable constant_">WORLD</span>.<span class="property">templeBase</span> &#125;,</span><br><span class="line">  <span class="attr">bell</span>:   &#123; <span class="attr">x</span>: <span class="number">47</span>, <span class="attr">z</span>: -<span class="number">126</span>, <span class="attr">y</span>: <span class="number">20.5</span> &#125;,</span><br><span class="line">  <span class="attr">moonDir</span>: <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(-<span class="number">0.55</span>, <span class="number">0.08</span>, -<span class="number">0.83</span>).<span class="title function_">normalize</span>(),</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>水面高度、陆地高度、河宽、寺院台基，是四个共享的水平面。桥、船、树、寺、渔火都从这几个常量上长出来，而不是各自记一套魔法数字。客船到寺院在 Z 方向上相差 141.4 个单位；这个距离不是随手写的，它同时决定了第 16–26 秒镜头隔着多远的江面去「看」寺院，以及雾要浓到什么程度，才能让寺院「若隐若现」。</p>
+<p>月亮的方向也是常量：<code>(-0.55, 0.08, -0.83)</code>，仰角大约 4.5°。它压在西北天际线附近，所以才有「落」的余地。提示词里那句「月亮位于远山与天际线附近，呈现月落状态」，最后落成一个随时间缓慢下沉的方向函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">moonDirectionAt</span>(<span class="params">t</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> drop = <span class="variable constant_">THREE</span>.<span class="property">MathUtils</span>.<span class="title function_">clamp</span>(t / <span class="number">40</span>, <span class="number">0</span>, <span class="number">1</span>);</span><br><span class="line">  <span class="keyword">const</span> az = -<span class="number">0.55</span> - drop * <span class="number">0.01</span>;</span><br><span class="line">  <span class="keyword">const</span> elevation = <span class="number">0.078</span> - drop * <span class="number">0.03</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(az, elevation, -<span class="number">1</span>).<span class="title function_">normalize</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>40 秒里，仰角从约 4.5° 降到约 2.7°。变化很小，小到单看一帧几乎察觉不到；但把它交给时间轴，月亮就真的在落。<strong>诗里的「落」不是一个状态，是一个斜率。</strong></p>
+<h2 id="三、四句诗，四种机制"><a href="#三、四句诗，四种机制" class="headerlink" title="三、四句诗，四种机制"></a>三、四句诗，四种机制</h2><h3 id="1-月落乌啼霜满天"><a href="#1-月落乌啼霜满天" class="headerlink" title="1. 月落乌啼霜满天"></a>1. 月落乌啼霜满天</h3><p>这一句有三个动作，分别落在三个模块里。</p>
+<p>天空是一整块 shader。月盘、月海、边缘亮环、月晕、贴近地平线的薄云和稀疏星光都在同一个片元着色器里计算。星光用 <code>step(0.9981, star)</code> 筛出来——只保留约千分之二的网格，正好是「少量星光，不要过度密集」的分量。</p>
+<p>乌鸦是低多边形剪影：身体、头、喙、尾，两片可以上下扇动的翅膀。三只乌鸦各自沿一条 <code>CatmullRomCurve3</code> 飞行，用 <code>getPointAt</code> 取位置、用切线定朝向，转弯时按曲率侧倾，翅膀按正弦节奏扇动。它们只在各自的时间窗里出现，所以画面里始终只有一两只，不会变成一群。</p>
+<p>「霜满天」最容易被做错。提示词专门写了「不应把画面做成暴雪或大面积飘雪」。最终的方案是 520 个极细的霜粒，加上贴着水面缓慢流动的雾片；它们不是天气系统，只是一层几乎看不清的冷凝感。观众不会注意到霜粒，但会觉得空气是冷的。</p>
+<p>这就是「意境」在工程里的样子：<strong>不是把比喻做大，而是把它做小，小到刚好能被感觉到。</strong></p>
+<h3 id="2-江枫渔火对愁眠"><a href="#2-江枫渔火对愁眠" class="headerlink" title="2. 江枫渔火对愁眠"></a>2. 江枫渔火对愁眠</h3><p>枫树是递归生成的。主干分出枝，枝再分叉，直到末梢；叶簇和带枫叶剪影的叶片卡片全部用 <code>InstancedMesh</code>。真正让树「活」起来的是一段注入到材质里的顶点风场：每个顶点按世界坐标和时间获得一个很小的位移，整片树冠因此以不同的相位轻轻摇动。</p>
+<p>但只有整片摇动还不够。提示词还要「少量枫叶从树枝上脱落，飘落江面」。于是另有 120 片独立模拟的落叶：每片有自己的速度、旋转和相位，受重力和侧风影响；落到 <code>waterLevel + 0.015</code> 时停止下落，转为漂浮，漂 8–12 秒再重新生成。</p>
+<p>这里有一个很实用的分层：<strong>大面积的叶子交给 GPU 的顶点着色器，少量需要「叙事」的叶子交给 CPU 逐片模拟。</strong> 如果 120 片叶子也走 shader，它们会整齐得像一场雨；如果整棵树都走 CPU，2K &#x2F; 60 fps 的预算立刻不够。</p>
+<p>渔火是另一层。江面上有五艘渔船，分布在远近不同的位置，每盏灯有自己的闪烁相位。它们通过 <code>water.setLantern(index, position, color, power)</code> 注册到水面 shader，最多 10 盏。船上的灯是暖橙色 <code>#FFAD58</code>，月光是银蓝色 <code>#B7C9DE</code>；这一冷一暖的对比，就是「对愁眠」里那个「对」字的视觉支点。</p>
+<p>客船停在 <code>(14, 23.4)</code>。船体由逐站截面放样，木舱、竹篷、桅杆、收帆、缆绳和船头灯笼各自成组；船身随水流横摇、升沉、轻微偏航，舱内暖光与窗棂后的诗人剪影保持安静。提示词说人物「不需要复杂的人物动画」，这个克制是对的——诗人一动，画面就从「夜泊」变成了「夜航」。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/maple-fishing.jpg" alt="江枫渔火：枫林、渔船灯火与石桥"></p>
+<p><em>图 1：9 秒处的江岸。枫树的暗红树冠压在画面上方，渔船灯火在江面拉出暖色倒影；冷的月光和暖的渔火在同一个水面 shader 里共存。</em></p>
+<h3 id="3-姑苏城外寒山寺"><a href="#3-姑苏城外寒山寺" class="headerlink" title="3. 姑苏城外寒山寺"></a>3. 姑苏城外寒山寺</h3><p>寒山寺在 <code>z = -118</code>，客船在 <code>z = 23.4</code>，中间隔着 141 个单位的江面。提示词要求「建筑轮廓能够被观众辨认，但不应过于突出」「寺院与客船之间存在明确的空间距离」。场景没有靠把寺院做小来实现「远」，而是叠了三层：</p>
+<ol>
+<li><strong>距离</strong>：寺院真的在江对岸的山坡上，台基高度 <code>9.2</code>，从客船看过去需要仰视。</li>
+<li><strong>雾</strong>：<code>FogExp2</code>，密度 <code>0.0029</code>，越远越接近雾的颜色 <code>#27313F</code>。</li>
+<li><strong>景深</strong>：<code>BokehPass</code> 的聚焦距离随相机与注视点更新，远处的屋檐自然变软。</li>
+</ol>
+<p>寺院的建筑本身共用一套屋面生成器。山门、主殿、偏殿、钟楼、五层塔的屋顶都由同一个函数生成，用 <code>t</code> 参数控制屋脊高度、坡面曲率和四角起翘；改变尺寸与起翘量，就能得到不同等级的建筑。这样做的价值不在省代码，而在<strong>风格一致</strong>：所有屋檐的弧线来自同一个曲面族，远看才不会像拼贴。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/hanshan-temple.jpg" alt="雾中寒山寺：对岸的寺院与钟楼"></p>
+<p><em>图 2：24 秒处，寒山寺从雾里显形。寺院被距离、雾和景深三层推开，轮廓可辨，但不抢客船。</em></p>
+<h3 id="4-夜半钟声到客船"><a href="#4-夜半钟声到客船" class="headerlink" title="4. 夜半钟声到客船"></a>4. 夜半钟声到客船</h3><p>这是全诗唯一一句明确写了「传播」的诗。前三句都是视觉，第四句突然变成听觉；而且「到」字说明钟声不是同时在所有地方响，它需要时间。</p>
+<p>场景把这件事写成了绝对时间：</p>
+<ul>
+<li><code>STRIKE_TIME = 28.6</code> 秒，撞木在 25.6 秒开始向后拉开，28.2 秒开始荡向古钟，28.6 秒撞上。</li>
+<li>钟体在撞击后按指数衰减摆动：<code>sin(strike * 4.1) * 0.105 * exp(-strike * 0.85)</code>。</li>
+<li>钟体本身还有极细的震动：<code>sin(strike * 38) * 0.012 * pulse</code>，同时暖光按 <code>exp(-strike * 1.7)</code> 脉冲一次。</li>
+<li>31.1 秒和 32.4 秒，江面在客船附近出现两组同心涟漪——这是钟声「到」的时刻，距离撞钟晚了 2.5 秒和 3.8 秒。</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> strike = time - <span class="variable constant_">STRIKE_TIME</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 钟摆：先自由微摆，撞后叠加一段指数衰减</span></span><br><span class="line"><span class="keyword">let</span> bellAngle = <span class="title class_">Math</span>.<span class="title function_">sin</span>(time * <span class="number">0.55</span>) * <span class="number">0.008</span>;</span><br><span class="line"><span class="keyword">if</span> (strike &gt; <span class="number">0</span>) &#123;</span><br><span class="line">  bellAngle += <span class="title class_">Math</span>.<span class="title function_">sin</span>(strike * <span class="number">4.1</span>) * <span class="number">0.105</span> * <span class="title class_">Math</span>.<span class="title function_">exp</span>(-strike * <span class="number">0.85</span>);</span><br><span class="line">&#125;</span><br><span class="line">tower.<span class="property">bellGroup</span>.<span class="property">rotation</span>.<span class="property">z</span> = bellAngle;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 钟体被撞后的细微震动</span></span><br><span class="line"><span class="keyword">const</span> pulse = strike &gt; <span class="number">0</span> ? <span class="title class_">Math</span>.<span class="title function_">exp</span>(-strike * <span class="number">1.7</span>) * <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="number">1</span>, strike * <span class="number">8</span>) : <span class="number">0</span>;</span><br><span class="line">tower.<span class="property">bellMesh</span>.<span class="property">position</span>.<span class="property">x</span> = <span class="title class_">Math</span>.<span class="title function_">sin</span>(strike * <span class="number">38</span>) * <span class="number">0.012</span> * pulse;</span><br></pre></td></tr></table></figure>
+
+<p>声波的视觉化是最容易过火的地方。提示词写得很明确：「使用透明环形波纹、空气扰动等视觉方式」「不要使用科幻雷达波或夸张的霓虹圆环」。最终的实现是四道 220×220 的平面，加法混合，半径在 7 秒内从 0.06 扩到 0.76；透明度只有 <code>0.045 - i * 0.006</code>，波前还被噪声打散成不连续的弧。换句话说，它几乎看不见——只在寺院前的雾里留下一圈很淡的扰动。</p>
+<p>江面的涟漪则通过 uniform 写进水面 shader：最多 6 组 <code>(x, z, 起始时间, 强度)</code>，每组的径向斜率叠加到基础波场上。钟声抵达时，涟漪从客船附近向外扩散，和月光、渔火共用同一套法线。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/bell-tower.jpg" alt="钟楼与古钟：撞钟前的瞬间"></p>
+<p><em>图 3：34 秒处的钟楼。古钟悬在二层，撞木已经荡开；钟体的青铜色和寺院的暖光只在局部出现。</em></p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/bell-sound.jpg" alt="声波越过江面：四道极淡的环形波前"></p>
+<p><em>图 4：30.4 秒，钟声正在越过江面。波前被噪声打散，透明度极低，只够让雾和江面轻轻动一下。</em></p>
+<p>声音本身由 Web Audio 实时合成：钟声是几组带轻微拍频的正弦分音，乌鸦是滤波后的噪声脉冲，水声和风声是噪声加低频振荡；混响发送量 <code>0.36</code>，让钟声在江面上留一条尾巴。成片音轨则用 Python 离线渲染，和画面在同一张时间表上对齐。</p>
+<h2 id="四、水面：四句诗叠在同一个-shader-里"><a href="#四、水面：四句诗叠在同一个-shader-里" class="headerlink" title="四、水面：四句诗叠在同一个 shader 里"></a>四、水面：四句诗叠在同一个 shader 里</h2><p>江面是整篇文章里技术密度最高的部分。它用 <code>Reflector</code> 做真实的平面镜像——天空、寺院、枫树、灯火都会被反射——再在镜像之上叠一层自定义 GLSL。</p>
+<p>这一层 shader 同时负责五件事：</p>
+<ol>
+<li><strong>波纹</strong>：四组不同频率、不同速度的行波叠加成斜率，再用两层低频噪声打破规则感。</li>
+<li><strong>反射扰动</strong>：用波斜率偏移反射纹理的 UV，让倒影随水波扭动；再取一次偏移更大的采样做混合，避免倒影太干净。</li>
+<li><strong>月光碎影</strong>：沿「相机 → 月亮」的方位拉出一条细长的银色路径，路径内部再用高光项和噪声切成断续的碎片。</li>
+<li><strong>渔火倒影</strong>：把每盏灯沿水面镜像，取「相机 → 镜像点」的线段，在江面上形成一条被噪声打断的暖色光带。</li>
+<li><strong>钟声涟漪与贴岸泡沫</strong>：涟漪作为径向斜率叠加；靠近岸线 <code>|z| &gt; 31</code> 时压暗水面，形成一条暗色水线。</li>
+</ol>
+<p>月光那一段值得单独看：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">vec2</span> toPoint = <span class="built_in">normalize</span>(p - cameraPosition.xz + <span class="type">vec2</span>(<span class="number">0.0001</span>));</span><br><span class="line"><span class="type">vec2</span> moonH = <span class="built_in">normalize</span>(uMoonDir.xz);</span><br><span class="line"><span class="type">float</span> angleDiff = <span class="built_in">acos</span>(<span class="built_in">clamp</span>(<span class="built_in">dot</span>(toPoint, moonH), <span class="number">-1.0</span>, <span class="number">1.0</span>));</span><br><span class="line"><span class="type">float</span> path = <span class="built_in">exp</span>(-angleDiff * angleDiff * <span class="number">170.0</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">vec3</span> halfDir = <span class="built_in">normalize</span>(<span class="built_in">normalize</span>(uMoonDir) + viewDir);</span><br><span class="line"><span class="type">float</span> sparkle = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(normal, halfDir), <span class="number">0.0</span>), <span class="number">58.0</span>);</span><br><span class="line">col += uMoonColor * path * (<span class="number">0.008</span> + sparkle * <span class="number">0.5</span>) * shimmer * micro;</span><br></pre></td></tr></table></figure>
+
+<p>它没有一张「月光贴图」。月光之所以在江面上，是因为相机、月亮方位和水面法线在每一帧重新算了一次。镜头一动，碎影跟着动；月亮下沉，路径跟着偏。渔火倒影同理。<strong>倒影不是画上去的，是算出来的。</strong></p>
+<p>这也是提示词里那句「通过 Shader 实现水面反射和扰动」真正的价值：它要求的不是某个 API，而是一种建模方式——把水面当成一个光学系统，而不是一张会动的背景。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/poet-boat.jpg" alt="客船与诗人：舱窗后的剪影"></p>
+<p><em>图 5：16 秒处的客船。船体、木舱、竹篷和缆绳都是程序化生成；舱内暖光只够照亮窗棂和诗人的轮廓。</em></p>
+<h2 id="五、40-秒是一条函数"><a href="#五、40-秒是一条函数" class="headerlink" title="五、40 秒是一条函数"></a>五、40 秒是一条函数</h2><p>影片时间线在 <code>src/film.js</code>。它只做一件事：把任意时刻 <code>t</code> 映射成相机位置、注视点、字幕透明度和世界状态。</p>
+<p>相机不是用关键帧动画软件做的，而是两组关键点加 Catmull-Rom 插值：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">KEYS</span> = [</span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">0.0</span>,  <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">106</span>, <span class="number">68</span>, <span class="number">138</span>), <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">8</span>, <span class="number">26</span>, -<span class="number">42</span>) &#125;,</span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">4.0</span>,  <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">78</span>, <span class="number">45</span>, <span class="number">110</span>),  <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">9</span>, <span class="number">20</span>, -<span class="number">34</span>) &#125;,</span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">7.0</span>,  <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">44</span>, <span class="number">22</span>, <span class="number">78</span>),   <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">16</span>, <span class="number">12</span>, -<span class="number">18</span>) &#125;,</span><br><span class="line">  <span class="comment">// ……</span></span><br><span class="line">  &#123; <span class="attr">t</span>: <span class="number">34.6</span>, <span class="attr">position</span>: <span class="title function_">V</span>(<span class="number">46</span>, <span class="number">17.0</span>, -<span class="number">64</span>), <span class="attr">target</span>: <span class="title function_">V</span>(<span class="number">54</span>, <span class="number">17</span>, -<span class="number">126</span>) &#125;,</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+
+<p>每个关键点同时给出位置和注视点，两个都做 Catmull-Rom 插值。这样相机既经过每个机位，又保持速度连续，不会在关键点之间突然拐弯。35 秒之后换用另一组 <code>FINALE_KEYS</code>：镜头回到客船，再拉远到全景。</p>
+<p>35 秒处有一次刻意的黑场。钟楼在江对岸，客船在南岸；如果让相机直接横跨 141 个单位的江面，观众会看到一段没有叙事的长距离平移。黑场遮住这次切镜，比硬切更自然，也比强行飞过去更诚实。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>镜头</th>
+<th>字幕</th>
+<th>主要机制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–7 s</td>
+<td>高空俯视，月落江天</td>
+<td>月落乌啼霜满天</td>
+<td>月亮下沉、乌鸦飞行、霜粒与雾</td>
+</tr>
+<tr>
+<td>7–16 s</td>
+<td>下降掠过枫林与渔火，靠近客船</td>
+<td>江枫渔火对愁眠</td>
+<td>风场、落叶、渔火倒影、船体横摇</td>
+</tr>
+<tr>
+<td>16–26 s</td>
+<td>从客船望向对岸，寺院显形</td>
+<td>姑苏城外寒山寺</td>
+<td>距离、雾、景深、屋面生成器</td>
+</tr>
+<tr>
+<td>26–35 s</td>
+<td>推进钟楼，撞钟，声波越江</td>
+<td>夜半钟声到客船</td>
+<td>撞木、钟摆、声波环、江面涟漪</td>
+</tr>
+<tr>
+<td>35–40 s</td>
+<td>黑场切回客船，拉远，全诗淡出</td>
+<td>全诗</td>
+<td>第二组相机曲线、字幕淡出</td>
+</tr>
+</tbody></table>
+<p>字幕不单独做动画状态机，而是几个 <code>fade(t, inStart, inEnd, outStart, outEnd)</code> 窗口。<code>applyOverlay(t)</code> 每帧根据绝对时间设置透明度和位移；拖动时间轴时，字幕会直接落到正确的位置，不会「补动画」。</p>
+<p>这套结构还有一个直接好处：<strong>可重复导出。</strong> 在 <code>?film=1&amp;capture=1</code> 下，页面关闭实时循环，由 <code>window.__capture.renderAt(t)</code> 以固定 <code>1/60</code> 秒步长推进；<code>deterministic.js</code> 用固定种子覆盖 <code>Math.random</code>，树叶、乌鸦、雾和渔火的随机相位每次导出都一致。2400 帧捕获了 349 秒，平均约 6.9 fps；中断后可以加 <code>--resume</code> 从已有帧继续。</p>
+<p>如果所有状态都从 <code>t</code> 推导，那么播放、暂停、拖动时间轴、重导出就是同一个函数的不同调用方式。反过来，只要有一处动画依赖「上一帧的状态」，时间轴一拖就会漂移，导出也无法复现。</p>
+<p><img src="/2026/11/12/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E6%9E%AB%E6%A1%A5%E5%A4%9C%E6%B3%8A%E3%80%8Bv1.0/finale.jpg" alt="诗意收尾：客船、月影与完整诗篇"></p>
+<p><em>图 6：38 秒处的收尾。镜头回到客船，远处寒山寺隐入夜雾，诗名、作者与四句诗依次浮出。</em></p>
+<h2 id="六、三个看得见的坑"><a href="#六、三个看得见的坑" class="headerlink" title="六、三个看得见的坑"></a>六、三个看得见的坑</h2><p><strong>第一，阴影贴图不能在首帧之前关掉。</strong></p>
+<p>项目一度把 <code>renderer.shadowMap.autoUpdate</code> 设为 <code>false</code>，想省掉每帧更新阴影的开销。结果是首帧没有生成阴影贴图，所有 <code>MeshStandardMaterial</code> 在采样 <code>sampler2DShadow</code> 时失败，整批网格直接不绘制。画面不是「阴影不对」，而是「东西不见了」。现在保持 <code>autoUpdate = true</code>。这条教训很具体：性能优化必须在首帧就验证，不能只看后面的帧率数字。</p>
+<p><strong>第二，可重复导出不是默认能力。</strong></p>
+<p>树叶、乌鸦、雾和渔火都用了随机数。如果不固定种子，每次导出的帧序列都不一样：第 1200 帧的某片叶子可能在这里，也可能在那里。<code>deterministic.js</code> 在捕获模式下覆盖随机源，导出脚本从 0 秒重放，才让「同一份代码导出同一段视频」成立。</p>
+<p><strong>第三，2K &#x2F; 60 fps 的预算决定了雾的做法。</strong></p>
+<p>提示词要求「避免过度使用高成本实时体积渲染」。场景里的雾因此是贴水的横向雾片、寺院前的雾团和极细的霜粒，而不是体积雾；阴影是单主方向光的 2048² PCF；叶簇、叶片、栏杆柱、芦苇、山树全部实例化；像素比上限 1.6。这些选择不显眼，但它们决定了 2400 帧能不能在 349 秒内跑完。</p>
+<h2 id="七、导出：2400-帧与两版配乐"><a href="#七、导出：2400-帧与两版配乐" class="headerlink" title="七、导出：2400 帧与两版配乐"></a>七、导出：2400 帧与两版配乐</h2><p>成片规格是 <code>ffprobe</code> 实测出来的，不是估计：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>实测值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分辨率 &#x2F; 帧率</td>
+<td>2560 × 1440 &#x2F; 60 fps</td>
+</tr>
+<tr>
+<td>时长 &#x2F; 总帧数</td>
+<td>40.000 s &#x2F; 2400</td>
+</tr>
+<tr>
+<td>视频编码</td>
+<td>H.264 High Profile Level 5.1，BT.709</td>
+</tr>
+<tr>
+<td>视频码率 &#x2F; 文件大小</td>
+<td>39.2 Mbps &#x2F; 约 188 MiB</td>
+</tr>
+<tr>
+<td>音频</td>
+<td>AAC LC 192 kbps，48 kHz 立体声</td>
+</tr>
+<tr>
+<td>响度</td>
+<td>-18.0 LUFS，True Peak -8.9 dBFS</td>
+</tr>
+<tr>
+<td>捕获耗时</td>
+<td>349 s（约 6.9 fps）</td>
+</tr>
+</tbody></table>
+<p>配乐有两个版本。主版本由 <code>scripts/compose-score.py</code> 用 numpy &#x2F; scipy 程序化合成：水声、风声、鸦鸣、两次寺钟都按时间线写入，不依赖任何外部采样。另一版用 HeyGen 曲库里的古琴 &#x2F; 箫曲替换音乐层，同时保留画内的水风、鸦鸣和寺钟，画面流直接复制，不做二次编码。</p>
+<p>这里的分工也很清楚：<strong>画面负责「看见」，声音负责「到达」。</strong> 16.5 秒的远钟和 28.6 秒的撞钟不是背景音乐，它们是第四句诗的主语。</p>
+<h2 id="八、这份提示词为什么有效"><a href="#八、这份提示词为什么有效" class="headerlink" title="八、这份提示词为什么有效"></a>八、这份提示词为什么有效</h2><p>回看这份世界说明书，真正起作用的不是篇幅，而是六种写法。</p>
+<p><strong>1. 先写世界基准，再写物件。</strong><br>提示词第一节不是「要有哪些建筑」，而是天空、山、江、雾、月光的关系。场景因此先有了一条江和两岸的高程，再往上长桥、树、船、寺。</p>
+<p><strong>2. 用 hex 和数值代替形容词。</strong><br>「深蓝黑 <code>#101A2C</code>」「月光银蓝 <code>#B7C9DE</code>」「渔火暖橙 <code>#FFAD58</code>」——这些值直接变成 <code>COLORS</code> 常量，也直接约束了后处理、灯光和水面 shader。形容词只能表达偏好，数值可以验收。</p>
+<p><strong>3. 每句诗绑定一个镜头、一个字幕窗口、一个机制。</strong><br>0–7 秒对应月落与乌啼，7–16 秒对应枫与渔火，16–26 秒对应寺院显形，26–35 秒对应钟声抵达。时间轴不是后期配的，它在提示词里就已经和诗句对齐。</p>
+<p><strong>4. 写禁止项。</strong><br>「不要做成暴雪」「不要科幻雷达波」「不要平面插画代替三维场景」「不允许悬空或穿模」。模型在信息不足时会选最省力的默认值；禁止项就是提前堵住那些默认值。</p>
+<p><strong>5. 给可验收的标准。</strong><br>40 秒、60 fps、2560×1440 或 3840×2160、四句诗对应四个镜头、声波与钟声同步。这些标准可以在浏览器、<code>ffprobe</code> 和截图里逐条检查，而不是「感觉对不对」。</p>
+<p><strong>6. 让所有状态由绝对时间推导。</strong><br>这条提示词没有直接写出「绝对时间」四个字，但它要求时间轴拖动、自动演示、重播和逐帧导出。满足这些要求的唯一稳妥方式，就是让相机、字幕、钟摆、涟漪都成为 <code>t</code> 的函数。</p>
+<p>还有一条元规则：<strong>让 skill 管 API，让提示词管世界。</strong> 提示词不去复述 Three.js 的用法，而是把篇幅留给「这个夜晚应该长什么样、什么时候发生什么」。</p>
+<h2 id="九、边界：场景能画到哪里"><a href="#九、边界：场景能画到哪里" class="headerlink" title="九、边界：场景能画到哪里"></a>九、边界：场景能画到哪里</h2><p>场景 v1 是<strong>风格化还原</strong>，不是唐代建筑与船型的考据。石拱桥的拱圈、客船的船体、寺院的屋面，都是从真实形制里抽出来的几何特征，不是实测模型。木材、石材、瓦片、树皮、枫叶的纹理全部由 Canvas 程序化生成；它们可控、可复现，但细节有上限。</p>
+<p>比建模更远的边界是「意境」。构建可以通过，脚本可以全绿，<code>ffprobe</code> 可以逐项对上，截图可以非空；但「清冷、孤寂、悠远」最终仍然要人眼看。本文用到的七张配图只做了尺寸与非空校验，没有做人眼审美判断——那一步得留给读者。</p>
+<p>还有一层：诗的意义不在几何里。场景能提供的是一个可以走进去的舞台，它不能替代诗，也不应该替代诗。</p>
+<h2 id="十、复现"><a href="#十、复现" class="headerlink" title="十、复现"></a>十、复现</h2><p>场景是一个独立的 Vite + Three.js 项目，位于 <code>material/枫桥夜泊/</code>。环境要求 Node.js ≥ 20.19，以及支持 WebGL 2 的桌面浏览器。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> material/枫桥夜泊</span><br><span class="line"></span><br><span class="line">npm install</span><br><span class="line">npm run dev        <span class="comment"># http://localhost:5173</span></span><br><span class="line">npm run build      <span class="comment"># 产物在 dist/，base 为 &quot;./&quot;</span></span><br><span class="line">npm run preview</span><br></pre></td></tr></table></figure>
+
+<p>交互方式：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>拖拽 &#x2F; 滚轮 &#x2F; 右键拖拽</td>
+<td>旋转、缩放、平移；首次操作会暂停影片并进入自由探索</td>
+</tr>
+<tr>
+<td>空格</td>
+<td>播放 &#x2F; 暂停</td>
+</tr>
+<tr>
+<td><code>1</code> – <code>6</code></td>
+<td>全景、枫桥、江枫、客船、寒山寺、江面</td>
+</tr>
+<tr>
+<td><code>R</code></td>
+<td>重置视角</td>
+</tr>
+<tr>
+<td>底部时间轴</td>
+<td>拖到任意镜头；松开后保持暂停</td>
+</tr>
+<tr>
+<td>雾气 &#x2F; 字幕 &#x2F; 声音</td>
+<td>独立开关；声音默认关闭，需点击开启</td>
+</tr>
+<tr>
+<td>“观看影片”</td>
+<td>进入 <code>?film=1</code> 的纯净 40 秒影片页</td>
+</tr>
+</tbody></table>
+<p>导出流程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">npm run dev -- --port 5188 --strictPort</span><br><span class="line"></span><br><span class="line"><span class="comment"># 另开终端</span></span><br><span class="line">npm run <span class="built_in">export</span>:film -- --url http://127.0.0.1:5188/ --frames deliverables/frames</span><br><span class="line">npm run encode:film -- --frames deliverables/frames \</span><br><span class="line">  --out deliverables/fengqiao-yebo-2k60-silent.mp4</span><br><span class="line">npm run score</span><br><span class="line">npm run stills:film -- --url http://127.0.0.1:5188/ --out deliverables/previews</span><br></pre></td></tr></table></figure>
+
+<p>源码与完整交付记录在 <a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>。<code>material/枫桥夜泊/deliverables/REPORT.md</code> 记录了成片规格、资源许可、验收清单与两版配乐的混音参数。</p>
+<h2 id="结语：先找到那句诗的「机制」"><a href="#结语：先找到那句诗的「机制」" class="headerlink" title="结语：先找到那句诗的「机制」"></a>结语：先找到那句诗的「机制」</h2><p>「绘制」这个词有点误导。我们画的不是一张图，也不是四张配图，而是一组会随时间发生的关系：月亮下沉，树冠摇动，落叶落水，寺院从雾里显形，钟声越过江面，最后抵达客船。</p>
+<p>二十八个字里，真正需要工程化的不是名词，而是时间。月落是 40 秒的下沉，钟声是 2.5 秒的抵达，枫叶是 120 个实例的循环。诗不在模型里，在这些时间里。</p>
+<p>下次让模型画一首诗，先别急着列名词。先问自己：哪一句里有时间？哪个动作需要一个系统？把那个系统写进第一节。</p>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><ul>
+<li><strong>提示词原文</strong>：<code>prompt/枫桥夜泊.md</code>，与场景源码同在 <a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>。</li>
+<li><strong>threejs-skills</strong>：<a target="_blank" rel="noopener" href="https://github.com/cloudai-x/threejs-skills"><code>cloudai-x/threejs-skills</code></a>，13 个按主题拆分的 Three.js skill，对齐 three.js r186。</li>
+<li><strong>Three.js</strong>：MIT 许可。</li>
+<li><strong>场景源码、截图与成片</strong>：<a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a> 的 <code>material/枫桥夜泊/</code>。文中七张图片取自该项目的 <code>deliverables/previews/</code>。</li>
+<li><strong>模型与 harness</strong>：DeepSeek-flash4.1 在 Claude Code 中运行。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Three-js-Claude-Code-%E6%8F%90%E7%A4%BA%E8%AF%8D-3D/" rel="tag"># Three.js,Claude Code,提示词,3D</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/11/06/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%A4%96%E6%BB%A9%E3%80%8Bv1.0/" rel="prev" title="如何绘制一幅《上海外滩》v1.0">
+                  <i class="fa fa-angle-left"></i> 如何绘制一幅《上海外滩》v1.0
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">fwind</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
