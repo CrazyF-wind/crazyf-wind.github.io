@@ -139,7 +139,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -161,6 +161,707 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/" class="post-title-link" itemprop="url">如何绘制一幅《诛仙》青云七峰v1.0</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-11-20 13:45:00 / 修改时间：13:48:35" itemprop="dateCreated datePublished" datetime="2026-11-20T13:45:00+08:00">2026-11-20</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><img src="/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/cover.jpg" alt="七峰全景"></p>
+<p><em>封面：成片里的七峰全景。通天峰居中，六座主峰散布在四周；山脚没入云层，只有峰顶的建筑与植被露出。</em></p>
+<blockquote>
+<p>模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。</p>
+<p>配乐：HeyGen 曲库（track <code>4e3d63277b074f4ca246938d6322bea7</code>）；场景内声音仍由 Web Audio 程序化生成。</p>
+<p>这篇文章复盘的是：一份把「青云七峰」写成坐标、高度、云层与镜头表的提示词，如何落成一片可漫游的山脉；以及成片之后，为什么又把七峰推倒重排了一次。</p>
+</blockquote>
+<h2 id="引言：七座峰，还是一条山脉"><a href="#引言：七座峰，还是一条山脉" class="headerlink" title="引言：七座峰，还是一条山脉"></a>引言：七座峰，还是一条山脉</h2><p>《诛仙》里的青云七峰，是通天、龙首、落霞、风回、大竹、小竹、朝阳。</p>
+<p>让模型搭这个场景，最容易得到的是「七个景点」：每座峰单独看都成立，合在一起却像七张并排的概念图。原因通常不在建模精度，而在关系——峰与峰之间没有山脊、没有鞍部、没有主次，只有七个圆锥插在同一块平面上。</p>
+<p>这份提示词一开始就防着这件事。它写：</p>
+<blockquote>
+<p>不是七张独立的山峰图片，也不是简单的低模山体排列，而是构建一个具有真实空间关系、地形起伏、建筑群落、自然环境和动态云海的完整三维世界。</p>
+</blockquote>
+<p>先说结论：<strong>这份提示词最值钱的部分，不是那些形容仙气的词，而是那张带单位和坐标的表；这个场景最值钱的部分，不是模型数量，而是一个所有东西都能查询的高度函数 <code>heightAt(x, z)</code>。</strong></p>
+<h2 id="一、提示词：一份带单位的世界说明书"><a href="#一、提示词：一份带单位的世界说明书" class="headerlink" title="一、提示词：一份带单位的世界说明书"></a>一、提示词：一份带单位的世界说明书</h2><p>这份提示词正文一共十二节，从任务目标、世界观、七峰差异化建模，一直写到动态效果、镜头时间轴、字幕、性能、交付与验收；成片之后，末尾又追加了一节「核心构图方案」。</p>
+<p>它不像一份「元素清单」，更像一份世界的说明书。最硬的部分是下面这张表：</p>
+<table>
+<thead>
+<tr>
+<th>山峰</th>
+<th>位置 (x, z)</th>
+<th>峰顶高度</th>
+<th>基座半径</th>
+<th>顶部台地</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通天峰</td>
+<td>(0, 0)</td>
+<td>1790</td>
+<td>1500</td>
+<td>150</td>
+</tr>
+<tr>
+<td>龙首峰</td>
+<td>(1450, −2500)</td>
+<td>1390</td>
+<td>1250</td>
+<td>90</td>
+</tr>
+<tr>
+<td>大竹峰</td>
+<td>(−2600, −1800)</td>
+<td>1170</td>
+<td>1400</td>
+<td>140</td>
+</tr>
+<tr>
+<td>风回峰</td>
+<td>(−3250, 250)</td>
+<td>1300</td>
+<td>1250</td>
+<td>85</td>
+</tr>
+<tr>
+<td>落霞峰</td>
+<td>(−2500, 2500)</td>
+<td>1250</td>
+<td>1050</td>
+<td>80</td>
+</tr>
+<tr>
+<td>小竹峰</td>
+<td>(1900, 3000)</td>
+<td>1330</td>
+<td>1000</td>
+<td>70</td>
+</tr>
+<tr>
+<td>朝阳峰</td>
+<td>(3300, −150)</td>
+<td>1340</td>
+<td>1300</td>
+<td>110</td>
+</tr>
+</tbody></table>
+<p>配合两行约定：</p>
+<blockquote>
+<p>坐标约定：X 轴向东、Z 轴向南、Y 轴向上，1 世界单位 ≈ 1 米。<br>谷地基准高度 420 m，以下峰顶高度均为绝对世界 Y。</p>
+</blockquote>
+<p>这两行把「仙山」拉回了可计算的尺度。位置、高度、半径、台地半径全部有单位，模型不需要猜「七峰应该怎么摆」，它只需要让地形函数在七个坐标上返回七个指定高度。</p>
+<p>表之外还有三条优先级，后面的实现基本都在回应它们：</p>
+<ol>
+<li><strong>通天峰是中心。</strong> 它最高、体量最大，顶部有 150 米的建筑台地；六峰围绕它分布，高度不超过它的 78%（最终落在 65%–78%）。</li>
+<li><strong>单峰必须不同。</strong> 七座峰不能共用一套轮廓，山脊、悬崖、岩石、植被和建筑都要有各自的性格。</li>
+<li><strong>关系比元素重要。</strong> 峰与峰之间要有深谷、峡谷、山脊和云海；「不允许七座山峰使用相同模型简单复制」。</li>
+</ol>
+<p>提示词也写了不少「不要」：不要简单圆锥，不要平面白色贴图铺满山谷，不要为了增加模型数量牺牲意境。这些禁止项不是修辞，它们是在提前排除模型在信息不足时最容易选择的默认解。</p>
+<p>工具链是现成的：项目里装了一组 <code>threejs-skills</code>，按场景骨架、材质、光照、后处理、动画、性能等主题拆开，对齐 three.js r186；项目实际使用 <code>three@0.186.0</code>。Claude Code 负责读项目、跑构建、看控制台、改文件、再验证。</p>
+<h2 id="二、地形：把世界写成一个函数"><a href="#二、地形：把世界写成一个函数" class="headerlink" title="二、地形：把世界写成一个函数"></a>二、地形：把世界写成一个函数</h2><p>整个场景的唯一空间真值是 <code>src/world/shape.js</code> 里的 <code>heightAt(x, z)</code>。地形网格、建筑落位、植被、瀑布、仙鹤航线、镜头防穿地，全都查询这一个函数。</p>
+<p>它不是一个噪声贴图，而是几层解析形状的叠加：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> terrainMax = <span class="title class_">Math</span>.<span class="title function_">max</span>(peakMax, <span class="title function_">ridgeBodyAt</span>(x, z));</span><br><span class="line"><span class="keyword">const</span> height =</span><br><span class="line">  <span class="title function_">baseHeight</span>(x, z) + terrainMax + <span class="number">0.08</span> * <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, sum - terrainMax);</span><br></pre></td></tr></table></figure>
+
+<p>这里最关键的是 <code>Math.max</code>，而不是相加。</p>
+<p>如果七座峰的体量直接相加，峰与峰之间的鞍部会被抬高，七峰就会连成一堵墙；取最大值则让每座峰保留自己的轮廓，重叠处只取最高的那一支。后面那项 <code>0.08 * (sum - terrainMax)</code> 只保留很小的次级贡献，用来让山脚过渡得连续一点，不至于在「谁更高」的切换处出现折痕。</p>
+<p><code>baseHeight</code> 是谷地：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable constant_">WORLD</span>.<span class="property">valleyBase</span> + <span class="number">70</span> * <span class="title function_">fbm2</span>(...) + <span class="number">235</span> * <span class="title function_">ridged2</span>(...)</span><br></pre></td></tr></table></figure>
+
+<p>420 米的谷底加上一层低频起伏和一层脊状噪声，先给出「山地」的底子。真正的峰体在 <code>peakBody</code> 里：</p>
+<ul>
+<li><strong>域扭曲</strong>：采样点先被 ±190 米的低频噪声推开，山脊和沟壑因此是弯的，不是笔直的圆锥母线。</li>
+<li><strong>角度脊线</strong>：按极角生成脊线，让山体在不同方向上有不同的半径，形成各向异性的轮廓。</li>
+<li><strong>径向剖面</strong>：<code>0.6 * t^1.4 + 0.4 * smoothstep(0.5, 0.84, t)</code>，缓坡山脚、中段陡崖带、峰顶收束。</li>
+<li><strong>大尺度山脊场</strong>：再用一层 <code>ridged2</code> 乘上去，让山体长出分叉的脊与谷。</li>
+<li><strong>冲沟</strong>：中段最强、峰顶与山脚减弱，避免山体表面像光滑的沙丘。</li>
+<li><strong>卫星山脊</strong>：每座峰带三条较低的山腿，山脚才有延伸感。</li>
+</ul>
+<p>这些参数不是七份复制。七座峰各有自己的 <code>seed</code>、<code>stretch</code>、<code>rotation</code>、<code>ridge</code> 和 <code>palette</code>：龙首峰被拉长成 1.65 倍，山脊像龙首探向主峰；小竹峰压到 0.72，峰体纤细；落霞峰用秋林调色，大竹峰用竹坡调色。</p>
+<p>峰与峰之间还有两条低矮连接山脊：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">RIDGE_LINKS</span> = [</span><br><span class="line">  &#123; <span class="attr">a</span>: <span class="string">&quot;longshou&quot;</span>, <span class="attr">b</span>: <span class="string">&quot;chaoyang&quot;</span>, <span class="attr">crest</span>: <span class="number">1180</span>, <span class="attr">spread</span>: <span class="number">650</span>, <span class="attr">seed</span>: <span class="number">311</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">a</span>: <span class="string">&quot;fenghui&quot;</span>, <span class="attr">b</span>: <span class="string">&quot;luoxia&quot;</span>, <span class="attr">crest</span>: <span class="number">1160</span>, <span class="attr">spread</span>: <span class="number">680</span>, <span class="attr">seed</span>: <span class="number">317</span> &#125;,</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+
+<p>它们的高度在 1160–1180 米，高于 1080 米的云顶，却明显低于两侧主峰，所以从高空看是两条从云海里露出来的山梁，而不是两座峰之间的空白。布局测试会沿两条连线采样，要求最低点高于 1080 米、最高点至少比两侧峰顶低 100 米——「露出云海」和「不抢主峰」两个条件同时成立。</p>
+<p>峰顶还要压平成建筑台地。这里有一个很容易做错的地方：如果直接把高度钳到配置值，台地周围会形成一圈火山口。实现的做法是先迭代标定：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> iteration = <span class="number">0</span>; iteration &lt; <span class="number">5</span>; iteration++) &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> peak <span class="keyword">of</span> <span class="variable constant_">PEAK_DATA</span>) &#123;</span><br><span class="line">    peak.<span class="property">offset</span> += <span class="title function_">rawHeightAt</span>(peak.<span class="property">x</span>, peak.<span class="property">z</span>) - peak.<span class="property">height</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先让自然顶点在峰心处正好等于配置高度，再用 <code>mix</code> 在台地半径内平滑过渡。这样台地是「山顶本来就这么高」，而不是「把山顶削掉一块」。</p>
+<p>还有一处细节值得记下来：台地和建筑落位必须用<strong>未做域扭曲的真实径向距离</strong>。扭曲后的距离会把「平地」推到台地半径之外，建筑、栏杆、石阶就会悬空。这是后来审查里真实出现过的问题。</p>
+<p>地形网格是四级同心方环，像 clipmap：</p>
+<table>
+<thead>
+<tr>
+<th>环</th>
+<th>半宽</th>
+<th>单元</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>2400 m</td>
+<td>15 m</td>
+<td>近景，参与阴影与 AO</td>
+</tr>
+<tr>
+<td>1</td>
+<td>4800 m</td>
+<td>30 m</td>
+<td>中景</td>
+</tr>
+<tr>
+<td>2</td>
+<td>9600 m</td>
+<td>60 m</td>
+<td>远景</td>
+</tr>
+<tr>
+<td>3</td>
+<td>19200 m</td>
+<td>120 m</td>
+<td>天际线</td>
+</tr>
+</tbody></table>
+<p>四级合计约 33.6 万顶点、66.6 万三角面。所有顶点都从同一个 <code>heightAt</code> 取样；相邻环共享边界坐标，粗环内边界再补一圈中点三角形，填平 T 型接缝。法线也统一由 <code>normalAt</code> 解析取样，而不是 <code>computeVertexNormals</code>，否则环与环的接缝处会出现一条亮度差。</p>
+<p>顶点色按坡度、高度和所属峰写入：陡坡露岩，高处转灰，峰顶台地铺石，大竹峰偏竹绿，落霞峰偏赭红。AO 只对近环计算，四个方向、55 米半径，并在近环外缘渐隐到 1，避免与无 AO 的粗环形成接缝。</p>
+<p><strong>地形不是一张网格，而是一个契约。</strong> 只要所有系统都查询同一个函数，建筑就不会悬空，瀑布就不会穿山，镜头也不会飞进地里。</p>
+<h2 id="三、云海：48-步，把山脚藏起来"><a href="#三、云海：48-步，把山脚藏起来" class="headerlink" title="三、云海：48 步，把山脚藏起来"></a>三、云海：48 步，把山脚藏起来</h2><p>云海是这个场景最重要的视觉元素，也是最容易做成「白色平面」的地方。</p>
+<p>提示词明确写了：不用平面白色贴图铺满山谷，要用体积云 Shader、3D 噪声或 Ray Marching。实现是一个后处理 Pass：先渲染场景颜色与深度，再由云 Pass 按像素反投影出世界射线，在 730–1460 米的高度层里步进采样，最后把半分辨率的结果双线性合成回场景。</p>
+<p>密度函数是两层高斯：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> main = <span class="built_in">exp</span>(-<span class="built_in">pow</span>((y - <span class="number">900.0</span>) / <span class="number">105.0</span>, <span class="number">2.0</span>));</span><br><span class="line"><span class="type">float</span> band = <span class="number">0.015</span> * <span class="built_in">exp</span>(-<span class="built_in">pow</span>((y - <span class="number">1310.0</span>) / <span class="number">120.0</span>, <span class="number">2.0</span>));</span><br></pre></td></tr></table></figure>
+
+<p>主云海的密度峰值在 900 米，覆盖谷地和山脚；山腰云带在 1310 米，密度只有主云海的 1.5%，只擦过崖壁，不会盖住峰顶。</p>
+<p>采样时还有三件事：</p>
+<ul>
+<li><strong>云顶不是一块板。</strong> 低频噪声先把高度层整体抬高或压低约 ±130 米，再算密度。</li>
+<li><strong>形状与覆盖分开。</strong> <code>smoothstep(0.5, 0.78, n)</code> 决定云絮的形状，低频的 <code>coverage</code> 决定哪一片天空有云、哪一片是空的。</li>
+<li><strong>深度遮挡。</strong> 每步用场景深度做 <code>depthFade</code>，云在离山体 70 米内逐渐变淡，形成软相交，而不是一条硬边。</li>
+</ul>
+<p>光照只做三次采样：从当前点沿太阳方向走 55、110、165 米，累加光学厚度，再用 <code>exp(-optical * 0.6)</code> 得到太阳可见度，在冷色阴影和暖色受光之间插值；相位函数用 Henyey-Greenstein（<code>g = 0.55</code>），让逆光方向的云缘更亮。这就是云海「银边」的来源。</p>
+<p>半分辨率是一个很实际的取舍：云 Pass 在 1280×720 下只处理 640×360 个像素，48 步，性能足够；合成回全分辨率时用线性过滤，边缘仍然是软的。代价是近景云层的细节会糊一点，但这个场景的云主要在几公里外，肉眼不容易察觉。</p>
+<p>提示词最初写的是「山腰云带密度约为主云海的 15%，高度 1150–1500 米」。最终实现改成了 1.5% &#x2F; 1310 米，<code>uBandTop</code> 收到 1460 米。原因是七峰重排后，六峰峰顶落在 1170–1390 米；15% 的云带会把峰顶洗掉。布局测试现在直接断言：六峰峰顶处的云带密度必须小于 0.02。</p>
+<p><strong>这是整份提示词里最有代表性的一次「数字失效」：15% 是写提示词时给的上界，1.5% 才是对着峰顶高度算出来的值。</strong> 数字不是合同，是起点。</p>
+<p><img src="/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/cloud-open.jpg" alt="云海初开"></p>
+<p><em>图 1：镜一「云海初开，七峰浮青」。镜头从东北高空逆光接近，七峰从云海中浮出，山脚被云层切断。</em></p>
+<h2 id="四、建筑：主殿是尺度的锚"><a href="#四、建筑：主殿是尺度的锚" class="headerlink" title="四、建筑：主殿是尺度的锚"></a>四、建筑：主殿是尺度的锚</h2><p>山体再高，如果建筑没有尺度，观众仍然读不出它有多高。</p>
+<p>通天峰的主殿是一组参数化构件：86 × 46 米、9 开间、22 米高的殿身，上面叠 17 米高的重檐屋顶；后面是 46 × 26 米的后殿，两侧各一座 34 × 20 米的配殿，山门在南侧 138 米处，香炉、石灯、石碑和 140 米半径的环形栏杆围出一个完整院落。从山门往下，是 22 米宽、150 级的玉阶。</p>
+<p>这些数字不是装饰。46 米的进深、17 米的屋顶，放在 150 米的台地和 1790 米的峰顶上，比例刚好能让「峰」看起来像一座山，而不是一块石头。</p>
+<p>屋顶由同一个曲面函数生成：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pastRidge = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, <span class="title class_">Math</span>.<span class="title function_">abs</span>(x) - ridgeHalf);</span><br><span class="line"><span class="keyword">const</span> edge = <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="number">1</span>, <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="title class_">Math</span>.<span class="title function_">abs</span>(z), pastRidge) / halfDepth);</span><br><span class="line"><span class="keyword">let</span> y = height * (<span class="number">1</span> - <span class="title class_">Math</span>.<span class="title function_">pow</span>(edge, <span class="number">1.35</span>));</span><br><span class="line">y += upturn * <span class="title class_">Math</span>.<span class="title function_">pow</span>(<span class="title class_">Math</span>.<span class="title function_">abs</span>(u * v), <span class="number">4</span>) * <span class="number">1.6</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>ridgeHalf</code> 是正脊的半长，脊外继续向两端收坡，得到歇山顶的轮廓。</li>
+<li><code>edge</code> 取「进深方向」和「脊外方向」的较大者，屋顶从脊向四面下落。</li>
+<li><code>1.35</code> 次幂控制坡面的曲率，让屋面微微下凹，而不是一块直斜板。</li>
+<li><code>|u·v|^4</code> 只在四个角上起作用，把翼角抬起来。</li>
+</ul>
+<p>同一套函数可以生成重檐：第二层整体缩小 20%，高度取 0.72 倍，往上叠 0.64 倍层高。方亭没有正脊，就自动改用金顶珠；四角各放一枚金色角饰。风格一致不是靠手工对齐，而是靠所有屋顶都来自同一个曲面族。</p>
+<p>七峰的建筑加起来有 3188 个静态 Mesh。按材质合并之后，只剩 32 个批次；列柱之类的重复构件继续用 <code>InstancedMesh</code>。<code>npm test</code> 会打印这一行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">buildings ok (merged 3188 -&gt; 32 meshes)</span><br></pre></td></tr></table></figure>
+
+<p>这一步把 3000 多个 draw call 压到 32 个批次，是 60 fps 能成立的前提之一。</p>
+<p><img src="/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/tongtian-hall.jpg" alt="通天玉阶"></p>
+<p><em>图 2：通天峰顶的主殿群。重檐主殿、配殿、后殿、山门与南坡玉阶落在 150 米半径的台地上；建筑尺度是这座 1790 米山峰的参照物。</em></p>
+<h2 id="五、竹、水、鹤：让静止的世界有风"><a href="#五、竹、水、鹤：让静止的世界有风" class="headerlink" title="五、竹、水、鹤：让静止的世界有风"></a>五、竹、水、鹤：让静止的世界有风</h2><p>七峰里有两座竹峰。大竹峰 12 800 竿，小竹峰 5 600 竿，另有两层叶簇实例。</p>
+<p>关键不是数量，而是分布。竹林不是均匀撒点，而是先选「竹林团簇」的中心：每片约 80 竿，中心要满足高度和坡度条件，再在团簇半径内按 <code>sqrt(random)</code> 分布。这样山坡上会出现一片一片的竹海，中间留出岩壁和路径，而不是一层均匀的绿色噪点。</p>
+<p>风摆没有在 CPU 上逐帧改矩阵，而是注入到材质里：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> bend = $&#123;bendExpression&#125;;</span><br><span class="line">transformed.x += <span class="built_in">sin</span>(uTime * <span class="number">0.85</span> + windWorld.x * <span class="number">0.045</span> + windWorld.z * <span class="number">0.06</span>) * <span class="number">0.55</span> * uWind * bend;</span><br><span class="line">transformed.z += <span class="built_in">cos</span>(uTime * <span class="number">0.63</span> + windWorld.x * <span class="number">0.03</span>) * <span class="number">0.32</span> * uWind * bend;</span><br></pre></td></tr></table></figure>
+
+<p>竹竿和叶簇共享同一组 <code>uTime</code> &#x2F; <code>uWind</code>，每根竹子按世界坐标获得不同的相位，所以整片竹海是「一起风，但不同步」。GPU 只多做几次三角函数，CPU 仍然只负责一帧一次的 uniform。</p>
+<p>水也是同一种思路。风回峰的瀑布是一条 56 段的 ribbon，沿路径逐点采样：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> lineY = start.<span class="property">y</span> + (end.<span class="property">y</span> - start.<span class="property">y</span>) * t;</span><br><span class="line">points.<span class="title function_">push</span>(<span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(x, <span class="title class_">Math</span>.<span class="title function_">max</span>(lineY, <span class="title function_">heightAt</span>(x, z) + <span class="number">2.5</span>), z));</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>Math.max</code> 是修出来的。最早用 Catmull-Rom 连接起止点，曲线在陡坡上会向上折回，水带直接穿进山体。改成「水平方向线性插值，垂直方向取直线与地形净空的高者」之后，水只会沿坡面下降，不会再折返。</p>
+<p>主瀑从约 1300 米落到约 995 米，落差约 300 米，宽 36 米，底部有 19 米半径的水潭和 <code>Reflector</code> 平面反射；水雾是 260 个加法混合的粒子。大竹峰北坡另有一条 170 米落差的支瀑，宽 9.6 米，水潭 7 米。水面 shader 用两层滚动噪声做条纹与泡沫，速度是绝对时间的函数。</p>
+<p><img src="/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/waterfall.jpg" alt="风回垂瀑"></p>
+<p><em>图 3：风回峰的瀑布与云海。主瀑从约 1300 米落到约 995 米，水带在底部水潭上方散成水雾。</em></p>
+<p>仙鹤是四群，分别绕通天、落霞、小竹、大竹飞行。航线半径 210–360 米，高度都在各自峰顶之上；翅膀按绝对时间扇动，位置由 <code>t</code> 直接算出来，不做速度累积。这样拖动时间轴，鹤会回到它该在的位置。</p>
+<p><strong>动态元素也应该是时间的函数。</strong> 场景里没有「上一帧的位置」这种状态，只有 <code>t</code>。这是后面能逐帧确定性重放的基础。</p>
+<h2 id="六、镜头：36-秒，只有一个时钟"><a href="#六、镜头：36-秒，只有一个时钟" class="headerlink" title="六、镜头：36 秒，只有一个时钟"></a>六、镜头：36 秒，只有一个时钟</h2><p>影片是 36 秒、60 fps、五个镜头。每个镜头有自己的 Catmull-Rom 机位曲线，切点在 8、15、22、29 秒；切点前后各 0.8 秒，穿云白场升到全白，遮住切换。</p>
+<p><code>src/filmTimeline.js</code> 是一个纯函数模块，不碰 DOM。给定时间 <code>t</code>，它返回机位、注视点、字幕透明度、转场透明度、片名透明度和黑场透明度。播放器只负责把返回值写进相机和 DOM。</p>
+<p>第三个镜头值得单独说。它的字幕从头到尾都是「竹影摇风，双峰对望」，但七峰重排之后，大竹峰从西南搬到了西北，小竹峰在东南，两座竹峰之间隔着的不是一道谷，而是整座通天峰。镜头因此完全重写：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123; <span class="attr">t</span>: <span class="number">15</span>, <span class="attr">position</span>: <span class="title function_">V</span>(-<span class="number">2760</span>, <span class="number">960</span>, -<span class="number">2280</span>), <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">2600</span>, <span class="number">1150</span>, -<span class="number">1800</span>) &#125;,</span><br><span class="line">&#123; <span class="attr">t</span>: <span class="number">18</span>, <span class="attr">position</span>: <span class="title function_">V</span>(-<span class="number">2350</span>, <span class="number">1150</span>, -<span class="number">2050</span>), <span class="attr">target</span>: <span class="title function_">V</span>(-<span class="number">800</span>, <span class="number">1300</span>, <span class="number">0</span>) &#125;,</span><br><span class="line">&#123; <span class="attr">t</span>: <span class="number">22</span>, <span class="attr">position</span>: <span class="title function_">V</span>(-<span class="number">900</span>, <span class="number">1850</span>, <span class="number">500</span>), <span class="attr">target</span>: <span class="title function_">V</span>(<span class="number">1900</span>, <span class="number">1400</span>, <span class="number">3000</span>) &#125;,</span><br></pre></td></tr></table></figure>
+
+<p>镜头先贴着大竹峰的竹梢滑行，再抬到 1850 米，越过通天峰西侧山肩，最后隔着主峰远眺小竹峰。字幕没变，但「对望」的两个对象之间多了一座主峰——这是重排后必须重新设计的部分。</p>
+<p>太阳也有一条时间轴。四个关键帧：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>高度角</th>
+<th>方位角</th>
+<th>曝光</th>
+<th>云受光</th>
+<th>云阴影</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0 s</td>
+<td>22°</td>
+<td>245°</td>
+<td>1.08</td>
+<td><code>#ffe2bb</code></td>
+<td><code>#6f7f96</code></td>
+</tr>
+<tr>
+<td>12 s</td>
+<td>18°</td>
+<td>252°</td>
+<td>1.12</td>
+<td><code>#ffd7a8</code></td>
+<td><code>#67758c</code></td>
+</tr>
+<tr>
+<td>24 s</td>
+<td>13°</td>
+<td>260°</td>
+<td>1.17</td>
+<td><code>#ffc38d</code></td>
+<td><code>#5c6b83</code></td>
+</tr>
+<tr>
+<td>36 s</td>
+<td>7°</td>
+<td>268°</td>
+<td>1.22</td>
+<td><code>#ffae7a</code></td>
+<td><code>#53617a</code></td>
+</tr>
+</tbody></table>
+<p><code>sunDirectionAt(t)</code> 在关键帧之间做平滑插值，得到方向向量；同一组颜色和曝光喂给天空、雾、云 Pass 和色调映射。36 秒里，太阳从西南偏西的 22° 降到 7°，色温从琥珀转向玫红。变化很慢，单看一帧几乎察觉不到，但把它交给时间轴，黄昏就真的在推进。</p>
+<p>阴影是单方向光、4096² PCF，<code>shadowMap.autoUpdate = false</code>。阴影相机跟随当前镜头焦点，范围约 ±1400 米；影片每推进一帧，或自由浏览的焦点变化时，才显式刷新一次阴影图。这样既保住了近景建筑和栏杆的投影，又不用每帧重建一张 4096² 的阴影贴图。</p>
+<p>确定性是这套时间线的副产品，也是它能被验收的原因：同一时刻从不同的 seek 历史重放，截图解码后的像素 MD5 完全一致。导出时进入 <code>?film=1&amp;capture=1</code>，固定 1&#x2F;60 秒步长、固定随机种子，由 <code>window.__capture.renderAt(t)</code> 逐帧推进。2160 帧在 720p 下捕获耗时 123 秒。</p>
+<p><img src="/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/bamboo-peaks.jpg" alt="竹影双峰"></p>
+<p><em>图 4：镜三的竹海段（t &#x3D; 16.8 s）。镜头贴竹梢滑行，远处是隔着主峰的小竹峰与望月台。</em></p>
+<h2 id="七、把「看起来对」变成「处处成立」"><a href="#七、把「看起来对」变成「处处成立」" class="headerlink" title="七、把「看起来对」变成「处处成立」"></a>七、把「看起来对」变成「处处成立」</h2><p>第一版成片之后，做了一轮独立审查。审查提出的 3 个 Critical、7 个 Important，基本都不是「默认机位不好看」，而是「换个角度看就穿帮」。</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>症状</th>
+<th>修复</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方环地形 T 型接缝</td>
+<td>环与环之间有 6–19 米的裂缝</td>
+<td>粗环内边界补中点三角形，顶点直接取 <code>heightAt</code></td>
+</tr>
+<tr>
+<td>石阶悬空</td>
+<td>最高处离地约 520 米</td>
+<td><code>surfaceAt</code> 按 <code>fromZ + z</code> 重新采样地形，逐级踏板贴地</td>
+</tr>
+<tr>
+<td>台地不平、建筑悬空</td>
+<td>域扭曲把「平地」推出台地半径</td>
+<td>台地掩码改用未扭曲半径，建筑按 <code>groundLocal</code> 落座</td>
+</tr>
+<tr>
+<td>飞行穿地</td>
+<td>机位插值中途钻进山体</td>
+<td>飞行路径每帧夹到 <code>heightAt + 8</code></td>
+</tr>
+<tr>
+<td>演示模式没有字幕&#x2F;片名</td>
+<td>影片层依赖 <code>is-film</code> 类</td>
+<td>新增 <code>body.is-demo</code> 影片层</td>
+</tr>
+<tr>
+<td>缺少「观看影片」入口</td>
+<td>只能靠 URL 参数</td>
+<td>补上入口与返回</td>
+</tr>
+<tr>
+<td>重放不确定</td>
+<td>水雾按 delta 累积、环境贴图依赖 seek 历史</td>
+<td>水雾改为绝对时间；环境贴图按 2.2 秒量化桶生成</td>
+</tr>
+<tr>
+<td>阴影每帧重建</td>
+<td>4096² 阴影图拖慢帧率</td>
+<td><code>autoUpdate = false</code>，并修正全局 <code>needsUpdate</code> 初始化</td>
+</tr>
+<tr>
+<td>3188 个独立 Mesh</td>
+<td>3000 多个 draw call</td>
+<td>按材质合并为 32 个批次</td>
+</tr>
+<tr>
+<td>环间法线&#x2F;AO 接缝</td>
+<td>接缝处一条亮线</td>
+<td>法线统一由 <code>normalAt</code> 生成，AO 在近环外缘渐隐</td>
+</tr>
+</tbody></table>
+<p>其中两个修复值得展开。</p>
+<p><strong>石阶悬空</strong>：石阶不是一整块，而是 150 级踏板。第一版按「从起点到终点的直线高度」逐级放样，在山坡上就会一级一级地离开地面，最高处悬空约 520 米。修复后每一级都用自己的 <code>z</code> 去查询地形，踏板才会真正贴地。</p>
+<p><strong>阴影不刷新</strong>：把 <code>autoUpdate</code> 关掉之后，还要记得初始化 <code>renderer.shadowMap.needsUpdate</code>。否则第一帧的阴影图从未生成，所有 <code>MeshStandardMaterial</code> 都不会正常绘制，画面看起来像「光没有方向」。这是一个关闭优化时很容易漏掉的配套动作。</p>
+<p>这一轮之后，验收方式也变了。不再只看截图，而是看一组不变量：</p>
+<ul>
+<li>每一级石阶都贴着 <code>heightAt</code>；</li>
+<li>每一座建筑、每一圈栏杆都落在台地上；</li>
+<li>飞行动画在任意时刻都不低于 <code>heightAt + 8</code>；</li>
+<li>同一 <code>t</code> 从不同历史重放，像素完全一致；</li>
+<li>resize 之后云 Pass 的半分辨率目标跟着缩放，WebGL 上下文不丢；</li>
+<li><code>npm test</code> 的高度、布局、建筑、植被、水体、影片测试全部通过。</li>
+</ul>
+<p><code>npm test</code> 的当前输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">core ok</span><br><span class="line">terrain ok</span><br><span class="line">layout ok</span><br><span class="line">views ok</span><br><span class="line">buildings ok (merged 3188 -&gt; 32 meshes)</span><br><span class="line">vegetation ok</span><br><span class="line">water ok</span><br><span class="line">film ok</span><br></pre></td></tr></table></figure>
+
+<p><strong>截图能证明「这一帧成立」，测试才能证明「所有帧都成立」。</strong></p>
+<h2 id="八、推倒重排：提示词也要过审"><a href="#八、推倒重排：提示词也要过审" class="headerlink" title="八、推倒重排：提示词也要过审"></a>八、推倒重排：提示词也要过审</h2><p>第一版七峰是按提示词最初那张坐标表落位的。那座山脉能跑、能拍、能导出，但看起来仍然像「七个各自成立的景点」。</p>
+<p>问题不在模型没按提示词做，而在提示词只把「通天峰最高」写成了意图，没写成可执行的比例。</p>
+<p>初版的坐标表是：</p>
+<table>
+<thead>
+<tr>
+<th>山峰</th>
+<th>初版位置</th>
+<th>初版高度</th>
+<th>占通天峰</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通天峰</td>
+<td>(0, 0)</td>
+<td>1790</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>龙首峰</td>
+<td>(−200, −2900)</td>
+<td>1540</td>
+<td>86%</td>
+</tr>
+<tr>
+<td>落霞峰</td>
+<td>(−2350, −1750)</td>
+<td>1270</td>
+<td>71%</td>
+</tr>
+<tr>
+<td>风回峰</td>
+<td>(−3250, 250)</td>
+<td>1600</td>
+<td>89%</td>
+</tr>
+<tr>
+<td>大竹峰</td>
+<td>(−2000, 2600)</td>
+<td>1170</td>
+<td>65%</td>
+</tr>
+<tr>
+<td>小竹峰</td>
+<td>(1700, 2900)</td>
+<td>1330</td>
+<td>74%</td>
+</tr>
+<tr>
+<td>朝阳峰</td>
+<td>(3100, −250)</td>
+<td>1450</td>
+<td>81%</td>
+</tr>
+</tbody></table>
+<p>初版的散文部分只说「通天峰必须是中央主峰，海拔最高，体量最大」，没有给出比例；表里龙首 86%、风回 89%、朝阳 81%，三座峰都逼近主峰。模型面对「具体数字」和「模糊意图」时，会优先服从具体数字——它把表执行得很准确，于是主峰不再明显高出群山。</p>
+<p>空间上也有类似的问题：六峰虽然各有方位，但整体仍像六座各自为政的山头，峰与峰之间只有谷，没有山梁。缺少「同处一条山脉」的证据。</p>
+<p>修法不是往代码里打补丁，而是回到提示词的第一节，把构图原则写成最高优先级，并补上一条可以被测试的比例。提示词末尾追加了一节「核心构图方案：中央主峰统领群山（方案 A）」，明确：</p>
+<ul>
+<li>通天峰居中，最高、最大；</li>
+<li>六峰高度为通天峰的 55%–78%；</li>
+<li>不允许排成同一高度，也不允许围成完美圆环；</li>
+<li>峰与峰之间要有低矮山脊、峡谷和深谷，不能是七个独立圆锥。</li>
+</ul>
+<p>这条 55%–78% 是这次重排里最有用的改动。它把「主峰要高出一截」从一句形容，变成了布局测试可以直接断言的数字。</p>
+<p>然后才是代码里的重排：</p>
+<table>
+<thead>
+<tr>
+<th>山峰</th>
+<th>最终位置</th>
+<th>最终高度</th>
+<th>占通天峰</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通天峰</td>
+<td>(0, 0)</td>
+<td>1790</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>龙首峰</td>
+<td>(1450, −2500)</td>
+<td>1390</td>
+<td>78%</td>
+</tr>
+<tr>
+<td>落霞峰</td>
+<td>(−2500, 2500)</td>
+<td>1250</td>
+<td>70%</td>
+</tr>
+<tr>
+<td>风回峰</td>
+<td>(−3250, 250)</td>
+<td>1300</td>
+<td>73%</td>
+</tr>
+<tr>
+<td>大竹峰</td>
+<td>(−2600, −1800)</td>
+<td>1170</td>
+<td>65%</td>
+</tr>
+<tr>
+<td>小竹峰</td>
+<td>(1900, 3000)</td>
+<td>1330</td>
+<td>74%</td>
+</tr>
+<tr>
+<td>朝阳峰</td>
+<td>(3300, −150)</td>
+<td>1340</td>
+<td>75%</td>
+</tr>
+</tbody></table>
+<p>改变不只是数字：</p>
+<ul>
+<li><strong>龙首峰</strong>从正北搬到东北，<strong>大竹峰</strong>从西南搬到西北，<strong>落霞峰</strong>从西北搬到西南，六峰在平面上的方位更均匀；</li>
+<li>六峰高度全部落进 65%–78%，通天峰重新成为唯一的主峰；</li>
+<li>新增龙首—朝阳、风回—落霞两条连接山脊，让部分山峰「长在一起」；</li>
+<li>五个镜头全部重设：镜一改为东北高空逆光全景，镜三越过通天峰西侧山肩远眺小竹，镜四转向东北的龙首脊线，镜五拉远到通天峰居中的全景；</li>
+<li>山腰云带从 1320 米 &#x2F; 7% 收到 1310 米 &#x2F; 1.5%，避免盖住降低后的六峰；</li>
+<li>风回瀑布改为逐点贴地路径，并新增大竹峰北坡支瀑；山泉与仙鹤群跟随新峰位。</li>
+</ul>
+<p>这次重排最有意思的地方，是它证明了<strong>提示词不是一次性输入，而是和场景一起迭代的设计文档</strong>。仓库的提交记录里，提示词的修改和代码的修改是交替的：先把构图原则写进提示词，再重排坐标，再重设机位，再做视觉审查。提示词不是「给模型的命令」，而是这个世界的设计记录。</p>
+<h2 id="九、最终数字与边界"><a href="#九、最终数字与边界" class="headerlink" title="九、最终数字与边界"></a>九、最终数字与边界</h2><p>最终场景的主要数字：</p>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>七峰</td>
+<td>通天 1790 m；六峰 1170–1390 m（65%–78%）；谷地 420 m</td>
+</tr>
+<tr>
+<td>地形</td>
+<td>4 级同心方环，15 &#x2F; 30 &#x2F; 60 &#x2F; 120 m 单元，约 33.6 万顶点 &#x2F; 66.6 万三角面</td>
+</tr>
+<tr>
+<td>云海</td>
+<td>半分辨率 Ray Marching，48 步，主云海 900 m 峰值 + 山腰云带 1310 m（1.5%）</td>
+</tr>
+<tr>
+<td>植被</td>
+<td>18 400 竿竹、994 棵松、600 棵秋树、3 199 簇草</td>
+</tr>
+<tr>
+<td>建筑</td>
+<td>参数化屋顶&#x2F;台基&#x2F;柱列&#x2F;斗拱&#x2F;栏杆&#x2F;石阶&#x2F;亭塔桥；3188 个 Mesh 合并为 32 个批次</td>
+</tr>
+<tr>
+<td>瀑布</td>
+<td>主瀑落差约 300 m，支瀑约 170 m</td>
+</tr>
+<tr>
+<td>影片</td>
+<td>36 s &#x2F; 60 fps &#x2F; 2160 帧 &#x2F; 五镜头 &#x2F; AAC 192 kbps</td>
+</tr>
+<tr>
+<td>配乐</td>
+<td>HeyGen 曲库 track <code>4e3d6327…bea7</code>，剪 9.56–45.56 s，48 kHz 立体声，−17.9 LUFS</td>
+</tr>
+<tr>
+<td>后处理</td>
+<td>体积云 → Bloom → Grade → OutputPass → SMAA</td>
+</tr>
+</tbody></table>
+<p>交付的成片是 <strong>1280×720 &#x2F; 60 fps &#x2F; 36.000 秒 &#x2F; H.264 High + AAC 192 kbps</strong>，75.8 MiB；视频流 17.5 Mbps，逐帧捕获耗时 123 秒。另有同规格无声备份 <code>qingyun-seven-peaks-720p60-silent.mp4</code>，以及 36 秒母带配乐 <code>qingyun-heygen-score.wav</code>。关键镜头另有七张 2560×1440 PNG。</p>
+<p>配乐来自 HeyGen 曲库，不是程序化生成。曲目信息记在项目的 <code>docs/heygen-score.md</code>：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>provider</td>
+<td><code>heygen.audio.sounds</code></td>
+</tr>
+<tr>
+<td>track id</td>
+<td><code>4e3d63277b074f4ca246938d6322bea7</code></td>
+</tr>
+<tr>
+<td>曲目描述</td>
+<td>epic Chinese fantasy, guzheng and erhu intro, taiko building, orchestral climax at 0:51, ends on one final note</td>
+</tr>
+<tr>
+<td>源曲</td>
+<td>50 s &#x2F; 44.1 kHz 立体声 PCM</td>
+</tr>
+<tr>
+<td>授权</td>
+<td>HeyGen OAuth（<code>heygen</code> CLI 已登录账号）</td>
+</tr>
+<tr>
+<td>使用片段</td>
+<td>9.56 s – 45.56 s（36 s）</td>
+</tr>
+<tr>
+<td>母带</td>
+<td>48 kHz 立体声，−17.9 LUFS &#x2F; −1.9 dBTP</td>
+</tr>
+</tbody></table>
+<p>剪辑点不是随手截的 36 秒：</p>
+<ul>
+<li>9.56 秒是乐句的干净起点，前一拍有 0.4 秒留白，避免从乐句中间切入；</li>
+<li>15.5 秒起太鼓与管弦进入，落到成片里大约是第 6 秒，对应镜二、镜三的推进；</li>
+<li>42–45 秒是末音与自然衰减，落在片尾 1.5 秒的画面淡出处，不需要硬切。</li>
+</ul>
+<p>首尾另做 0.5 秒淡入、34.3 秒起 1.7 秒淡出。母带用线性增益而不是动态 loudnorm：源曲真峰已经是 0 dBFS，再压缩会损失音乐的起伏。封装时用 <code>-c:v copy</code> 只加 AAC 音轨，视频流不重新编码，所以配乐可以替换而不动画面。</p>
+<p>源曲不随仓库分发，本地缓存放在 <code>.media/audio/bgm/bgm_001.wav</code>（已被 <code>.gitignore</code> 忽略）。页面内的风声、云海低频、瀑布与钟声仍是 <code>src/audio.js</code> 的程序化 Web Audio，默认关闭；<code>npm run score</code> 保留为无外部音频时的回退方案。</p>
+<p>这里还剩一处差距：提示词最初要求的是 2560×1440。这一版仍是 1280×720，分辨率没有补齐；但音轨已经从「无」补到了 AAC 192 kbps &#x2F; −17.9 LUFS，接近提示词写的 −18 LUFS。<strong>声画分离让这两件事可以分开推进</strong>：先把「同一份时间线每次都能导出同样的帧」做稳，再单独做配乐和封装，不必为了换一首曲子重渲染 2160 帧。</p>
+<p>已知的限制也列在这里：</p>
+<ul>
+<li>远景山体仍偏圆缓，缺少真实山岳的高频岩壁细节，近景主要靠植被和建筑建立尺度；</li>
+<li>云海是单次散射近似，逆光时高光偏强，暗部结构偏软；</li>
+<li>瀑布是半透明 ribbon，近看缺少水体厚度和泡沫细节；</li>
+<li>建筑是参数化组合，没有真实木构的榫卯与彩画级别细节；</li>
+<li>第四镜的瀑布在画面右侧，云带较厚时会被部分遮挡；</li>
+<li>石阶在远景里偏细，近看可辨认，但不如近景建筑突出。</li>
+</ul>
+<p>自动验证覆盖了高度函数、地形缝合、台地平整、七峰方位与高度比例、建筑落位、植被贴地、瀑布落差、影片时间线、交互与确定性重放；视觉终检仍然要人眼完成。工具能保证世界「处处成立」，不能保证它「好看」。</p>
+<h2 id="十、复现"><a href="#十、复现" class="headerlink" title="十、复现"></a>十、复现</h2><p>环境要求 Node.js ≥ 20.19 和支持 WebGL 2 的桌面浏览器。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> material/诛仙青云山七峰</span><br><span class="line"></span><br><span class="line">npm install</span><br><span class="line">npm run dev        <span class="comment"># http://localhost:5173</span></span><br><span class="line">npm <span class="built_in">test</span>           <span class="comment"># 高度 / 地形 / 布局 / 建筑 / 植被 / 水体 / 影片</span></span><br><span class="line">npm run build      <span class="comment"># 产物输出到 dist/，base 为 &quot;./&quot;</span></span><br><span class="line">npm run preview    <span class="comment"># 本地预览构建产物</span></span><br></pre></td></tr></table></figure>
+
+<p>交互：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>拖拽 &#x2F; 滚轮 &#x2F; 右键拖拽</td>
+<td>旋转、缩放、平移；首次操作暂停影片并进入自由探索</td>
+</tr>
+<tr>
+<td>空格</td>
+<td>播放 &#x2F; 暂停</td>
+</tr>
+<tr>
+<td><code>1</code> – <code>7</code></td>
+<td>通天、龙首、落霞、风回、大竹、小竹、朝阳</td>
+</tr>
+<tr>
+<td><code>8</code></td>
+<td>全景</td>
+</tr>
+<tr>
+<td><code>R</code></td>
+<td>重置到全景</td>
+</tr>
+<tr>
+<td>底部时间轴</td>
+<td>拖到任意镜头；松开后保持暂停</td>
+</tr>
+<tr>
+<td>云海 &#x2F; 雾 &#x2F; 字幕 &#x2F; 声音</td>
+<td>独立开关；声音默认关闭，需点击开启</td>
+</tr>
+</tbody></table>
+<p>访问 <code>?film=1</code> 进入纯净影片页；<code>?film=1&amp;capture=1</code> 进入逐帧捕获模式，<code>window.__capture.renderAt(t)</code> 可按 1&#x2F;60 秒推进。</p>
+<p>导出 720p 成片：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">npm run dev -- --port 5199 --strictPort</span><br><span class="line"></span><br><span class="line">npm run <span class="built_in">export</span>:film -- --url http://127.0.0.1:5199/ \</span><br><span class="line">  --frames deliverables/frames --width 1280 --height 720</span><br><span class="line"></span><br><span class="line"><span class="comment"># 先编码无声成片</span></span><br><span class="line">npm run encode:film -- --frames deliverables/frames \</span><br><span class="line">  --out deliverables/qingyun-seven-peaks-720p60-silent.mp4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 再封装 HeyGen 配乐（视频流复制，不重新编码）</span></span><br><span class="line">npm run mux:score</span><br><span class="line"></span><br><span class="line">npm run stills:film -- --url http://127.0.0.1:5199/ \</span><br><span class="line">  --out deliverables/previews</span><br></pre></td></tr></table></figure>
+
+<p>配乐的剪辑点、母带命令与授权说明见项目里的 <code>docs/heygen-score.md</code>；源曲不随仓库分发。</p>
+<p>源码在 <a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a> 的 <code>material/诛仙青云山七峰/</code>。</p>
+<p><img src="/2026/11/20/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E4%B8%80%E5%B9%85%E3%80%8A%E8%AF%9B%E4%BB%99%E3%80%8B%E9%9D%92%E4%BA%91%E4%B8%83%E5%B3%B0v1.0/luoxia.jpg" alt="落霞满袖"></p>
+<p><em>图 5：镜五「落霞满袖，青云不老」。逆光下的落霞峰楼阁与秋林，镜头随后拉远到七峰全景。</em></p>
+<h2 id="结语：先找到那条「高度函数」"><a href="#结语：先找到那条「高度函数」" class="headerlink" title="结语：先找到那条「高度函数」"></a>结语：先找到那条「高度函数」</h2><p>「绘制」这个词容易让人以为工作是把山画出来。实际上，这个场景里真正被反复修改的，不是某座山的曲面，而是山与山之间的关系：谁在中，谁更高，谁和谁相连，云淹到哪里，镜头从哪里看。</p>
+<p>七峰之所以能成为一条山脉，不是因为每座峰都做得更细，而是因为所有东西都查询同一个 <code>heightAt(x, z)</code>。地形、建筑、植被、瀑布、仙鹤、镜头，共享同一套空间真值。改一个峰的坐标，整片世界会跟着动；而在「七个景点」的做法里，挪一座山要分别改地形、建筑、植被和镜头。</p>
+<p>提示词的角色也一样。它最值钱的不是把「仙气」写得多足，而是把空间关系写成可执行、可验收的约束；当构图原则变化时，先改提示词的第一节，再改代码。</p>
+<p>下次让模型搭一座山，先别急着列建筑和特效。先问自己：这个世界的「高度函数」是什么？哪一条关系一旦定了，其他东西都得跟着它走？</p>
+<p>把那条关系写进第一节。</p>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><ul>
+<li><strong>threejs-skills</strong>：<a target="_blank" rel="noopener" href="https://github.com/cloudai-x/threejs-skills"><code>cloudai-x/threejs-skills</code></a>，按主题拆分的 Three.js skill，对齐 three.js r186。</li>
+<li><strong>Three.js</strong>：MIT 许可，项目使用 <code>three@0.186.0</code>。</li>
+<li><strong>场景源码与截图</strong>：<a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>，<code>material/诛仙青云山七峰/</code>。文中五张插图与封面均来自该项目的 <code>deliverables/previews/</code>。</li>
+<li><strong>配乐</strong>：HeyGen 曲库 track <code>4e3d63277b074f4ca246938d6322bea7</code>，OAuth 授权；片段、剪辑点与母带参数见项目 <code>docs/heygen-score.md</code>，源曲不随仓库分发。</li>
+<li><strong>模型与 harness</strong>：DeepSeek-flash4.1 在 Claude Code 中运行。</li>
+<li><strong>资源说明</strong>：所有几何、贴图、环境贴图、天空、云海、水面、植被与页面内声音均由源码程序化生成，未使用外部模型、图片或音频采样；成片配乐是 HeyGen 曲库的授权曲目，不属于程序化生成部分。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1840,131 +2541,6 @@
 <p>这位来自澳大利亚的帅气工程师，这次是这么回复的：你提的问题我们后续会修复，之前告诉你的也只是当前的解决方案。简洁并且直爽，人家之所以给你提之前的方案，并不是说 bug 不存在，只是另一个解决方式，bug我们还是会改，但是你得等待。</p>
 <h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>到此为止，我认为我的目的达到了，于是乎就把这个issue关了。但是没过多久，这个工程却重新打开了 issue 。我没有再追问，我推测在 bug 修复之前， issue 应该是不会关闭，具体是不是这个澳洲小伙修复就不得而知了。</p>
 <p>关于这次issue的整个过程，在 github 上完成过程，感兴趣的同学可以自行查阅。（<a target="_blank" rel="noopener" href="https://github.com/microsoft/vscode/issues/83496">terminal.integrataed.splitCwd inherited doesn’t work correctly for unicode characters · Issue #83496 · microsoft&#x2F;vscode · GitHub</a>）</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2019/10/10/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%96%B9%E6%A1%88%E5%8F%8A%E5%AE%9E%E7%8E%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="fwind">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fwind's blog">
-      <meta itemprop="description" content="code">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | fwind's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/10/10/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%96%B9%E6%A1%88%E5%8F%8A%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">Linux服务器守护进程方案及实现</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-10-10 17:26:31" itemprop="dateCreated datePublished" datetime="2019-10-10T17:26:31+08:00">2019-10-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-25 11:05:32" itemprop="dateModified" datetime="2025-02-25T11:05:32+08:00">2025-02-25</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><img src="/2019/10/10/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%96%B9%E6%A1%88%E5%8F%8A%E5%AE%9E%E7%8E%B0/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%BF%9B%E7%A8%8B%E5%AE%88%E6%8A%A4%E6%80%9D%E8%B7%AF.jpg"></p>
-<blockquote>
-<p>总体思路  </p>
-</blockquote>
-<ol>
-<li>在linux服务器新建无登录账号（&#x2F;sbin&#x2F;nologin&#x2F;）</li>
-<li>构建自动化启动进程脚本</li>
-<li>新建计划任务定时监控服务（crontab）</li>
-</ol>
-<h2 id="初衷"><a href="#初衷" class="headerlink" title="初衷"></a>初衷</h2><p>在服务器的管理中，我们需要启动一些服务，出于安全方面的考虑，我们不希望以root的方式启动它，而是为这些服务单独建立相应的账号，并且禁用它们的shell登录权限。</p>
-<h2 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h2><h3 id="场景说明"><a href="#场景说明" class="headerlink" title="场景说明"></a>场景说明</h3><p>在linux服务器上实现对于nodejs进程进行守护的场景。</p>
-<h3 id="构建nodejs程序"><a href="#构建nodejs程序" class="headerlink" title="构建nodejs程序"></a>构建nodejs程序</h3><ol>
-<li>我们新建一个nodejs程序server.js：</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> http = <span class="built_in">require</span>(‘http’)</span><br><span class="line"><span class="keyword">const</span> server = http.<span class="title function_">createServer</span>(<span class="keyword">function</span> (<span class="params">req, res</span>) &#123;</span><br><span class="line">    res.<span class="title function_">writeHead</span>(<span class="number">200</span>, &#123;</span><br><span class="line">        ‘<span class="title class_">Content</span>-<span class="title class_">Type</span>’: ‘application/json’</span><br><span class="line">    &#125;);</span><br><span class="line">    res.<span class="title function_">end</span>(‘&#123;“server”:”nodejs”&#125;’);</span><br><span class="line">&#125;);</span><br><span class="line">server.<span class="title function_">listen</span>(<span class="number">8080</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(“port = <span class="number">8080</span>”)</span><br></pre></td></tr></table></figure>
-<ol start="2">
-<li>常规启动：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node server.js</span><br></pre></td></tr></table></figure>
-<p>启动以后，server.js进程属于root用户，或者其他可以shell登录的用户：<br><img src="/2019/10/10/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%96%B9%E6%A1%88%E5%8F%8A%E5%AE%9E%E7%8E%B0/726223FE-043B-4807-8E96-82F553517F36.png"><br>3. 在浏览器敲入ip加端口即可查看运行结果：<br><img src="/2019/10/10/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%96%B9%E6%A1%88%E5%8F%8A%E5%AE%9E%E7%8E%B0/04EDB1C0-7455-42D4-8141-C14059419131.png"></p>
-<h3 id="新建无登录账号"><a href="#新建无登录账号" class="headerlink" title="新建无登录账号"></a>新建无登录账号</h3><ol>
-<li>新建账号：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">useradd -M -s /sbin/nologin nodejsUser</span><br></pre></td></tr></table></figure>
-<ol start="2">
-<li>在&#x2F;etc&#x2F;passwd下查看账号状态：<br><img src="/2019/10/10/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%96%B9%E6%A1%88%E5%8F%8A%E5%AE%9E%E7%8E%B0/1F2C7BA3-B386-43FC-AD9C-55AB2D45E8E7.png"><br>nodejsUser是无法shell登录的，我们可以使用如下命令启动server.js：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 赋予nodejsUser账号可访问server.js文件的权限</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> nodejsUser /opt/nodejsUser/server.js</span><br><span class="line"><span class="comment"># 启动</span></span><br><span class="line"><span class="built_in">sudo</span> -u nodejsUser node /opt/nodejsUser/server.js</span><br></pre></td></tr></table></figure>
-<ol start="3">
-<li>此时查看8080端口，可以发现，现在用户是nodejsUser了：<br><img src="/2019/10/10/Linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%96%B9%E6%A1%88%E5%8F%8A%E5%AE%9E%E7%8E%B0/1AC51472-D033-4089-99C9-FD407A4ED153.png"></li>
-</ol>
-<h3 id="编写自动化启动脚本"><a href="#编写自动化启动脚本" class="headerlink" title="编写自动化启动脚本"></a>编写自动化启动脚本</h3><ol>
-<li>此处我们需要借助tmux工具来实现实时监控nodejs进程的功能，下面是具体实现过程server.sh：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># tumx启动脚本</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 兼容zsh</span></span><br><span class="line"><span class="built_in">export</span> DISABLE_AUTO_TITLE=<span class="string">&quot;true&quot;</span></span><br><span class="line"><span class="comment"># 会话名称</span></span><br><span class="line">session=“sever”</span><br><span class="line"><span class="comment"># 判断server.js进程是否存在</span></span><br><span class="line">ps -ef|grep <span class="string">&quot;node /opt/nodejsUser/server.js&quot;</span> |grep -v grep</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;start process.....&quot;</span></span><br><span class="line">	  <span class="comment"># 判断tmux会话是否存在</span></span><br><span class="line">    tmux has-session -t <span class="variable">$session</span></span><br><span class="line">    <span class="keyword">if</span> [ $? = 0 ]</span><br><span class="line">        <span class="keyword">then</span></span><br><span class="line">		  <span class="comment"># 如果存在，则进入该会话</span></span><br><span class="line">        tmux attach-session -t <span class="variable">$session</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">		  <span class="comment"># 如果不存在，则新建会话</span></span><br><span class="line">        tmux new-session -d -s <span class="variable">$session</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">	  <span class="comment"># 发送启动程序命令</span></span><br><span class="line">    tmux send-keys -t <span class="variable">$session</span> <span class="string">&quot;sudo -u nodejsUser node /opt/nodejsUser/server.js&quot;</span> C-m</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">	  <span class="built_in">echo</span> <span class="string">&quot;runing.....&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-<ol start="2">
-<li>当tmux会话启动以后，可以随时查看server.js运行的情况：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 	启动会话</span></span><br><span class="line">tmux a -t server</span><br></pre></td></tr></table></figure>
-<h3 id="自定义计划任务"><a href="#自定义计划任务" class="headerlink" title="自定义计划任务"></a>自定义计划任务</h3><ol>
-<li>新建计划任务：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crontab -e</span><br></pre></td></tr></table></figure>
-<ol start="2">
-<li>任务内容：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*/1 * * * * /bin/bash /opt/nodejsUser/server.sh &gt;&gt; /opt/nodejsUser/run.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
-<p>每分钟执行一次server.sh脚本，执行情况记录到日志文件run.log当中。crontab的定时机制可以自行查阅，比较好理解，这里不再赘述。</p>
-<h2 id="写在最后的话"><a href="#写在最后的话" class="headerlink" title="写在最后的话"></a>写在最后的话</h2><p>到此为止，所有功能均已实现，我们的计划任务会定时对server.js进程扫描，当发现该进程crash时，会自动重启。当服务器重启时，计划任务也会超常运行。</p>
-<p>其实在这之前，我在管理nodejs项目时，使用的是pm2监控工具，现成的免费工具，用起来确实也比较方便，但是在无登录账号下遇到无法启动pm2的问题，虽然花了一些时间攻克，但最终并没有解决，因此就有了本文中的解决方案，先用一段时间看看效果吧。</p>
 
       
     </div>
