@@ -139,7 +139,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -161,6 +161,564 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fwind">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fwind's blog">
+      <meta itemprop="description" content="code">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | fwind's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/" class="post-title-link" itemprop="url">如何绘制《一树鎏金·秋日银杏树》</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-11-27 12:30:00 / 修改时间：12:15:10" itemprop="dateCreated datePublished" datetime="2026-11-27T12:30:00+08:00">2026-11-27</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><img src="/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/cover.jpg" alt="一树鎏金：镜一开场，低机位逆光下的完整树形"></p>
+<p><em>封面：t &#x3D; 1.2 s。摄影机在树南侧约 23 米、离地 2.5 米，视线抬向 7 米高的树冠中心；太阳在树后偏左，整棵树以逆光为主。</em></p>
+<blockquote>
+<p>模型：DeepSeek-flash4.1；harness：Claude Code；能力来源：一组对齐 three.js r186 的 threejs-skills。</p>
+<p>配乐：HeyGen 曲库（track <code>89d7b95ce80f49ee9d1ecd27f23f5629</code>）；网页 <code>?film=1</code> 仍是静音预览，带配乐的版本在成片 MP4 里。</p>
+<p>这篇文章复盘的是：一份只要求「一棵树」的提示词，如何落成一棵设计高度 14.2 米、47,871 片叶子的程序化银杏，以及围绕它的一条 30 秒、六镜头的绝对时间轴。</p>
+</blockquote>
+<h2 id="引言：一棵树要在六个距离上成立"><a href="#引言：一棵树要在六个距离上成立" class="headerlink" title="引言：一棵树要在六个距离上成立"></a>引言：一棵树要在六个距离上成立</h2><p>《一树鎏金·秋日银杏树》的提示词只要求一棵树。没有山脉、没有建筑、没有街道，也没有第二棵树。</p>
+<p>听起来比七峰简单。但提示词紧接着给了六个镜头：24 米看整体，19.5 米环绕看结构，8 米仰视看高度，3 米看叶脉，3.6 米看树皮，最后 23 米收尾。同一棵树，要在六个距离上都成立。</p>
+<p>这就是树的难点。山可以靠体量和云海成立，建筑可以靠参数化构件成立；一棵树不行。远景看的是轮廓，近景看的是树皮裂纹和叶脉，微距看的是 0.27 米叶片上的 27 条叶脉。只在某一个距离上好看的树，是一张海报，不是一个三维对象。</p>
+<p>提示词提前堵住了最容易的退路：</p>
+<blockquote>
+<p>避免使用简单圆柱体加几个黄色球体代替银杏树。</p>
+<p>不允许使用几个球形模型直接代替树冠。</p>
+<p>不要让整个树冠变成均匀发光的黄色球体。</p>
+</blockquote>
+<p>这三句「不要」对应三个结构决定：枝干必须真的分级；树冠不能有独立网格；透光必须是一个角度函数，而不是一个常数。</p>
+<p>先说结论：<strong>这棵树能成立，不是因为某一处做得细，而是因为它有一条尺度阶梯——主干半径 0.63 米、主枝长 3 米、末梢小枝 0.4–1.2 米、叶片 0.27 米、叶脉 1 像素宽。六个镜头站在不同的台阶上，看到的是同一棵树的不同层级。</strong> 树冠不是画出来的，它是枝条长出来的。</p>
+<h2 id="一、提示词：把「不要」写成约束"><a href="#一、提示词：把「不要」写成约束" class="headerlink" title="一、提示词：把「不要」写成约束"></a>一、提示词：把「不要」写成约束</h2><p>这份提示词正文十二节（仓库里的 <code>prompt/一树鎏金·秋日银杏树.md</code>），从建模、树冠、叶片、动态、光照，一直写到镜头、交互、导出与验收。它没有给坐标表，也没有给树高以外的建模尺寸；它给的是尺度范围、六个镜头和一组禁止项。</p>
+<p>真正被实现反复回应的，是下面几条：</p>
+<table>
+<thead>
+<tr>
+<th>提示词要求</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>树高约 10–15 米</td>
+<td>设计 14.2 米；主干顶约 8.6 米；实际最高叶 13.86 米</td>
+</tr>
+<tr>
+<td>明显的根部扩张</td>
+<td>7 条放射根，伸出 1.5–2.65 米；基部 5 瓣隆起</td>
+</tr>
+<tr>
+<td>四级分枝、避免机械分叉</td>
+<td>16 → 64 → 256 → 879；子枝绕随机三维轴散开</td>
+</tr>
+<tr>
+<td>不允许球形树冠</td>
+<td>没有树冠网格；47,871 片叶全部挂在枝条曲线上</td>
+</tr>
+<tr>
+<td>扇形叶、缺口、波浪边、叶脉</td>
+<td>512² Canvas：高斯缺口 + 双频边缘扰动 + 27 条主脉</td>
+</tr>
+<tr>
+<td>五类叶色</td>
+<td>6 档调色板，权重 32 &#x2F; 24 &#x2F; 18 &#x2F; 14 &#x2F; 8 &#x2F; 4%</td>
+</tr>
+<tr>
+<td>背光透光，不要均匀发亮</td>
+<td>视线–太阳夹角 ^3 × 边缘薄度 ^1.4，只在逆光提亮</td>
+</tr>
+<tr>
+<td>30 秒、六镜头、1080p60</td>
+<td>6 × 5 秒，1800 帧，1920×1080 &#x2F; H.264</td>
+</tr>
+</tbody></table>
+<p>这张表里有几条不是「照做」，而是「翻译」。提示词说「不要圆柱体加黄球」，代码里没有去找一个更像树的现成模型，而是把「树」拆成一根主干、四级递归分枝，再把叶片挂到每一根带叶枝上。提示词说「不要均匀发光的黄色球体」，代码里就没有给叶片加一个恒定的 <code>emissive</code>，而是让透光随视线与太阳的夹角变化。</p>
+<p>禁止项不是修辞。它们是在提前排除模型在信息不足时最容易选择的默认解。</p>
+<h2 id="二、尺度：从-14-2-米到-0-27-米"><a href="#二、尺度：从-14-2-米到-0-27-米" class="headerlink" title="二、尺度：从 14.2 米到 0.27 米"></a>二、尺度：从 14.2 米到 0.27 米</h2><p>场景常量收在 <code>src/config.js</code>。坐标系沿用仓库约定：X 轴向东，Z 轴向南，Y 轴向上，1 世界单位约等于 1 米。树根落在地面原点，全场景只有这一棵树。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="variable constant_">WORLD</span> = &#123;</span><br><span class="line">  <span class="attr">treeHeight</span>: <span class="number">14.2</span>,</span><br><span class="line">  <span class="attr">trunkTop</span>: <span class="number">8.6</span>,</span><br><span class="line">  <span class="attr">crownCenter</span>: <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(<span class="number">0</span>, <span class="number">8.75</span>, <span class="number">0</span>),</span><br><span class="line">  <span class="attr">crownRadii</span>: <span class="keyword">new</span> <span class="variable constant_">THREE</span>.<span class="title class_">Vector3</span>(<span class="number">5.85</span>, <span class="number">5.0</span>, <span class="number">5.85</span>),</span><br><span class="line">  <span class="attr">far</span>: <span class="number">420</span>,</span><br><span class="line">  <span class="attr">fogDensity</span>: <span class="number">0.0105</span>,</span><br><span class="line">  <span class="attr">groundSize</span>: <span class="number">260</span>,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个值得先说的细节：<code>treeHeight</code>、<code>trunkTop</code>、<code>crownRadii</code> 和 <code>LEAF.targetCount</code> 都没有被代码读取。它们是对结果的描述，不是对结果的约束。</p>
+<p>真正决定树冠形状的，是 47,871 片叶子的位置。把所有叶片位置取包围盒，得到：</p>
+<table>
+<thead>
+<tr>
+<th>轴</th>
+<th>实际范围（米）</th>
+<th>跨度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X</td>
+<td>−5.76 … 5.93</td>
+<td>11.68</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>2.42 … 13.86</td>
+<td>11.44</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>−5.85 … 5.01</td>
+<td>10.86</td>
+</tr>
+</tbody></table>
+<p>参考椭球写的是 5.85 × 5.0 × 5.85、中心在 8.75 米。实际包围盒与它很接近，但低处多伸出了 1.3 米——因为下层主枝是下垂的。<strong>参考椭球没有参与任何计算；它是对长出来的树冠的事后描述。</strong> 这一点在后面几节会反复出现：树冠的形状是枝条与叶片采样的副产品。</p>
+<p>设计高度 14.2 米，实际最高的一片叶在 13.86 米。设计值比结果高 0.34 米，这 0.34 米不是误差，而是「文档描述了结果、但没有约束结果」的又一个例子。</p>
+<p>整个场景的尺度阶梯大致是这样：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>典型尺寸</th>
+<th>数量</th>
+<th>主要服务的镜头</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主干 + 根盘</td>
+<td>半径 0.63 → 0.16 米，高 8.6 米</td>
+<td>1 + 7 条根</td>
+<td>镜五（树皮）</td>
+</tr>
+<tr>
+<td>一级主枝</td>
+<td>长 2.6–3.9 米</td>
+<td>16 根</td>
+<td>镜二、镜三</td>
+</tr>
+<tr>
+<td>二级分枝</td>
+<td>父枝的 0.54–0.68 倍</td>
+<td>64 根</td>
+<td>镜二、镜三</td>
+</tr>
+<tr>
+<td>三级细枝</td>
+<td>同上</td>
+<td>256 根</td>
+<td>镜三、镜四</td>
+</tr>
+<tr>
+<td>末端小枝</td>
+<td>同上</td>
+<td>879 根</td>
+<td>镜四（微距）</td>
+</tr>
+<tr>
+<td>叶片</td>
+<td>0.17–0.35 米</td>
+<td>47,871 片</td>
+<td>镜四</td>
+</tr>
+<tr>
+<td>树皮贴图</td>
+<td>1024² × 3 张</td>
+<td>1 套</td>
+<td>镜五</td>
+</tr>
+<tr>
+<td>叶片贴图</td>
+<td>512²</td>
+<td>1 张</td>
+<td>镜四</td>
+</tr>
+</tbody></table>
+<p>每一级都在回答上一级留下的问题：主干回答「树有多粗」，主枝回答「树冠有多宽」，末梢回答「叶片挂在哪」，贴图回答「最近的镜头能看到什么」。</p>
+<h2 id="三、主干：一根会呼吸的锥形管"><a href="#三、主干：一根会呼吸的锥形管" class="headerlink" title="三、主干：一根会呼吸的锥形管"></a>三、主干：一根会呼吸的锥形管</h2><p>主干不是 <code>CylinderGeometry</code>，而是一条 <code>CatmullRomCurve3</code>（8 个控制点，从 y &#x3D; −0.55 到 8.55，centripetal 参数化），沿曲线扫出一根 60 × 20 段的锥形管。半径从基部的约 0.63 米收到顶部的 0.16 米：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">trunkRadiusAt</span>(<span class="params">t</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> y = -<span class="number">0.55</span> + trunkLength * t;</span><br><span class="line">  <span class="keyword">const</span> taper = <span class="title class_">Math</span>.<span class="title function_">pow</span>(<span class="number">1</span> - t, <span class="number">0.8</span>);</span><br><span class="line">  <span class="keyword">const</span> base = <span class="number">0.16</span> + (<span class="number">0.48</span> - <span class="number">0.16</span>) * taper;</span><br><span class="line">  <span class="keyword">const</span> flare = <span class="number">0.15</span> * <span class="title class_">Math</span>.<span class="title function_">exp</span>(-<span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, y) / <span class="number">1.0</span>);</span><br><span class="line">  <span class="keyword">return</span> base + flare;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>指数 0.8 让收分不是直线；<code>flare</code> 主要在离地 1 米内起作用，给根部一个向外张开的喇叭口。</p>
+<p>光有收分还不够，树干的横截面不能是圆的。每圈顶点还会乘上一个径向调制：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">  + <span class="number">0.17</span> * flare * (<span class="number">0.5</span> + <span class="number">0.5</span> * <span class="title class_">Math</span>.<span class="title function_">cos</span>(angle * <span class="number">5</span> + <span class="number">0.55</span>))</span><br><span class="line">  + <span class="number">0.03</span> * <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle * <span class="number">7</span> + t * <span class="number">11</span>)</span><br><span class="line">  + (relief - <span class="number">0.5</span>) * <span class="number">0.16</span>;</span><br></pre></td></tr></table></figure>
+
+<p>第一项只在基部明显，把根盘压成 5 瓣；第二项给整根树干一点不规则的棱；第三项是三层 fbm 噪声，负责长尺度的凹凸。三者都不改 UV，只改半径，所以树皮贴图仍然顺着树干走。</p>
+<p>根盘是 7 条独立的曲线，从主干离地 0.62 米处向外斜插进地面，伸出 1.5–2.65 米，半径从 0.26–0.33 米收到 0.025 米。它们和主干一起被合并进同一个 <code>BufferGeometry</code>。</p>
+<p>树皮是 Canvas 画的，三张 1024² 贴图：albedo、bump、roughness。albedo 上用 220 个大色斑、56 条纵向色带、1600 条生长纹、44 条裂纹、18 条更深的老年裂沟、90 块剥落的浅色树皮、260 个横向皮孔和 5200 个细碎颗粒叠出来；bump 和 roughness 不另外画，直接由 albedo 的亮度反推——暗的裂纹低、亮的树脊高，粗糙度则整体保持在 120–255 之间。材质是 <code>MeshStandardMaterial</code>，<code>bumpScale 0.9</code>、<code>roughness 1.0</code>，几乎不反环境光。</p>
+<p>这里有一条项目备注值得记下来：<strong>锥形管的索引绕序必须让正面朝外。</strong> 绕序反了，看到的会是管体内壁，树干被错误地照成灰白，树皮纹理和阴影都会失真。这种错误不报异常，只是在某个角度看起来「颜色不对」。</p>
+<p>最终，主干、7 条根、16 根一级主枝和全部下级枝条共 1,223 段，合并成一个网格。整棵树的枝干只占一个 draw call，约 6.9 万三角面。</p>
+<h2 id="四、分枝：四级递归，别长成一把梳子"><a href="#四、分枝：四级递归，别长成一把梳子" class="headerlink" title="四、分枝：四级递归，别长成一把梳子"></a>四、分枝：四级递归，别长成一把梳子</h2><p>分枝是一个递归函数。每根枝给定起点、方向、长度、半径和层级，走 4–5 步生成一条 <code>CatmullRomCurve3</code>，然后在曲线的中后段（约 36%–93%）长出 3–4 根子枝。</p>
+<p>一级主枝有两组：</p>
+<ul>
+<li>主干上 12 根，从 y &#x3D; 3.25 到 7.45 分布，越靠下越舒展，仰角从约 9° 增到约 37°（另有 ±6° 抖动）；</li>
+<li>顶部 4 根，从 y &#x3D; 7.0 到 8.4 分布，主要向上撑起树冠上半部。</li>
+</ul>
+<p>子枝的长度是父枝的 0.54–0.68 倍，半径是 0.56 倍。层级越深，管子越省：一级 14 × 9 段，二级 9 × 7，三级 7 × 5，末端 5 × 4。末端小枝已经细到不需要更多面数。</p>
+<p>真正决定「像不像树」的，是子枝怎么散开。最容易写出的版本是：在父枝的同一个平面里左右分叉，结果整棵树像一把羽毛或一把梳子。实现里给每根子枝一个随机三维轴，绕它旋转 0.42–1.0 弧度，再叠加向外的偏置和少量向上的偏置：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> childDirection = tangent</span><br><span class="line">  .<span class="title function_">clone</span>()</span><br><span class="line">  .<span class="title function_">applyAxisAngle</span>(divergenceAxis, <span class="number">0.42</span> + <span class="title function_">random</span>() * <span class="number">0.58</span>)</span><br><span class="line">  .<span class="title function_">addScaledVector</span>(outward, <span class="number">0.34</span> + <span class="title function_">random</span>() * <span class="number">0.18</span>)</span><br><span class="line">  .<span class="title function_">addScaledVector</span>(<span class="variable constant_">UP</span>, level === <span class="number">1</span> ? <span class="number">0.13</span> : <span class="number">0.07</span>)</span><br><span class="line">  .<span class="title function_">normalize</span>();</span><br></pre></td></tr></table></figure>
+
+<p><code>outward</code> 是子枝起点相对树冠中心的水平方向，Y 分量被压到 0.42，所以子枝更愿意向四周走，而不是往上挤。最后还有一道钳制：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (childDirection.<span class="property">y</span> &lt; -<span class="number">0.34</span>) &#123;</span><br><span class="line">  childDirection.<span class="property">y</span> = -<span class="number">0.34</span> + <span class="title function_">random</span>() * <span class="number">0.12</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>允许下垂，但不允许倒挂。这条边界让下层枝条有自然的垂势，又不会在树冠底部织出一张反过来的网。</p>
+<p>枝干的摆动权重也按层级写死：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>摆动范围（米）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主干</td>
+<td>0 → 0.003</td>
+</tr>
+<tr>
+<td>一级主枝</td>
+<td>0.003 → 0.016</td>
+</tr>
+<tr>
+<td>二级</td>
+<td>0.012 → 0.05</td>
+</tr>
+<tr>
+<td>三级</td>
+<td>0.035 → 0.11</td>
+</tr>
+<tr>
+<td>末端</td>
+<td>0.06 → 0.15</td>
+</tr>
+</tbody></table>
+<p>主干几乎不动，一级主枝最多摆 1.6 厘米，到末梢才允许 15 厘米。这个梯度是有意压低的：树不是果冻，粗枝的惯性必须看得出来。</p>
+<h2 id="五、叶片：47-871-片，与一张-512²-的叶子"><a href="#五、叶片：47-871-片，与一张-512²-的叶子" class="headerlink" title="五、叶片：47,871 片，与一张 512² 的叶子"></a>五、叶片：47,871 片，与一张 512² 的叶子</h2><p>叶片不是模型，是一张画出来的贴图加一块微微卷曲的平面。</p>
+<p>贴图 512²，用 Canvas 画。轮廓是一个扇形，张角 156°（θ 从 −1.36 到 1.36 弧度），半径 234 像素。顶部的缺口和波浪边各由一个函数控制：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> cleft = <span class="number">1</span> - <span class="number">0.18</span> * <span class="title class_">Math</span>.<span class="title function_">exp</span>(-<span class="title class_">Math</span>.<span class="title function_">pow</span>(theta / <span class="number">0.115</span>, <span class="number">2</span>));</span><br><span class="line"><span class="keyword">const</span> margin = <span class="number">1</span> + <span class="number">0.014</span> * <span class="title class_">Math</span>.<span class="title function_">sin</span>(theta * <span class="number">43</span> + <span class="number">0.8</span>)</span><br><span class="line">                 + <span class="number">0.008</span> * <span class="title class_">Math</span>.<span class="title function_">sin</span>(theta * <span class="number">97</span>);</span><br></pre></td></tr></table></figure>
+
+<p><code>cleft</code> 在 θ &#x3D; 0 附近压出一个高斯形的缺口，这就是银杏叶中间那道裂；<code>margin</code> 用 43 和 97 两个频率叠加，让边缘产生细碎的波浪。叶面上再画 27 条从叶柄向外放射的主脉，隔一条加一对次级脉；底色是一层从 <code>#e7c887</code> 到 <code>#fff3cf</code> 的径向渐变，叠 46 个随机色斑，最后压一圈边缘暗角，免得远景发白。</p>
+<p>叶片几何是 <code>PlaneGeometry(1, 1, 3, 3)</code>，9 个四边形、18 个三角面。每个顶点按下面的式子往 +Z 方向抬起：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> z = <span class="number">0.13</span> * (x * x * <span class="number">1.35</span> + (y + <span class="number">0.12</span>) * (y + <span class="number">0.12</span>) * <span class="number">0.55</span>);</span><br></pre></td></tr></table></figure>
+
+<p>叶面因此不是一张平板，而是沿横向和纵向都有一点卷曲。材质是 <code>MeshStandardMaterial</code> + <code>alphaTest 0.42</code> + <code>DoubleSide</code>，没有走透明排序。这一点很重要：47,871 片叶子如果按 <code>transparent</code> 渲染，需要逐片按深度排序，既慢又容易闪；<code>alphaTest</code> 直接把透明像素裁掉，剩下的像素走不透明路径，深度写入正常，阴影也正常。</p>
+<p>叶片挂在哪儿？<code>growBranch</code> 在生成二级及以下枝条时，把曲线推进 <code>leafAnchors</code>。之后 <code>scatterLeaves</code> 沿着每条曲线采样：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> z = <span class="title function_">random</span>() * <span class="number">2</span> - <span class="number">1</span>;</span><br><span class="line"><span class="keyword">const</span> theta = <span class="title function_">random</span>() * <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>;</span><br><span class="line"><span class="keyword">const</span> radius = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(<span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, <span class="number">1</span> - z * z));</span><br><span class="line">offsetDir.<span class="title function_">set</span>(<span class="title class_">Math</span>.<span class="title function_">cos</span>(theta) * radius, z, <span class="title class_">Math</span>.<span class="title function_">sin</span>(theta) * radius);</span><br></pre></td></tr></table></figure>
+
+<p>这是一个均匀的球面方向。每个采样点周围放 2 片叶，末端小枝有时放到 3 片；方向在「向外、向上、沿枝、随机球面」之间混合。这样叶簇是三维的，不是一排平行的纸片；从任何角度看，总有一部分叶面朝着镜头。</p>
+<p>数量是这样长出来的：</p>
+<ul>
+<li>二级枝每根采 4–5 个点，三级 9–12 个，末端 15–19 个；</li>
+<li>每个点放 2 片，末端小枝有 45% 的概率放 3 片；</li>
+<li>树冠上半部（采样中点 y &gt; 9.2）再乘 1.32，压住顶部过尖的轮廓；</li>
+<li>1,199 根带叶枝，平均每根约 40 片。</li>
+</ul>
+<p><code>config.js</code> 里写过 <code>targetCount: 29000</code>，但代码没有按它裁剪。最终 47,871 片是枝条结构的函数：枝条多、采样点多，叶子就多。<strong>叶片数量不是先定一个数再分配，而是先长枝条，再数叶子。</strong></p>
+<p>47,871 × 18 约等于 86 万三角面，全部装进一个 <code>InstancedMesh</code>。颜色用实例色写入，6 档调色板按权重取样：金黄 32%、浅黄 24%、琥珀 18%、橙黄 14%、暖金 8%、黄绿 4%，每片再乘 0.88–1.12 的随机明度。整棵树的叶片也只占一个 draw call。</p>
+<h2 id="六、树冠：密度是长出来的"><a href="#六、树冠：密度是长出来的" class="headerlink" title="六、树冠：密度是长出来的"></a>六、树冠：密度是长出来的</h2><p>场景里没有一个叫「树冠」的网格。<code>tree.js</code> 只创建两样东西：<code>branches</code> 和 <code>leaves</code>。所谓树冠，是 <code>leafAnchors</code> 上的采样点在空间里堆出来的形状。</p>
+<p>这带来三个直接结果。</p>
+<p><strong>第一，轮廓不规则。</strong> 树冠的边缘由末端小枝的位置决定，而末端小枝的位置由每一级的随机散开决定。没有一条曲线去「描」树冠的外轮廓，所以它不会是一个球，也不会是一个被噪声扰动过的球。</p>
+<p><strong>第二，密度不均匀。</strong> 末端小枝多的地方叶簇密，二级枝长的地方叶簇疏；上层额外加密 1.32 倍，下层因为枝条下垂而显得薄。这种不均匀是结构带来的，不是手摆的。</p>
+<p><strong>第三，内部有缝。</strong> 叶片挂在枝条周围，不是填满一个实体；<code>alphaTest</code> 又把叶片之间的空隙保留下来。所以从 19.5 米的环绕机位看过去，树冠内部能看到枝干，而不是一堵黄色的墙。提示词要求「树冠内部不能完全被叶片遮挡，需要能够从特定角度看到树枝结构」，实现方式是让树冠本来就有结构，而不是事后挖洞。</p>
+<p>微距镜头还有一个单独的处理。树冠东南缘有一根末端小枝，位置最接近 <code>(4.0, 9.2, 2.8)</code>；生成时在 879 根小枝的末段采样点里找离目标最近的一个，在它的 55%–100% 段上额外加密 120 片叶，缩放 0.82–1.32。最终选中的小枝点落在 <code>(3.226, 8.489, 2.496)</code>，微距机位的注视点就取这个值。</p>
+<p>所以镜四不是「把树冠放大」，而是<strong>在真实小枝上加密一小簇叶，再用 31° 的视场和 0.0085 的光圈去拍它</strong>。焦点有真实的叶子可对，背景也仍然是树冠，而不是空洞。</p>
+<p><img src="/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/orbit.jpg" alt="镜二：360° 环绕到树的西北侧"></p>
+<p><em>图 1：t &#x3D; 8.2 s，镜二。摄影机在半径 19.5 米、离地约 5.2 米的圆轨上，注视点固定在 7.18 米高；环绕用参数化圆轨而不是关键帧，树始终在画面中央。</em></p>
+<h2 id="七、光：只在逆光处点亮"><a href="#七、光：只在逆光处点亮" class="headerlink" title="七、光：只在逆光处点亮"></a>七、光：只在逆光处点亮</h2><p>提示词要求「秋日清晨或傍晚的暖色阳光」「阳光穿透金黄色树冠」「叶片边缘的暖色透光」，同时明确「避免过度泛黄、过曝和强烈的荧光效果」。</p>
+<p>太阳的方向是 <code>(−0.2, 0.34, −0.92)</code>，归一化后仰角约 19°–20°，位于树的西北侧。摄影机从南侧看树时，太阳在树后偏左——这是整个场景的主视觉：逆光、低阳、树冠是一团发亮的金色，树干是暗的。</p>
+<p>光照不是一盏灯。主光 3.0 强度，暖色 <code>#ffd7a0</code>；半球光 0.48；环境光 0.08；摄影机一侧的暖色补光 0.42；地面反弹光 0.68；轮廓光 0.48；树干特写时还有一盏摄影机侧柔光：影片里镜五开到 85，自由浏览的树干机位开到 80。主光投 2048² PCF 阴影，正交范围 ±12 米，覆盖整棵树和树根周围的地面。</p>
+<p>叶片透光不是给材质加一个 <code>emissive</code>，而是在片元着色器里算两个量：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> towardSun = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(<span class="built_in">normalize</span>(-vViewPosition), sunView), <span class="number">0.0</span>), <span class="number">3.0</span>);</span><br><span class="line"><span class="type">float</span> thinness = <span class="built_in">pow</span>(<span class="number">1.0</span> - <span class="built_in">abs</span>(<span class="built_in">dot</span>(<span class="built_in">normalize</span>(vNormal), <span class="built_in">normalize</span>(vViewPosition))), <span class="number">1.4</span>);</span><br><span class="line">totalEmissiveRadiance += uLeafGlow * towardSun * (<span class="number">0.38</span> + <span class="number">0.62</span> * thinness) * uTranslucency;</span><br></pre></td></tr></table></figure>
+
+<p><code>towardSun</code> 只在摄影机朝着太阳看时接近 1；<code>thinness</code> 在叶面接近侧对镜头时接近 1。两个量相乘，结果就是：<strong>只有逆光角度、只有叶片边缘，才会亮。</strong> 正面看树冠时，叶片仍然是正常的受光材质，不会被一层恒定的黄色荧光洗平。</p>
+<p>树冠背后还有 6 片加法混合的 Sprite，模拟阳光穿过枝叶后的散射。它们被树干和树冠真实遮挡，只在缝隙里露出来；透明度只有 0.018–0.03，随时间轻微脉动。这不是整屏的 god ray，而是几块被枝叶切碎的光。</p>
+<p>后处理链是 <code>RenderPass → BokehPass → UnrealBloom → Grade → SMAA → OutputPass</code>。Bloom 强度 0.2、半径 0.5、阈值 0.9；Grade 做一点高光偏暖、阴影偏青的分色，暗角 0.28，颗粒 0.006，饱和度 1.035，对比度 1.028。Tone mapping 是 ACES Filmic，曝光 0.95。整套参数都压得比较保守，目标是「暖」，不是「亮」。</p>
+<p><img src="/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/look-up.jpg" alt="镜三：低角度仰视，沿主干向上看向树冠"></p>
+<p><em>图 2：t &#x3D; 13.6 s，镜三中段。摄影机在树干东南侧，离地约 3 米，到注视点约 8 米；镜头从 1 米高抬到 4.5 米，注视点从 3.3 米抬到 12.8 米；视场 57° → 55°，用来强调树干的高度。</em></p>
+<h2 id="八、风与飘落：把动画交给绝对时间"><a href="#八、风与飘落：把动画交给绝对时间" class="headerlink" title="八、风与飘落：把动画交给绝对时间"></a>八、风与飘落：把动画交给绝对时间</h2><p>风动全部在顶点着色器里，CPU 每帧只更新一组 uniform。</p>
+<p>枝干的每个顶点带两个属性：<code>aSway</code>（摆动权重）和 <code>aPhase</code>（相位）。顶点着色器按层级做三个不同频率的正弦位移：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">vec3</span> branchSway = <span class="type">vec3</span>(</span><br><span class="line">  <span class="built_in">sin</span>(uTime * <span class="number">0.82</span> + aPhase * <span class="number">5.1</span> + position.y * <span class="number">0.18</span>),</span><br><span class="line">  <span class="number">0.32</span> * <span class="built_in">sin</span>(uTime * <span class="number">1.21</span> + aPhase * <span class="number">3.7</span>),</span><br><span class="line">  <span class="built_in">cos</span>(uTime * <span class="number">0.71</span> + aPhase * <span class="number">6.3</span>)</span><br><span class="line">);</span><br><span class="line">transformed += branchSway * aSway * uWind;</span><br></pre></td></tr></table></figure>
+
+<p>叶片的相位不单独存，直接从实例矩阵的平移分量里取：<code>dot(instanceMatrix[3].xyz, vec3(0.37, 0.11, 0.53))</code>。同一棵树上的叶片因此有各自的相位，不会整片一起抖。再叠一个 1.7 Hz 的 <code>flutter</code>，让叶子有一点高频的颤动。</p>
+<p>这里有一个容易漏的配套动作：<strong>改了顶点位置，还要改深度材质。</strong> 阴影是场景用 <code>MeshDepthMaterial</code> 再渲染一遍得到的；如果只给可见材质注入风动，阴影会停在静止姿态，风一吹，影子和树就分家了。代码里给枝干和叶片各写了一份 <code>customDepthMaterial</code>，注入同一套位移，阴影才会跟着动。</p>
+<p>飘落叶是另一套系统：34 片，不是粒子。每片叶子有固定的起点、下落时长（8.5–15 秒）、横向漂移（0.35–1.7 米）、摆动幅度、三轴翻转和落地位置。任意时刻的位置直接由绝对时间算出来：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> cycle = (time + leaf.<span class="property">offset</span>) % leaf.<span class="property">duration</span>;</span><br><span class="line"><span class="keyword">const</span> t = cycle / leaf.<span class="property">duration</span>;</span><br><span class="line"><span class="keyword">const</span> x = leaf.<span class="property">origin</span>.<span class="property">x</span> + leaf.<span class="property">driftX</span> * t + swayX;</span><br><span class="line"><span class="keyword">const</span> y = baseY + <span class="title class_">Math</span>.<span class="title function_">sin</span>(leaf.<span class="property">phase</span> + t * <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">9.3</span>) * <span class="number">0.13</span> * flutterEnvelope;</span><br></pre></td></tr></table></figure>
+
+<p>落地高度查询 <code>groundHeightAt(x, z)</code>，所以每片叶子都落在真正的地面上，不会悬空。约三分之一的叶子被强制放在树冠南侧，因为南侧是大多数镜头的取景方向，叶片更容易从镜头前经过。每片叶子在生命周期开头 5.5% 淡入、最后 6% 淡出，避免凭空出现或消失。</p>
+<p><strong>场景里没有「上一帧的位置」这种状态，只有 <code>t</code>。</strong> 这是后面能逐帧确定性导出的基础。</p>
+<p><img src="/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/macro-leaf.jpg" alt="镜四：树冠东南缘的叶片微距"></p>
+<p><em>图 3：t &#x3D; 18.4 s，镜四。摄影机在树冠东南缘约 3 米外，注视点是那簇额外加密的真实叶片；31° 视场、0.0085 光圈，背景是同一条枝上的叶簇。</em></p>
+<h2 id="九、镜头：30-秒，六个距离"><a href="#九、镜头：30-秒，六个距离" class="headerlink" title="九、镜头：30 秒，六个距离"></a>九、镜头：30 秒，六个距离</h2><p>影片时间线在 <code>src/filmTimeline.js</code> 里，是一个不碰 DOM 的纯函数模块。给定时间 <code>t</code>，它返回机位、注视点、FOV、景深参数和风力系数。播放器只负责把返回值写进相机和 Pass。</p>
+<p>六个镜头各 5 秒：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>镜头</th>
+<th>机位变化</th>
+<th>FOV</th>
+<th>光圈</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–5 s</td>
+<td>整体亮相</td>
+<td>z 24.0 → 20.3，y 2.35 → 2.96</td>
+<td>38 → 39.5</td>
+<td>0.0018</td>
+</tr>
+<tr>
+<td>5–11 s</td>
+<td>360° 环绕</td>
+<td>半径 19.5，高 5.15 ± 0.22</td>
+<td>42.5</td>
+<td>0.0016</td>
+</tr>
+<tr>
+<td>11–16 s</td>
+<td>低角度仰视</td>
+<td>(2.3, 1.0, 3.6) → (2.85, 4.5, 4.25)</td>
+<td>57 → 55</td>
+<td>0.0042</td>
+</tr>
+<tr>
+<td>16–21 s</td>
+<td>叶片微距</td>
+<td>(6.12, 8.02, 3.24) → (5.76, 7.78, 2.96)</td>
+<td>31 → 32</td>
+<td>0.0085</td>
+</tr>
+<tr>
+<td>21–25 s</td>
+<td>树干与枝条</td>
+<td>(1.72, 2.85, −2.68) → (2.12, 4.65, −3.05)</td>
+<td>44 → 43</td>
+<td>0.0042</td>
+</tr>
+<tr>
+<td>25–30 s</td>
+<td>完整收尾</td>
+<td>(4.2, 5.0, 6.6) → (0.18, 5.35, 23.4)</td>
+<td>41 → 38</td>
+<td>0.0018</td>
+</tr>
+</tbody></table>
+<p>提示词要求摄影机使用 <code>CatmullRomCurve3</code> 或等效曲线。镜一、三、四、五、六各有一组 Catmull-Rom 关键帧；镜二的环绕没有用关键帧，而是参数化圆轨：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> angle = <span class="variable constant_">ORBIT_START</span> + eased * <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>;</span><br><span class="line">outPosition.<span class="title function_">set</span>(</span><br><span class="line">  <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle) * <span class="variable constant_">ORBIT_RADIUS</span>,</span><br><span class="line">  <span class="variable constant_">ORBIT_HEIGHT</span> + <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle * <span class="number">2</span>) * <span class="number">0.22</span>,</span><br><span class="line">  <span class="title class_">Math</span>.<span class="title function_">cos</span>(angle) * <span class="variable constant_">ORBIT_RADIUS</span>,</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>半径 19.5 米，高度 5.15 米，叠一个两倍频的 ±0.22 米起伏，注视点固定在 <code>(0, 7.18, 0)</code>。角度用 <code>smoothstep</code> 缓动，6 秒正好一圈。因为半径和高度都是解析的，树不会在环绕中跑出画面，也不会出现关键帧插值的速度突变。</p>
+<p>切点前后各 0.22 秒的暖金色光晕遮罩，叠在 5、11、16、21、25 秒；片头 0.95 秒从黑场淡入；片尾题字在 27.6–28.9 秒淡入。镜头之间没有黑场，切点由光晕遮住。</p>
+<p>摄影机可以自由拖拽、缩放、平移，但不能穿过树。自由浏览时每帧都会做一次约束：</p>
+<ul>
+<li>高于地面 <code>heightAt(x, z) + 0.35</code>，且不低于 0.45 米；</li>
+<li>不能进入半径 1.05 米、高 9 米的树干圆柱；</li>
+<li>不能进入树冠核心椭球 4.05 × 4.35 × 4.05；</li>
+<li>与注视点至少保持 2.4 米。</li>
+</ul>
+<p>这套约束让摄影机可以贴着叶缘，但不能钻进树冠；可以仰视，但不会穿地。五个机位按钮（整体、仰视、树冠、叶片、树干）用 1.8 秒的 <code>easeInOutCubic</code> 飞行切换，叶片机位自动把光圈开到 0.012——这也是一处「交互与影片用同一棵树，但用独立的相机逻辑」的地方。</p>
+<p><img src="/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/bark.jpg" alt="镜五：树干与枝条细节"></p>
+<p><em>图 4：t &#x3D; 23.2 s，镜五。摄影机在树干北侧约 3.2 米、离地 2.85 米，到注视点约 3.6 米；注视点从 4.45 米抬到 6.35 米。这一镜打开摄影机侧的 85 强度柔光，用来照亮树皮裂纹与主枝连接处。</em></p>
+<h2 id="十、导出：1800-帧的账"><a href="#十、导出：1800-帧的账" class="headerlink" title="十、导出：1800 帧的账"></a>十、导出：1800 帧的账</h2><p>影片和网页共用一套时间线，但导出走的是另一条路径。</p>
+<p><code>?film=1&amp;capture=1</code> 下，页面停止实时循环，<code>window.__capture.renderAt(t)</code> 以固定的 1&#x2F;60 秒步长推进；<code>src/deterministic.js</code> 在捕获模式里把 <code>Math.random</code> 换成固定种子 <code>0x1a2b3c4d</code>。每一帧都重新渲染整棵树的几何、材质、阴影、景深和后处理，不是把静态截图拼起来。</p>
+<p>实测：</p>
+<ul>
+<li>1920×1080 JPEG（质量 95）逐帧截图，1800 帧；</li>
+<li>捕获耗时 157 秒，约 11.5 fps；</li>
+<li>无声成片 54.7 MiB，视频流 15.28 Mbps；</li>
+<li>编码 <code>libx264</code>，CRF 16，preset slow，High profile，Level 5.1，BT.709，<code>+faststart</code>；</li>
+<li>配乐从 HeyGen 曲库取 45 秒源曲的 11.0–41.0 秒，1.2 秒淡入、28.2 秒起 1.8 秒淡出，−1.48 dB 线性增益；</li>
+<li>封装时视频流复制、只加 AAC 192 kbps &#x2F; 48 kHz 立体声，成片 55.4 MiB，30.000 秒，1800 帧，−19.1 LUFS &#x2F; −2.1 dBTP。</li>
+</ul>
+<p>声画分离是很实际的一步：换配乐不用重渲染 1800 帧，只重跑一次封装。同理，确定性让「拖动时间轴」和「逐帧导出」看到的是同一条轨迹；截图脚本只需要渲染目标时刻，不必从头重放。</p>
+<p><img src="/2026/11/27/%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E3%80%8A%E4%B8%80%E6%A0%91%E9%8E%8F%E9%87%91%C2%B7%E7%A7%8B%E6%97%A5%E9%93%B6%E6%9D%8F%E6%A0%91%E3%80%8B/finale.jpg" alt="镜六：拉远回到完整树形，片尾题字淡入"></p>
+<p><em>图 5：t &#x3D; 28.6 s，镜六。摄影机从树冠东南侧拉远到 20 米外，注视点回到 7.1 米；片尾题字「一树鎏金 · 秋意正浓」正在淡入。</em></p>
+<h2 id="十一、校验：截图证明一帧，测试证明处处"><a href="#十一、校验：截图证明一帧，测试证明处处" class="headerlink" title="十一、校验：截图证明一帧，测试证明处处"></a>十一、校验：截图证明一帧，测试证明处处</h2><p>项目有两套自动检查。</p>
+<p><code>npm run verify:scene</code> 启动无头 Chrome，打开捕获模式，检查：</p>
+<ul>
+<li>浏览器没有 pageerror &#x2F; console error；</li>
+<li>WebGL 上下文没有丢；</li>
+<li>叶片数不少于 20,000；</li>
+<li>输出 6 张 1920×1080 检查帧和一份 <code>report.json</code>。</li>
+</ul>
+<p>当前报告（<code>deliverables/checks/report.json</code>）里的关键数字：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">leaves: 47871</span><br><span class="line">branches: 1223</span><br><span class="line">twigs: 879</span><br><span class="line">shadowMapSize: [2048, 2048]</span><br><span class="line">maxAnisotropy: 16</span><br><span class="line">contextLost: false</span><br><span class="line">geometries: 21</span><br><span class="line">textures: 32</span><br><span class="line">errors: []</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个读报告的坑：<code>renderer.info</code> 默认在每次 <code>renderer.render</code> 开始时重置，而后期链的每个 Pass 都会 <code>render</code> 一次；报告里的 <code>render.calls: 1</code>、<code>triangles: 1</code> 是最后那个全屏 Pass，不是场景的批次。要数场景 draw call，得在 <code>RenderPass</code> 之后读，或者直接按对象数——整棵树是 2 个：枝干 1 个、叶片 1 个（InstancedMesh）。</p>
+<p><code>npm run test:interactions</code> 检查交互状态：自动演示是否启动、机位切换是否生效、微距机位的光圈是否大于 0.005、播放&#x2F;重置是否回到正确模式、自动环绕是否打开、飘叶开关是否同时改 <code>enabled</code> 和 <code>visible</code>、<code>?film=1</code> 的 HUD 是否隐藏、捕获模式是否移除 HUD 和返回链接。这些全部通过。</p>
+<p>两套脚本的输出末尾分别是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OK: scene rendered without browser errors</span><br><span class="line">OK: interactions passed</span><br></pre></td></tr></table></figure>
+
+<p>能自动验的是数量、上下文、状态和模式；不能验的是「这棵树看起来像不像银杏」。<strong>截图能证明某一帧成立，测试能证明所有帧都不崩；「好不好看」仍然要人眼看。</strong></p>
+<h2 id="十二、最终数字与边界"><a href="#十二、最终数字与边界" class="headerlink" title="十二、最终数字与边界"></a>十二、最终数字与边界</h2><table>
+<thead>
+<tr>
+<th>项</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>树</td>
+<td>设计高度 14.2 米；实际最高叶 13.86 米；主干顶约 8.6 米；树冠包围盒 11.68 × 11.44 × 10.86 米</td>
+</tr>
+<tr>
+<td>枝干</td>
+<td>1,223 段；16 根一级；64 根二级；256 根三级；879 根末端小枝</td>
+</tr>
+<tr>
+<td>叶片</td>
+<td>47,871 片 &#x2F; 1 个 InstancedMesh；基准 0.27 米，缩放 0.62–1.24</td>
+</tr>
+<tr>
+<td>贴图</td>
+<td>树皮 1024² × 3；叶片 512²；地面 512²；落叶毯 1024²；环境 1024×512</td>
+</tr>
+<tr>
+<td>地面</td>
+<td>260 米 &#x2F; 168² 网格；2,000 株草；1,400 片散落叶；1,700 片落叶毯</td>
+</tr>
+<tr>
+<td>飘落</td>
+<td>34 片，8.5–15 秒解析轨迹</td>
+</tr>
+<tr>
+<td>光照</td>
+<td>主光 + 半球 + 环境 + 补光 + 反弹 + 轮廓 + 特写；阴影 2048² &#x2F; ±12 米</td>
+</tr>
+<tr>
+<td>后期</td>
+<td>Bokeh → Bloom → Grade → SMAA → Output；ACES 0.95</td>
+</tr>
+<tr>
+<td>影片</td>
+<td>30.000 秒 &#x2F; 60 fps &#x2F; 1800 帧 &#x2F; 1920×1080 &#x2F; H.264 High 15.28 Mbps</td>
+</tr>
+<tr>
+<td>文件</td>
+<td>无声 54.7 MiB；带配乐 55.4 MiB；AAC 192 kbps</td>
+</tr>
+<tr>
+<td>配乐</td>
+<td>HeyGen track <code>89d7b95c…</code>，源 45 秒，取 11–41 秒，−19.1 LUFS &#x2F; −2.1 dBTP</td>
+</tr>
+</tbody></table>
+<p>已知的边界也列在这里：</p>
+<ul>
+<li><strong>没有独立的 AO Pass。</strong> 提示词要求「适度 Bloom 和 Ambient Occlusion」，实现里只有阴影、环境贴图、顶点色和补光，没有 SSAO&#x2F;GTAO。树冠内部和根盘缝隙的暗部主要靠阴影与材质粗糙度撑住。</li>
+<li><strong>叶片是双面贴图卡片，不是有厚度的几何。</strong> 微距看到的是 512² 贴图上的叶脉和渐变，不是叶肉和厚度。加密叶簇能让焦点有内容，但近到一定程度仍会露出「卡片」的本质。</li>
+<li><strong>树皮是 2D 贴图 + bump + 径向调制。</strong> 裂纹没有真实的几何深度，贴近到 0.5 米以内时，凹凸感主要来自 bump 和特写柔光。</li>
+<li><strong>树冠内部是「枝条 + 球形叶簇」的采样结果。</strong> 某些角度会显得空，19.5 米的环绕机位是挑过的；更靠近树冠的视角需要靠 <code>alphaTest</code> 留下的缝隙和内部枝条来维持结构感。</li>
+<li><strong>风是顶点偏移，幅度压在 0.15 米以内。</strong> 再大，枝干接缝会露出来；这也是为什么主干和一级主枝的 <code>aSway</code> 接近 0。</li>
+<li><strong>阴影 2048² 覆盖 24 米，约 1.17 厘米&#x2F;texel。</strong> 近景树皮细节靠特写补光，不靠阴影图。</li>
+<li><strong>镜头级风力还没接上。</strong> <code>FILM_SHOTS</code> 里给每个镜头写了 0.92–1.18 的风力系数，但 <code>world.update</code> 目前只把时间传给树的 uniform；实际风强是全局 <code>WIND.strength</code> 加一条低频 gust。这份数据是给后续镜头级风力预留的。</li>
+<li><strong>交互流畅度没有量化。</strong> 验证脚本只检查交互状态，不测帧率；能确认的是 1800 帧全部落盘，捕获过程中每 120 帧检查一次 WebGL 上下文与页面错误。</li>
+</ul>
+<h2 id="十三、复现"><a href="#十三、复现" class="headerlink" title="十三、复现"></a>十三、复现</h2><p>环境要求 Node.js ≥ 20.19 和支持 WebGL 2 的桌面浏览器。项目只有 <code>three@0.186.0</code> 一个运行时依赖。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> material/一树鎏金·秋日银杏树</span><br><span class="line"></span><br><span class="line">npm install</span><br><span class="line">npm run dev        <span class="comment"># http://localhost:5173</span></span><br><span class="line">npm run build      <span class="comment"># 产物输出到 dist/，base 为 &quot;./&quot;</span></span><br><span class="line">npm run preview</span><br></pre></td></tr></table></figure>
+
+<p>交互：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>拖拽 &#x2F; 滚轮 &#x2F; 右键拖拽</td>
+<td>旋转、缩放、平移；首次操作暂停影片并进入自由浏览</td>
+</tr>
+<tr>
+<td><code>1</code>–<code>5</code></td>
+<td>整体 &#x2F; 仰视 &#x2F; 树冠 &#x2F; 叶片 &#x2F; 树干</td>
+</tr>
+<tr>
+<td><code>Space</code></td>
+<td>暂停或继续自动演示；自由浏览时回到演示</td>
+</tr>
+<tr>
+<td><code>R</code></td>
+<td>回到整体视角</td>
+</tr>
+<tr>
+<td><code>A</code></td>
+<td>自动 360° 环绕</td>
+</tr>
+<tr>
+<td>底部时间轴</td>
+<td>拖动到影片任意时刻</td>
+</tr>
+<tr>
+<td>飘落银杏 &#x2F; 片尾题字</td>
+<td>独立开关</td>
+</tr>
+</tbody></table>
+<p>导出 1080p 成片（终端 1 保持开发服务器，终端 2 执行其余命令）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端 1</span></span><br><span class="line">npm run dev -- --port 5188 --strictPort</span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端 2</span></span><br><span class="line">npm run verify:scene</span><br><span class="line">npm run <span class="built_in">test</span>:interactions</span><br><span class="line"></span><br><span class="line">npm run <span class="built_in">export</span>:film -- --frames deliverables/frames --width 1920 --height 1080</span><br><span class="line">npm run encode:film -- --frames deliverables/frames \</span><br><span class="line">  --out deliverables/yishu-liujin-1080p60-silent.mp4</span><br><span class="line"></span><br><span class="line">npm run score:heygen</span><br><span class="line">npm run mux:score</span><br><span class="line"></span><br><span class="line">npm run stills:film -- --out deliverables/previews</span><br></pre></td></tr></table></figure>
+
+<p><code>score:heygen</code> 需要 HeyGen 源曲缓存在 <code>.media/audio/bgm/bgm_001.wav</code>；该目录被 <code>.gitignore</code> 忽略，源曲不随仓库分发。没有源曲时，前两步仍可导出无声成片。</p>
+<p>源码在 <a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a> 的 <code>material/一树鎏金·秋日银杏树/</code>。</p>
+<h2 id="结语：先搭好那把尺子"><a href="#结语：先搭好那把尺子" class="headerlink" title="结语：先搭好那把尺子"></a>结语：先搭好那把尺子</h2><p>这棵树最容易被误解的地方，是把它当成一个「建模任务」。实际上，真正被反复调整的不是某一片叶子，而是尺度之间的关系：主干多粗、一级主枝多长、子枝散多开、末梢挂多少叶、贴图在最近的镜头里要撑到多少像素。</p>
+<p>这棵树没有一条像 <code>heightAt(x, z)</code> 那样的全局高度函数。它的世界真值是<strong>枝条曲线</strong>：叶片的位置、朝向、风的相位、微距镜头的焦点，全部从这条曲线推导出来。改一根枝，叶片跟着动；改一片叶，树冠跟着变。树冠没有自己的几何，它是枝条的第二产物。</p>
+<p>提示词的角色也一样。它最值钱的不是把「秋意」写得多浓，而是把「不要」写成了结构：不要圆柱加球，不要球形树冠，不要均匀发光的黄球。每一条「不要」都在逼实现去建立一个更底层的机制。</p>
+<p>下次让模型画一棵树，先别急着加叶子。先问自己：这棵树要在几个距离上被看？每个距离由哪一级尺度回答？主干、主枝、末梢、叶片、贴图，哪一级是多余的？</p>
+<p>把这把尺子写进第一节。</p>
+<h2 id="引用与致谢"><a href="#引用与致谢" class="headerlink" title="引用与致谢"></a>引用与致谢</h2><ul>
+<li><strong>提示词</strong>：<a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a> 的 <code>prompt/一树鎏金·秋日银杏树.md</code>。</li>
+<li><strong>threejs-skills</strong>：<a target="_blank" rel="noopener" href="https://github.com/cloudai-x/threejs-skills"><code>cloudai-x/threejs-skills</code></a>，按主题拆分的 Three.js skill，对齐 three.js r186。</li>
+<li><strong>Three.js</strong>：MIT 许可，项目使用 <code>three@0.186.0</code>。</li>
+<li><strong>场景源码与截图</strong>：<a target="_blank" rel="noopener" href="https://github.com/open-wuxu/unreal-factory"><code>open-wuxu/unreal-factory</code></a>，<code>material/一树鎏金·秋日银杏树/</code>。文中五张插图与封面均来自该项目的 <code>deliverables/previews/</code>（渲染为 1920×1080，文中压到 1600×900）。</li>
+<li><strong>配乐</strong>：HeyGen 曲库 track <code>89d7b95ce80f49ee9d1ecd27f23f5629</code>，OAuth 授权；选段、淡入淡出、母带参数见项目 <code>docs/heygen-score.md</code>，源曲不随仓库分发。</li>
+<li><strong>模型与 harness</strong>：DeepSeek-flash4.1 在 Claude Code 中运行。</li>
+<li><strong>资源说明</strong>：所有几何、贴图、环境贴图、天空、地面、植被与飘落叶均由源码程序化生成，未使用外部模型、图片或音频采样；成片配乐是 HeyGen 曲库的授权曲目，不属于程序化生成部分。</li>
+</ul>
+<hr>
+<p>感谢阅读。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -2449,98 +3007,6 @@
 <p>于是我对于要往线上环境上传的工程使用了 npm install —production 命令，这时文件大小缩小为 11M ，然后再压缩以后，最终仅仅剩下了 5M 。</p>
 <h3 id="发布"><a href="#发布" class="headerlink" title="发布"></a>发布</h3><p>当整个工程开发完毕，作为一个独立包待发布时，同样需要注意！如果不对 dependencies 和 devDependencies 加以区分，将开发&#x2F;测试依赖写在生产依赖下，会导致调用该 npm 包的用户下载很多与其无关的包，从而造成不必要的资源浪费。</p>
 <h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><p><a target="_blank" rel="noopener" href="https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file">Specifying dependencies and devDependencies in a package.json file |                 npm Documentation</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/csdn_yudong/article/details/83721870">npm install 你很明白吗 - NeverYu - CSDN博客</a></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://crazyf-wind.github.io/2019/11/01/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%9C%A8github%E4%B8%8A%E6%8F%90%E4%BA%A4issue%E7%9A%84%E7%BB%8F%E5%8E%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="fwind">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fwind's blog">
-      <meta itemprop="description" content="code">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | fwind's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/11/01/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%9C%A8github%E4%B8%8A%E6%8F%90%E4%BA%A4issue%E7%9A%84%E7%BB%8F%E5%8E%86/" class="post-title-link" itemprop="url">记一次在 github 上提交 issue 的经历</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-11-01 16:33:37" itemprop="dateCreated datePublished" datetime="2019-11-01T16:33:37+08:00">2019-11-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-25 11:05:32" itemprop="dateModified" datetime="2025-02-25T11:05:32+08:00">2025-02-25</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><img src="/2019/11/01/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%9C%A8github%E4%B8%8A%E6%8F%90%E4%BA%A4issue%E7%9A%84%E7%BB%8F%E5%8E%86/pixelperfektion-Gnf4gANJvko-unsplash.jpg"></p>
-<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在一次使用 vs code 时，发现一个 bug ：使用中文路径 split terminal （终端分屏）时会报异常并且失败，英文路径是ok的。</p>
-<h2 id="经过"><a href="#经过" class="headerlink" title="经过"></a>经过</h2><h3 id="确认-bug"><a href="#确认-bug" class="headerlink" title="确认 bug"></a>确认 bug</h3><p>然后我在不同场景下试图复现这个 bug ：</p>
-<ol>
-<li>使用 vs code 新建一个工程，然后新建中文目录， bug 会 100% 复现；</li>
-<li>在 vs code 中选择不同 shell ， bash 和 zsh ， bug 仍旧 100% 复现；</li>
-<li>因为vs code的终端是基于本地系统的，所以我在本地终端中，新建中文文件，然后基于该路径，使用终端软件自带分屏功能进行分屏，并没有出现 bug ，排除终端问题。</li>
-</ol>
-<h3 id="提交-bug"><a href="#提交-bug" class="headerlink" title="提交 bug"></a>提交 bug</h3><p>目前来看，这个应该是 vs code 的一个 bug，实锤了。因此我决定将这个 bug反馈给 vs code 的工作人员。</p>
-<p>之前在使用 vs code 时，无意中发现右下角有个笑脸，是用来接收反馈信息的，于是乎我现在选择触发它。</p>
-<p>触发以后，点击“提交 bug ”，会弹出一个界面，用于填写bug内容，这里需要使用英文编辑（如果是中文提问，工程师会告诉你他不会中文，并无情地关闭 issue ）。然后点击“在 github 预览”会跳转到 github 下（需要登录），此时如果不需要编辑，直接 submit issue 就好。</p>
-<h3 id="来自工程师的响应"><a href="#来自工程师的响应" class="headerlink" title="来自工程师的响应"></a>来自工程师的响应</h3><p>在提交完 issue 以后的第二天早上，我收到了来自 vs code 工作人员的回复，一位来自澳大利亚的软件工程师，他告诉我提交该类型的 issue ，还需要提供一下我的 vs code 版本信息，最好还有 bug 复现的视频、动图或者截屏。</p>
-<p>得到对方的及时回复（毕竟有时差），我还是有点小激动的。然后按照对方提示，我认真的准备了 vs code 版本信息和 bug 复现动图，并再一次提交。</p>
-<p>这一次，在当天晚上我就得到了回复，对方提供了解决方案，修改 setting 配置，在分屏时自动返回到 vs code 工程的父路径。这样配置以后，中文路径分屏确实不报异常了，但是却修改了我原本的使用习惯。于是乎，我把这个情况再一次反馈回去。</p>
-<p>这位来自澳大利亚的帅气工程师，这次是这么回复的：你提的问题我们后续会修复，之前告诉你的也只是当前的解决方案。简洁并且直爽，人家之所以给你提之前的方案，并不是说 bug 不存在，只是另一个解决方式，bug我们还是会改，但是你得等待。</p>
-<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>到此为止，我认为我的目的达到了，于是乎就把这个issue关了。但是没过多久，这个工程却重新打开了 issue 。我没有再追问，我推测在 bug 修复之前， issue 应该是不会关闭，具体是不是这个澳洲小伙修复就不得而知了。</p>
-<p>关于这次issue的整个过程，在 github 上完成过程，感兴趣的同学可以自行查阅。（<a target="_blank" rel="noopener" href="https://github.com/microsoft/vscode/issues/83496">terminal.integrataed.splitCwd inherited doesn’t work correctly for unicode characters · Issue #83496 · microsoft&#x2F;vscode · GitHub</a>）</p>
 
       
     </div>
